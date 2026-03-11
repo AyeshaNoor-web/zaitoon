@@ -1,23 +1,31 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import { sendOTP, verifyOTP } from '@/lib/auth/phoneAuth'
+import { persist, createJSONStorage } from 'zustand/middleware'
+
+interface Customer {
+  id:            string
+  phone:         string
+  name:          string
+  loyaltyPoints: number
+  tier:          'bronze' | 'silver' | 'gold' | 'platinum'
+  referralCode:  string
+  totalOrders:   number
+}
 
 interface AuthStore {
-  customer: {
-    id: string; phone: string; name: string
-    loyaltyPoints: number; tier: string
-    referralCode: string
-    totalOrders: number
-    totalSpent: number
-  } | null
+  customer:        Customer | null
   isAuthenticated: boolean
-  isLoading: boolean
 
-  sendOTP:   (phone: string) => Promise<void>
-  verifyOTP: (code: string, name?: string) => Promise<void>
-  signOut:   () => void
-  updateProfile: (name: string) => Promise<void>
-  refreshCustomer: () => Promise<void>
+  // Called at checkout Step 1 on phone blur
+  lookupOrCreateCustomer: (phone: string, name: string) => Promise<Customer>
+
+  // Called after order is placed successfully
+  refreshCustomer: (phone: string) => Promise<void>
+
+  // Called from account page or sign out button
+  signOut: () => void
+
+  // Update name locally after profile edit
+  updateName: (name: string) => void
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -25,87 +33,75 @@ export const useAuthStore = create<AuthStore>()(
     (set, get) => ({
       customer:        null,
       isAuthenticated: false,
-      isLoading:       false,
 
-      sendOTP: async (phone) => {
-        set({ isLoading: true })
-        try {
-          await sendOTP(phone)
-        } finally {
-          set({ isLoading: false })
-        }
-      },
+      lookupOrCreateCustomer: async (phone, name) => {
+        // Format phone to +92 format
+        const formatted = phone
+          .replace(/\s/g, '')
+          .replace(/^0/, '+92')
+          .replace(/^\+?92/, '+92')
 
-      verifyOTP: async (code, name) => {
-        set({ isLoading: true })
-        try {
-          const idToken = await verifyOTP(code)
-          const res = await fetch('/api/auth/verify-phone', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ idToken, name }),
-          })
-          const { customer } = await res.json()
-          set({
-            customer: {
-              id:            customer.id,
-              phone:         customer.phone,
-              name:          customer.name,
-              loyaltyPoints: customer.loyalty_points,
-              tier:          customer.tier,
-              referralCode:  customer.referral_code,
-              totalOrders:   customer.total_orders || 0,
-              totalSpent:    customer.total_spent || 0,
-            },
-            isAuthenticated: true,
-          })
-        } finally {
-          set({ isLoading: false })
-        }
-      },
-
-      signOut: () => {
-        set({ customer: null, isAuthenticated: false })
-      },
-
-      updateProfile: async (name) => {
-        const customer = get().customer
-        if (!customer) return
-        await fetch('/api/auth/update-profile', {
-          method: 'POST',
+        const res = await fetch('/api/auth/lookup-customer', {
+          method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ customerId: customer.id, name }),
+          body:    JSON.stringify({ phone: formatted, name }),
         })
+
+        if (!res.ok) throw new Error('Failed to lookup customer')
+        const { customer } = await res.json()
+
+        const mapped: Customer = {
+          id:            customer.id,
+          phone:         customer.phone,
+          name:          customer.name,
+          loyaltyPoints: customer.loyalty_points,
+          tier:          customer.tier,
+          referralCode:  customer.referral_code,
+          totalOrders:   customer.total_orders,
+        }
+
+        set({ customer: mapped, isAuthenticated: true })
+        return mapped
+      },
+
+      refreshCustomer: async (phone) => {
+        const formatted = phone
+          .replace(/\s/g, '')
+          .replace(/^0/, '+92')
+          .replace(/^\+?92/, '+92')
+
+        const res = await fetch('/api/auth/lookup-customer', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ phone: formatted, name: '' }),
+        })
+
+        if (!res.ok) return
+        const { customer } = await res.json()
+
         set(state => ({
-          customer: state.customer ? { ...state.customer, name } : null
+          customer: state.customer ? {
+            ...state.customer,
+            loyaltyPoints: customer.loyalty_points,
+            tier:          customer.tier,
+            totalOrders:   customer.total_orders,
+          } : null
         }))
       },
 
-      refreshCustomer: async () => {
-        const customer = get().customer
-        if (!customer) return
-        try {
-          const res = await fetch(`/api/auth/me?phone=${encodeURIComponent(customer.phone)}`)
-          if (res.ok) {
-            const data = await res.json()
-            if (data.customer) {
-              set({
-                customer: {
-                  id: data.customer.id,
-                  phone: data.customer.phone,
-                  name: data.customer.name,
-                  loyaltyPoints: data.customer.loyalty_points,
-                  tier: data.customer.tier,
-                  referralCode: data.customer.referral_code,
-                  totalOrders: data.customer.total_orders || 0,
-                  totalSpent: data.customer.total_spent || 0,
-                }
-              })
-            }
-          }
-        } catch {}
-      },
+      signOut: () => set({ customer: null, isAuthenticated: false }),
+
+      updateName: (name) => set(state => ({
+        customer: state.customer ? { ...state.customer, name } : null
+      })),
     }),
-    { name: 'zaitoon-auth' }
+    {
+      name:    'zaitoon-customer',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        customer:        state.customer,
+        isAuthenticated: state.isAuthenticated,
+      }),
+    }
   )
 )

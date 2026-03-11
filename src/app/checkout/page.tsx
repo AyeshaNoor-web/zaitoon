@@ -30,7 +30,6 @@ import {
     tierBadge,
 } from '@/lib/utils/loyalty'
 import { useAuthStore } from '@/store/useAuthStore'
-import PhoneAuthModal from '@/components/auth/PhoneAuthModal'
 import LocationModal from '@/components/LocationModal'
 import { toast } from 'sonner'
 import { useLanguageStore } from '@/store/useLanguageStore'
@@ -113,15 +112,20 @@ export default function CheckoutPage() {
     const [customerPhone, setCustomerPhone] = useState('')
     const [availablePoints, setAvailablePoints] = useState(0)
     const [customerTier, setCustomerTier] = useState('bronze')
+    const [isReturning, setIsReturning] = useState(false)
+    const [lookingUp, setLookingUp] = useState(false)
+    const { lookupOrCreateCustomer, refreshCustomer } = useAuthStore()
 
+    // Pre-fill from stored session
     useEffect(() => {
-        if (isAuthenticated && customer) {
+        if (customer) {
             setCustomerName(customer.name || '')
-            setCustomerPhone(customer.phone || '')
+            setCustomerPhone(customer.phone ? customer.phone.replace('+92', '0') : '')
             setAvailablePoints(customer.loyaltyPoints || 0)
             setCustomerTier(customer.tier || 'bronze')
+            if (customer.totalOrders > 0) setIsReturning(true)
         }
-    }, [isAuthenticated, customer])
+    }, [customer])
 
     // ── Step 1 – Delivery ─────────────────────────────────────
     const [branches, setBranches] = useState<any[]>([])
@@ -222,18 +226,30 @@ export default function CheckoutPage() {
     }
 
     // Phone blur → look up returning customer
-    const handlePhoneBlur = useCallback(async () => {
+    const handlePhoneBlur = async () => {
         const digits = customerPhone.replace(/\D/g, '')
         if (digits.length < 10) return
+
+        setLookingUp(true)
         try {
-            const cust = await getCustomerByPhone(normalisePhone(customerPhone))
-            if (cust) {
-                if (!customerName) setCustomerName(cust.name || '')
-                setAvailablePoints(cust.loyalty_points || 0)
-                setCustomerTier(cust.tier || 'bronze')
+            // Note: pass customerName if it exists, otherwise it defaults to 'Customer' in API
+            const found = await lookupOrCreateCustomer(customerPhone, customerName)
+
+            if (found.totalOrders > 0) {
+                // Returning customer
+                setIsReturning(true)
+                setCustomerName(found.name)  // auto-fill name
+                setAvailablePoints(found.loyaltyPoints)
+                setCustomerTier(found.tier)
+            } else {
+                setIsReturning(false)
             }
-        } catch { /* new customer — silently ignore */ }
-    }, [customerPhone, customerName])
+        } catch (err) {
+            console.error('Lookup failed:', err)
+        } finally {
+            setLookingUp(false)
+        }
+    }
 
     // ── Step 2 – Payment ──────────────────────────────────────
     const [payMethod, setPayMethod] = useState<'jazzcash' | 'cod'>('cod')
@@ -352,6 +368,9 @@ export default function CheckoutPage() {
             // 7. Show success step
             setStep(4)
 
+            // 7.5 Refresh customer data (points, orders)
+            await refreshCustomer(customerPhone)
+
             // 8. Open WhatsApp via anchor element (works on all browsers/mobile)
             //    Slight delay so success screen renders first
             setTimeout(() => {
@@ -419,20 +438,61 @@ export default function CheckoutPage() {
                             {t.contactDetails}
                         </legend>
 
-                        {!isAuthenticated && (
-                            <div className="bg-[var(--cream)] rounded-xl p-4 border border-[var(--linen)] flex flex-col sm:flex-row items-center justify-between gap-3">
-                                <p className="font-semibold text-[14px] text-[var(--charcoal)]">
-                                    {t.signInToEarn}
-                                </p>
-                                <button
-                                    type="button"
-                                    onClick={() => setAuthModalOpen(true)}
-                                    className="btn-secondary whitespace-nowrap text-[13px] py-2 px-5 shrink-0"
-                                >
-                                    {t.signIn}
-                                </button>
+                        <div>
+                            <label htmlFor="chk-phone" className={`block text-[13px] font-[600] text-[var(--charcoal)] mb-1.5 ${isRTL ? 'text-right' : ''}`}>
+                                {t.phoneNumber} <span className="text-red-500">*</span>
+                            </label>
+                            <div className="relative">
+                                <input
+                                    id="chk-phone" type="tel" autoComplete="tel"
+                                    value={customerPhone} onChange={e => setCustomerPhone(e.target.value)}
+                                    onBlur={handlePhoneBlur}
+                                    placeholder="03XX-XXXXXXX"
+                                    className={`w-full bg-white border-[2px] rounded-[4px] px-4 py-3 text-[15px] text-[var(--charcoal)] focus:outline-none transition-all
+                                        ${phoneError(customerPhone)
+                                            ? 'border-red-400 focus:border-red-500 focus:shadow-[0_0_0_3px_rgba(239,68,68,0.15)]'
+                                            : isValidPakistaniPhone(customerPhone)
+                                                ? 'border-green-500 focus:border-green-600'
+                                                : 'border-[var(--linen)] focus:border-[var(--olive-base)] focus:shadow-[0_0_0_3px_rgba(85,107,47,0.15)]'}`}
+                                />
+                                {lookingUp && (
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                                        <div className="w-4 h-4 border-2 border-[var(--olive-base)] border-t-transparent rounded-full animate-spin" />
+                                        <span className="text-[11px] text-[var(--stone)]">Looking up...</span>
+                                    </div>
+                                )}
                             </div>
-                        )}
+                            {phoneError(customerPhone) && (
+                                <p role="alert" className="text-[12px] text-red-600 mt-1 flex items-center gap-1">
+                                    ⚠ {phoneError(customerPhone)}
+                                </p>
+                            )}
+                            {isValidPakistaniPhone(customerPhone) && !lookingUp && (
+                                <p className="text-[12px] text-green-600 mt-1">✓ Valid number</p>
+                            )}
+                        </div>
+
+                        {/* Returning customer welcome message */}
+                        <AnimatePresence>
+                            {isReturning && customer && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    className="bg-[#1C2416] border border-[#3D5226] rounded-xl p-4 flex items-center gap-4"
+                                >
+                                    <span className="text-2xl">👋</span>
+                                    <div>
+                                        <p style={{ color: '#FCD34D' }} className="font-display text-[16px] font-[600] m-0">
+                                            Welcome back, {customer.name}!
+                                        </p>
+                                        <p className="text-white/60 text-[13px] m-0 mt-0.5">
+                                            ⭐ {customer.loyaltyPoints} points · {customer.tier.charAt(0).toUpperCase() + customer.tier.slice(1)} member
+                                        </p>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         <div>
                             <label htmlFor="chk-name" className={`block text-[13px] font-[600] text-[var(--charcoal)] mb-1.5 ${isRTL ? 'text-right' : ''}`}>
@@ -441,37 +501,12 @@ export default function CheckoutPage() {
                             <input
                                 id="chk-name" type="text" autoComplete="name"
                                 value={customerName} onChange={e => setCustomerName(e.target.value)}
-                                disabled={isAuthenticated}
                                 placeholder="e.g. Ahmed Ali"
-                                className={`w-full bg-white border-[2px] border-[var(--linen)] rounded-[4px] px-4 py-3 text-[15px] text-[var(--charcoal)] focus:outline-none focus:border-[var(--olive-base)] focus:shadow-[0_0_0_3px_rgba(85,107,47,0.15)] transition-all ${isAuthenticated ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                style={{ backgroundColor: isReturning ? '#F5F5F5' : 'white' }}
+                                className={`w-full bg-white border-[2px] border-[var(--linen)] rounded-[4px] px-4 py-3 text-[15px] text-[var(--charcoal)] focus:outline-none focus:border-[var(--olive-base)] focus:shadow-[0_0_0_3px_rgba(85,107,47,0.15)] transition-all`}
                             />
-                        </div>
-
-                        <div>
-                            <label htmlFor="chk-phone" className={`block text-[13px] font-[600] text-[var(--charcoal)] mb-1.5 ${isRTL ? 'text-right' : ''}`}>
-                                {t.phoneNumber} <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                id="chk-phone" type="tel" autoComplete="tel"
-                                value={customerPhone} onChange={e => setCustomerPhone(e.target.value)}
-                                onBlur={handlePhoneBlur}
-                                disabled={isAuthenticated}
-                                placeholder="03XX-XXXXXXX"
-                                className={`w-full bg-white border-[2px] rounded-[4px] px-4 py-3 text-[15px] text-[var(--charcoal)] focus:outline-none transition-all
-                                    ${isAuthenticated ? 'opacity-60 cursor-not-allowed border-[var(--linen)]'
-                                        : phoneError(customerPhone)
-                                            ? 'border-red-400 focus:border-red-500 focus:shadow-[0_0_0_3px_rgba(239,68,68,0.15)]'
-                                            : isValidPakistaniPhone(customerPhone)
-                                                ? 'border-green-500 focus:border-green-600'
-                                                : 'border-[var(--linen)] focus:border-[var(--olive-base)] focus:shadow-[0_0_0_3px_rgba(85,107,47,0.15)]'}`}
-                            />
-                            {phoneError(customerPhone) && (
-                                <p role="alert" className="text-[12px] text-red-600 mt-1 flex items-center gap-1">
-                                    ⚠ {phoneError(customerPhone)}
-                                </p>
-                            )}
-                            {isValidPakistaniPhone(customerPhone) && (
-                                <p className="text-[12px] text-green-600 mt-1">✓ Valid number</p>
+                            {isReturning && (
+                                <p className="text-[11px] text-[var(--stone)] mt-1">✓ Auto-filled from your last order</p>
                             )}
                         </div>
 
@@ -969,7 +1004,6 @@ export default function CheckoutPage() {
                 </form>
             </main>
 
-            <PhoneAuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
 
             {/* Location modal — forceOpen makes it non-dismissible until location is set for delivery */}
             {locationModalOpen && (

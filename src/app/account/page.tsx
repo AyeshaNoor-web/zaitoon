@@ -15,7 +15,7 @@ const supabase = createClient()
 
 export default function AccountPage() {
     const router = useRouter()
-    const { customer, isAuthenticated, updateProfile, refreshCustomer, signOut } = useAuthStore()
+    const { customer, isAuthenticated, updateName, refreshCustomer, signOut } = useAuthStore()
     const [activeTab, setActiveTab] = useState<'orders' | 'loyalty' | 'profile'>('orders')
 
     const [orders, setOrders] = useState<any[]>([])
@@ -26,15 +26,13 @@ export default function AccountPage() {
     const [saveSuccess, setSaveSuccess] = useState(false)
 
     useEffect(() => {
-        if (!isAuthenticated) {
-            router.push('/')
-        } else {
-            refreshCustomer()
-            if (customer) {
-                setEditName(customer.name)
-            }
+        if (!isAuthenticated || !customer) {
+            router.replace('/menu')
+            return
         }
-    }, [isAuthenticated, router])
+        refreshCustomer(customer.phone)
+        setEditName(customer.name)
+    }, [isAuthenticated, router, customer?.phone])
 
     useEffect(() => {
         if (customer && customer.id) {
@@ -65,7 +63,7 @@ export default function AccountPage() {
     const handleSaveProfile = async (e: React.FormEvent) => {
         e.preventDefault()
         setSavingProfile(true)
-        await updateProfile(editName)
+        updateName(editName)
         setSavingProfile(false)
         setSaveSuccess(true)
         setTimeout(() => setSaveSuccess(false), 2000)
@@ -73,8 +71,18 @@ export default function AccountPage() {
 
     if (!isAuthenticated || !customer) {
         return (
-            <div className="min-h-screen bg-[var(--cream)] flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-[var(--olive-base)]" />
+            <div className="min-h-screen bg-[var(--cream)] flex flex-col items-center justify-center p-8 text-center">
+                <div className="w-20 h-20 bg-[var(--linen)] rounded-full flex items-center justify-center mb-6">
+                    <User className="w-10 h-10 text-[var(--stone)]" />
+                </div>
+                <h1 className="text-2xl font-bold text-[var(--charcoal)] mb-3">Login Required</h1>
+                <p className="text-[var(--stone)] max-w-xs mb-8">
+                    Place your first order to create your account automatically! 
+                    Your loyalty points and order history will appear here.
+                </p>
+                <button onClick={() => router.push('/menu')} className="btn-primary px-8">
+                    Browse Menu →
+                </button>
             </div>
         )
     }

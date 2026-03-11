@@ -9,7 +9,6 @@ import { useCartStore } from '@/store/useCartStore'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useLocationStore } from '@/store/useLocationStore'
 import CartDrawer from '@/components/cart/CartDrawer'
-import PhoneAuthModal from '@/components/auth/PhoneAuthModal'
 import { useLanguageStore } from '@/store/useLanguageStore'
 import { translations } from '@/lib/translations'
 import { MessageCircle } from 'lucide-react'
@@ -33,7 +32,6 @@ export default function Navbar() {
     const { nearestBranchName, locationSet } = useLocationStore()
     const prevCount = useRef(itemCount)
     const { customer, isAuthenticated, signOut, refreshCustomer } = useAuthStore()
-    const [authModalOpen, setAuthModalOpen] = useState(false)
     const [dropdownOpen, setDropdownOpen] = useState(false)
     const dropdownRef = useRef<HTMLDivElement>(null)
     const { language, setLanguage, isRTL } = useLanguageStore()
@@ -58,8 +56,8 @@ export default function Navbar() {
     }, [])
 
     useEffect(() => {
-        if (isAuthenticated && mounted) refreshCustomer()
-    }, [isAuthenticated, mounted, refreshCustomer])
+        if (isAuthenticated && mounted && customer?.phone) refreshCustomer(customer.phone)
+    }, [isAuthenticated, mounted, refreshCustomer, customer?.phone])
 
     useEffect(() => {
         setMounted(true)
@@ -130,15 +128,6 @@ export default function Navbar() {
                         </button>
                     )}
 
-                    {/* User Auth */}
-                    {mounted && !isAuthenticated && (
-                        <button
-                            onClick={() => setAuthModalOpen(true)}
-                            className="hidden sm:block text-[13px] font-[600] text-[var(--amber-pale)] hover:text-white px-3 transition-colors uppercase tracking-[0.1em]"
-                        >
-                            {t.signIn}
-                        </button>
-                    )}
 
                     {/* WhatsApp Button */}
                     <a
@@ -164,33 +153,89 @@ export default function Navbar() {
                         <div className="relative" ref={dropdownRef}>
                             <button
                                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                                className="w-[36px] h-[36px] lg:w-[40px] lg:h-[40px] rounded-full bg-[#1B4332] text-white flex items-center justify-center font-display font-bold text-lg hover:bg-[var(--olive-mid)] transition-colors border border-[rgba(253,248,240,0.15)] shadow-sm focus:outline-none"
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 8,
+                                    padding: '6px 12px',
+                                    backgroundColor: '#1C2416',
+                                    border: '1px solid #3D5226',
+                                    borderRadius: 4,
+                                    cursor: 'pointer',
+                                    color: '#FCD34D',
+                                    fontSize: 13,
+                                    fontWeight: 600,
+                                }}
                             >
-                                {customer.name ? customer.name.charAt(0).toUpperCase() : '?'}
+                                {/* Avatar circle */}
+                                <span style={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: '50%',
+                                    backgroundColor: '#556B2F',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: 'white',
+                                    fontSize: 14,
+                                    fontWeight: 700,
+                                    flexShrink: 0,
+                                }}>
+                                    {customer.name.charAt(0).toUpperCase()}
+                                </span>
+                                <span className="hidden sm:inline">{customer.name.split(' ')[0]}</span>
+                                <span style={{ fontSize: 10 }}>▾</span>
                             </button>
 
+                            {/* Dropdown */}
                             <AnimatePresence>
                                 {dropdownOpen && (
                                     <motion.div
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: 10 }}
-                                        transition={{ duration: 0.15 }}
-                                        className="absolute right-0 top-[120%] w-[220px] bg-[#FFFDF9] rounded-2xl shadow-xl border border-[#E7E0D8] py-2 overflow-hidden flex flex-col items-start card-premium z-50 text-left"
+                                        style={{
+                                            position: 'absolute',
+                                            top: '100%',
+                                            right: 0,
+                                            marginTop: 8,
+                                            backgroundColor: '#FFFDF9',
+                                            border: '1px solid #EDE0C4',
+                                            borderRadius: 8,
+                                            padding: 8,
+                                            minWidth: 180,
+                                            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                                            zIndex: 1000,
+                                        }}
                                     >
-                                        <div className="px-4 py-3 border-b border-[var(--linen)] w-full text-left">
-                                            <p className="font-bold text-[var(--charcoal)] truncate text-sm">{customer.name || 'Valued Customer'}</p>
-                                            <p className="text-[12px] text-[var(--stone)]">{customer.totalOrders ?? 0} orders · {customer.loyaltyPoints ?? 0} pts</p>
+                                        {/* Points summary */}
+                                        <div style={{
+                                            padding: '8px 12px',
+                                            borderBottom: '1px solid #EDE0C4',
+                                            marginBottom: 4,
+                                        }}>
+                                            <p style={{ fontSize: 12, color: '#78716C', margin: 0 }}>
+                                                ⭐ {customer.loyaltyPoints} points
+                                            </p>
+                                            <p style={{ fontSize: 11, color: '#78716C', margin: '2px 0 0' }}>
+                                                {customer.tier.charAt(0).toUpperCase() + customer.tier.slice(1)} member
+                                            </p>
                                         </div>
-                                        <Link href="/account" onClick={() => setDropdownOpen(false)} className="w-full text-left px-4 py-2.5 text-[14px] font-bold text-[var(--charcoal)] hover:bg-[var(--cream)] transition-colors">
-                                            {t.myAccount}
+
+                                        <Link href="/account" onClick={() => setDropdownOpen(false)} className="block px-3 py-2 text-[13px] font-[600] text-[var(--charcoal)] hover:bg-[var(--cream)] rounded transition-colors">
+                                            📦 {t.myAccount}
                                         </Link>
-                                        <Link href="/loyalty" onClick={() => setDropdownOpen(false)} className="w-full text-left px-4 py-2.5 text-[14px] font-bold text-[var(--charcoal)] hover:bg-[var(--cream)] transition-colors">
-                                            {t.loyaltyPoints}
+                                        <Link href="/loyalty" onClick={() => setDropdownOpen(false)} className="block px-3 py-2 text-[13px] font-[600] text-[var(--charcoal)] hover:bg-[var(--cream)] rounded transition-colors">
+                                            ⭐ {t.loyaltyPoints}
                                         </Link>
                                         <button
-                                            onClick={() => { setDropdownOpen(false); signOut() }}
-                                            className="w-full text-left px-4 py-2.5 text-[14px] font-bold text-red-600 hover:bg-red-50 transition-colors"
+                                            onClick={() => { signOut(); setDropdownOpen(false) }}
+                                            style={{
+                                                width: '100%', border: 'none',
+                                                backgroundColor: 'transparent', cursor: 'pointer',
+                                                color: '#B91C1C', textAlign: (isRTL ? 'right' : 'left'),
+                                                padding: '8px 12px', fontSize: 13, fontWeight: 600
+                                            }}
                                         >
                                             {t.signOut}
                                         </button>
@@ -336,14 +381,7 @@ export default function Navbar() {
                                         <span>{locationSet && nearestBranchName ? `Nearest: ${nearestBranchName}` : 'Set Location'}</span>
                                     </button>
                                 )}
-                                {mounted && !isAuthenticated ? (
-                                    <button
-                                        onClick={() => { setDrawerOpen(false); setAuthModalOpen(true) }}
-                                        className="btn-secondary w-full text-center py-3 mb-2"
-                                    >
-                                        {t.signIn}
-                                    </button>
-                                ) : mounted && isAuthenticated ? (
+                                {mounted && isAuthenticated && customer ? (
                                     <div className="flex flex-col gap-2 mb-2">
                                         <Link href="/account" onClick={() => setDrawerOpen(false)} className="text-[14px] font-[600] text-[var(--amber-pale)] hover:text-white text-center py-2">
                                             {t.myAccount}
@@ -371,8 +409,6 @@ export default function Navbar() {
             {/* If CartDrawer exists, render it here */}
             {<CartDrawer open={cartOpen} onClose={() => setCartOpen(!cartOpen)} />}
 
-            {/* Auth Modal */}
-            <PhoneAuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
 
             {/* Location Modal */}
             {locationModalOpen && (
