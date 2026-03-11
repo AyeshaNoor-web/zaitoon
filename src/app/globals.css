@@ -1,26 +1,378 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --olive-darkest: #1C2416;
+    --olive-dark: #2C3A1E;
+    --olive-mid: #3D5226;
+    --olive-base: #556B2F;
+    --olive-light: #6B8A3A;
+    --olive-pale: #8FAF5A;
+    --amber-deep: #92400E;
+    --amber-rich: #B45309;
+    --amber-warm: #D97706;
+    --amber-bright: #F59E0B;
+    --amber-pale: #FCD34D;
+    --cream: #FDF8F0;
+    --parchment: #F5EDD8;
+    --linen: #EDE0C4;
+    --stone: #78716C;
+    --charcoal: #1C1917;
+    --font-display: 'Playfair Display', Georgia, serif !important;
+    --font-body: 'Source Sans 3', system-ui, sans-serif !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background-color: var(--cream);
+    color: var(--charcoal);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+    color: var(--charcoal);
+  }
+
+  h1 {
+    font-size: clamp(52px, 8vw, 96px);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  h2 {
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 700;
+    line-height: 1.05;
+  }
+
+  h3 {
+    font-size: clamp(20px, 3vw, 28px);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  /* Gold scrollbar */
+  ::-webkit-scrollbar {
+    width: 3px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--olive-darkest);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--amber-warm);
+    border-radius: 2px;
+  }
+
+  /* Text selection */
+  ::selection {
+    background: var(--amber-warm);
+    color: var(--olive-darkest);
+  }
+
+  /* Urdu Support */
+  .urdu-page {
+    line-height: 1.8;
+  }
+
+  .urdu-page h1,
+  .urdu-page h2,
+  .urdu-page h3,
+  .urdu-page h4 {
+    font-family: var(--font-urdu) !important;
+    line-height: 1.4;
+    letter-spacing: 0;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .price {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  .btn {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* ── BUTTONS ── */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: var(--amber-warm);
+    color: var(--olive-darkest);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 14px 28px;
+    border-radius: 4px;
+    border: 2px solid var(--amber-warm);
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s;
+    min-height: 48px;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--amber-bright);
+    border-color: var(--amber-bright);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.97);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: transparent;
+    color: var(--cream);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 12px 28px;
+    border-radius: 4px;
+    border: 2px solid rgba(253, 248, 240, 0.35);
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, transform 0.15s;
+    min-height: 48px;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--amber-bright);
+    color: var(--amber-bright);
+  }
+
+  .btn-secondary:active {
+    transform: scale(0.97);
+  }
+
+  .btn-outline-dark {
+    background-color: transparent;
+    color: var(--olive-base);
+    border: 2px solid var(--olive-base);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 44px;
+  }
+
+  .btn-outline-dark:hover {
+    background-color: var(--olive-base);
+    color: var(--cream);
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background-color: var(--parchment);
+    border: 1px solid var(--linen);
+    border-radius: 8px;
+    transition: box-shadow 0.25s, transform 0.25s;
+  }
+
+  .card:hover {
+    box-shadow: 0 8px 32px rgba(28, 36, 22, 0.15);
+    transform: translateY(-4px);
+  }
+
+  .card-dark {
+    background-color: var(--olive-mid);
+    border: 1px solid var(--olive-light);
+    border-radius: 8px;
+  }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--amber-warm);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .section-label::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 2px;
+    background-color: var(--amber-warm);
+    border-radius: 1px;
+    flex-shrink: 0;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background-color: var(--linen);
+    width: 100%;
+  }
+
+  .divider-dark {
+    height: 1px;
+    background-color: rgba(253, 248, 240, 0.1);
+    width: 100%;
+  }
+
+  /* ── PRICE TAG ── */
+  .price-tag {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--olive-base);
+  }
+
+  /* ── BADGE ── */
+  .badge-bestseller {
+    background-color: var(--amber-warm);
+    color: var(--olive-darkest);
+  }
+
+  .badge-spicy {
+    background-color: #B91C1C;
+    color: white;
+  }
+
+  .badge-veg {
+    background-color: var(--olive-base);
+    color: white;
+  }
+
+  .badge-new {
+    background-color: #1D4ED8;
+    color: white;
+  }
+
+  [class^="badge-"] {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 3px;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-right {
+    from {
+      transform: scaleX(0);
+      transform-origin: left;
+    }
+
+    to {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
+  }
+
+  @keyframes sizzle {
+
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+
+    25% {
+      transform: translateX(-1px) rotate(-0.3deg);
+    }
+
+    75% {
+      transform: translateX(1px) rotate(0.3deg);
+    }
+  }
+
+  .animate-fade-up {
+    animation: fade-up 0.6s ease both;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.5s ease both;
+  }
+
+  .animate-slide-line {
+    animation: slide-right 0.8s ease both;
+  }
+
+  /* ── SCROLLBAR HIDE ── */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
