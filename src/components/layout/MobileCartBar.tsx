@@ -8,17 +8,35 @@ import { formatPrice } from '@/lib/payment'
 import { useLanguageStore } from '@/store/useLanguageStore'
 import { translations } from '@/lib/translations'
 
+const MIN_ORDER = 800
+
 export default function MobileCartBar() {
     const { language, isRTL } = useLanguageStore()
     const t = translations[language]
     const router = useRouter()
     const count = useCartStore(s => s.itemCount())
     const total = useCartStore(s => s.total())
+    const subtotal = useCartStore(s => s.subtotal())
     const [mounted, setMounted] = useState(false)
+    const [minOrderError, setMinOrderError] = useState(false)
 
     useEffect(() => {
         setMounted(true)
     }, [])
+
+    // Clear error when subtotal changes
+    useEffect(() => {
+        if (subtotal >= MIN_ORDER) setMinOrderError(false)
+    }, [subtotal])
+
+    const handleCheckout = () => {
+        if (subtotal < MIN_ORDER) {
+            setMinOrderError(true)
+            return
+        }
+        setMinOrderError(false)
+        router.push('/checkout')
+    }
 
     return (
         <AnimatePresence>
@@ -32,9 +50,23 @@ export default function MobileCartBar() {
                 >
                     {/* Fade mask above */}
                     <div className="bg-[#FAF6EF]/90 backdrop-blur-xl border-t border-[#E7E0D8] px-4 pb-safe pt-2" dir={isRTL ? 'rtl' : 'ltr'}>
+                        {/* Minimum order error */}
+                        <AnimatePresence>
+                            {minOrderError && (
+                                <motion.p
+                                    initial={{ opacity: 0, y: 4 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 4 }}
+                                    role="alert"
+                                    className="text-center text-[12px] font-semibold text-red-600 mb-1.5"
+                                >
+                                    ⚠ Minimum order is Rs. 800. Please add more items.
+                                </motion.p>
+                            )}
+                        </AnimatePresence>
                         <motion.button
                             whileTap={{ scale: 0.97 }}
-                            onClick={() => router.push('/checkout')}
+                            onClick={handleCheckout}
                             className="w-full gold-shimmer py-4 rounded-2xl flex items-center justify-between px-5 font-bold text-[#0A1F13] shadow-xl shadow-[#C9920A]/20"
                         >
                             <span className="flex items-center gap-2.5">

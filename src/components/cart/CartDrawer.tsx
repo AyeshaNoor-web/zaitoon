@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Plus, Minus, ArrowRight, UtensilsCrossed } from 'lucide-react'
@@ -11,6 +12,8 @@ export default function CartDrawer({ open, onClose }: Props) {
     const router = useRouter()
     const { items, updateQuantity, removeItem, subtotal, deliveryFee, total, orderType } = useCartStore()
     const itemCount = items.reduce((s, i) => s + i.quantity, 0)
+    const MIN_ORDER = 800
+    const [minOrderError, setMinOrderError] = useState(false)
 
     return (
         <AnimatePresence>
@@ -162,8 +165,23 @@ export default function CartDrawer({ open, onClose }: Props) {
                                     </span>
                                 </div>
 
+                                {/* Minimum order error */}
+                                {minOrderError && (
+                                    <div role="alert" className="mb-3 p-3 rounded-[6px] bg-red-900/40 border border-red-500/50 text-[12px] text-red-300 leading-snug">
+                                        ⚠ Minimum order amount is Rs. 800. Please add more items to continue.
+                                    </div>
+                                )}
+
                                 <button
-                                    onClick={() => { onClose(); router.push('/checkout') }}
+                                    onClick={() => {
+                                        if (subtotal() < MIN_ORDER) {
+                                            setMinOrderError(true)
+                                            return
+                                        }
+                                        setMinOrderError(false)
+                                        onClose()
+                                        router.push('/checkout')
+                                    }}
                                     aria-label={`Proceed to checkout with ${itemCount} items for Rs. ${total()}`}
                                     className="btn-primary w-full py-[16px] text-[14px] shadow-[0_4px_16px_rgba(217,119,6,0.2)] flex justify-center gap-2"
                                 >

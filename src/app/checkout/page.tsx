@@ -273,6 +273,11 @@ export default function CheckoutPage() {
             const branch = branches.find((b: any) => b.id === selectedBranchId) ?? branches[0]
             if (!branch) throw new Error('No branch selected. Please go back and choose a branch.')
 
+            // Minimum order check
+            if (cartSubtotal < 800) {
+                throw new Error('Minimum order amount is Rs. 800. Please add more items to continue.')
+            }
+
             if (orderType === 'delivery') {
                 if (!locationSet)
                     throw new Error('Please set your delivery location first.')

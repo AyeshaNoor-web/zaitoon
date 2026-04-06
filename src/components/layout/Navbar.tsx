@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -94,11 +94,18 @@ export default function Navbar() {
                 <ul role="list" className="hidden lg:flex items-center gap-8 h-full">
                     {NAV_LINKS.map(link => {
                         const active = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href) && !link.href.startsWith('/#'))
+                        const isBranchesLink = link.href === '/#branches'
                         return (
                             <li key={link.href} className="h-full flex items-center">
                                 <Link
                                     href={link.href}
                                     aria-current={active ? 'page' : undefined}
+                                    onClick={isBranchesLink ? (e) => {
+                                        if (pathname === '/') {
+                                            e.preventDefault()
+                                            document.getElementById('branches')?.scrollIntoView({ behavior: 'smooth' })
+                                        }
+                                    } : undefined}
                                     className={`relative px-1 text-[12px] font-[600] tracking-[0.1em] uppercase transition-all duration-200 flex items-center h-full border-b-[2px] ${active
                                         ? 'text-[var(--amber-pale)] border-[var(--amber-warm)]'
                                         : 'text-[rgba(253,248,240,0.6)] hover:text-[var(--amber-pale)] border-transparent hover:border-[var(--amber-warm)]'
@@ -331,11 +338,18 @@ export default function Navbar() {
                             >
                                 {[{ label: 'Home', href: '/' }, ...NAV_LINKS].map((link) => {
                                     const active = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href) && !link.href.startsWith('/#'))
+                                    const isBranchesLink = link.href === '/#branches'
                                     return (
                                         <motion.li key={link.href} variants={navItemVariants}>
                                             <Link
                                                 href={link.href}
-                                                onClick={() => setDrawerOpen(false)}
+                                                onClick={(e) => {
+                                                    setDrawerOpen(false)
+                                                    if (isBranchesLink && pathname === '/') {
+                                                        e.preventDefault()
+                                                        document.getElementById('branches')?.scrollIntoView({ behavior: 'smooth' })
+                                                    }
+                                                }}
                                                 aria-current={active ? 'page' : undefined}
                                                 className={`flex items-center min-h-[48px] px-4 font-[600] text-[14px] uppercase tracking-[0.05em] transition-all border-l-[3px] ${active
                                                     ? 'bg-[var(--olive-mid)] text-[var(--amber-pale)] border-[var(--amber-warm)]'

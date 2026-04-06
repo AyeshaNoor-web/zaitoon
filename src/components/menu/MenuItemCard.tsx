@@ -8,6 +8,7 @@ import { formatPrice } from '@/lib/payment'
 import { useLanguageStore } from '@/store/useLanguageStore'
 import { translations } from '@/lib/translations'
 import type { MenuItem } from '@/types'
+import AddOnsModal from '@/components/menu/AddOnsModal'
 
 export default function MenuItemCard({ item }: { item: MenuItem }) {
     const { language, isRTL } = useLanguageStore()
@@ -25,6 +26,7 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
 
     const [selectedSize, setSelectedSize] = useState<'small' | 'large'>('small')
     const { items, addItem, updateQuantity } = useCartStore()
+    const [showAddOns, setShowAddOns] = useState(false)
 
     // Support both camelCase (types) and snake_case (DB response)
     const hasSizes = item.hasSizes ?? (item as any).has_sizes ?? false
@@ -168,14 +170,7 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
                                     exit={{ scale: 0.8, opacity: 0 }}
                                     whileTap={{ scale: 0.95 }}
                                     transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                                    onClick={() => addItem({
-                                        menuItemId: item.id,
-                                        name: item.name,
-                                        size: hasSizes ? selectedSize : null,
-                                        unitPrice: displayPrice ?? 0,
-                                        quantity: 1,
-                                        imageUrl: item.image_url ?? null
-                                    })}
+                                    onClick={() => setShowAddOns(true)}
                                     aria-label={`${t.add} ${item.name} ${t.addToCart}`}
                                     className="btn-primary !px-4 !py-2 !min-h-[32px] !text-[12px]"
                                 >
@@ -215,6 +210,21 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
                     )}
                 </footer>
             </div>
+
+            {/* Add-Ons Modal */}
+            {showAddOns && (
+                <AddOnsModal
+                    mainItem={{
+                        menuItemId: item.id,
+                        name: item.name,
+                        size: hasSizes ? selectedSize : null,
+                        unitPrice: displayPrice ?? 0,
+                        quantity: 1,
+                        imageUrl: item.image_url ?? null,
+                    }}
+                    onClose={() => setShowAddOns(false)}
+                />
+            )}
         </article>
     )
 }
