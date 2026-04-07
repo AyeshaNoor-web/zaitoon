@@ -75,7 +75,6 @@ async function fetchAddOns(): Promise<AddOn[]> {
         .eq('is_available', true)
         .eq('price_on_request', false)
         .not('price', 'is', null)
-        .in('categories.label', ['Beverages', 'Dips & Sauces'])
         .order('price')
 
     if (error) throw error

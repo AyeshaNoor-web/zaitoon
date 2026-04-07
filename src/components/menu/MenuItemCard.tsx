@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Minus, Star, Clock, Flame, Leaf, Sparkles } from 'lucide-react'
@@ -211,9 +212,9 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
                 </footer>
             </div>
 
-            {/* Add-Ons Modal */}
-            <AnimatePresence>
-                {showAddOns && (
+            {/* Add-Ons Modal — rendered via portal to escape overflow-hidden */}
+            {showAddOns && typeof document !== 'undefined' && createPortal(
+                <AnimatePresence>
                     <AddOnsModal
                         mainItem={{
                             menuItemId: item.id,
@@ -226,8 +227,9 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
                         }}
                         onClose={() => setShowAddOns(false)}
                     />
-                )}
-            </AnimatePresence>
+                </AnimatePresence>,
+                document.body
+            )}
         </article>
     )
 }
