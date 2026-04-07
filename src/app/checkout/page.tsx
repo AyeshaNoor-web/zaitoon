@@ -40,8 +40,6 @@ const LeafletCheckoutMap = dynamic(
     { ssr: false }
 )
 
-const STEPS = ['Contact', 'Delivery', 'Payment', 'Review']
-
 // ── LOYALTY CONSTANTS ─────────────────────────────────────────
 const POINT_VALUE_IN_RS = 1
 

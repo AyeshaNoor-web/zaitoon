@@ -212,19 +212,22 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
             </div>
 
             {/* Add-Ons Modal */}
-            {showAddOns && (
-                <AddOnsModal
-                    mainItem={{
-                        menuItemId: item.id,
-                        name: item.name,
-                        size: hasSizes ? selectedSize : null,
-                        unitPrice: displayPrice ?? 0,
-                        quantity: 1,
-                        imageUrl: item.image_url ?? null,
-                    }}
-                    onClose={() => setShowAddOns(false)}
-                />
-            )}
+            <AnimatePresence>
+                {showAddOns && (
+                    <AddOnsModal
+                        mainItem={{
+                            menuItemId: item.id,
+                            name: item.name,
+                            size: hasSizes ? selectedSize : null,
+                            unitPrice: displayPrice ?? 0,
+                            quantity: 1,
+                            imageUrl: item.image_url ?? null,
+                            categoryLabel: (item as any).categories?.label ?? item.category ?? '',
+                        }}
+                        onClose={() => setShowAddOns(false)}
+                    />
+                )}
+            </AnimatePresence>
         </article>
     )
 }

@@ -15,12 +15,7 @@ import { MessageCircle } from 'lucide-react'
 import LocationModal from '@/components/LocationModal'
 import { haversineDistance } from '@/lib/distance'
 
-const NAV_LINKS = [
-    { label: 'Menu', href: '/menu' },
-    { label: 'Branches', href: '/#branches' },
-    { label: 'Track Order', href: '/order' },
-    { label: 'Loyalty', href: '/loyalty' },
-]
+
 
 export default function Navbar() {
     const [drawerOpen, setDrawerOpen] = useState(false)

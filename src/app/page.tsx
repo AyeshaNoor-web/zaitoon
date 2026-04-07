@@ -349,6 +349,88 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* 📍 BRANCHES SECTION */}
+        <section id="branches" aria-label="Our branches" className="bg-[var(--cream)] py-[80px] px-6">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 28 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+              className={`mb-12 ${isRTL ? 'text-right' : ''}`}
+            >
+              <span className="section-label">{t.branchCount}</span>
+              <h2 className="text-[var(--charcoal)]">Find Us Near You</h2>
+              <motion.div
+                initial={{ scaleX: 0 }}
+                whileInView={{ scaleX: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                style={{ transformOrigin: isRTL ? 'right' : 'left', height: 3, backgroundColor: 'var(--amber-warm)', width: 56, marginTop: '20px', marginLeft: isRTL ? 'auto' : '0' }}
+              />
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {branches.map((branch: any, i: number) => (
+                <motion.div
+                  key={branch.id}
+                  initial={{ opacity: 0, y: 32 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-40px' }}
+                  transition={{ duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  className="bg-white rounded-[8px] border-[2px] border-[var(--linen)] p-6 hover:border-[var(--amber-warm)] transition-all hover:shadow-lg"
+                >
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                      <h3 className="font-display text-[20px] font-[700] text-[var(--charcoal)] mb-1">{branch.name}</h3>
+                      <p className="text-[13px] text-[var(--stone)] leading-relaxed">{branch.address}</p>
+                    </div>
+                    <div className="w-12 h-12 bg-[var(--olive-darkest)] rounded-[6px] flex items-center justify-center shrink-0">
+                      <span className="text-2xl">📍</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 mb-5">
+                    {branch.hours && (
+                      <div className="flex items-center gap-2 text-[13px] text-[var(--stone)]">
+                        <span>🕐</span>
+                        <span>{branch.hours}</span>
+                      </div>
+                    )}
+                    {branch.phone && (
+                      <div className="flex items-center gap-2 text-[13px] text-[var(--stone)]">
+                        <span>📞</span>
+                        <a href={`tel:${branch.phone}`} className="hover:text-[var(--olive-base)] transition-colors">{branch.phone}</a>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex gap-3 pt-4 border-t border-[var(--linen)]">
+                    {branch.whatsapp && (
+                      <a
+                        href={`https://wa.me/${branch.whatsapp.replace(/\D/g, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 bg-[#25D366] text-white px-4 py-2 rounded-[6px] text-[13px] font-bold hover:bg-[#20bd5a] transition-colors"
+                      >
+                        <span>💬</span> WhatsApp
+                      </a>
+                    )}
+                    {branch.phone && (
+                      <a
+                        href={`tel:${branch.phone}`}
+                        className="flex items-center gap-2 border-[2px] border-[var(--linen)] text-[var(--charcoal)] px-4 py-2 rounded-[6px] text-[13px] font-bold hover:border-[var(--olive-base)] hover:text-[var(--olive-base)] transition-colors"
+                      >
+                        <span>📞</span> Call
+                      </a>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
       </motion.main>
 
       <Footer />

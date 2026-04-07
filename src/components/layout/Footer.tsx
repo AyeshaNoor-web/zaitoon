@@ -14,7 +14,7 @@ export default function Footer() {
             {/* Green top accent */}
             <div className="h-1.5 bg-[#28A854]" />
 
-            <div id="branches" className="max-w-7xl mx-auto px-6 pt-16 pb-10">
+            <div className="max-w-7xl mx-auto px-6 pt-16 pb-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
 
                     {/* Brand */}

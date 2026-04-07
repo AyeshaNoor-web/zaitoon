@@ -170,7 +170,7 @@ export default function AdminReviewsPage() {
                                             <td className="px-4 py-4 max-w-[220px]">
                                                 {r.comment ? (
                                                     <p className="text-[13px] text-[#18181B] line-clamp-2 leading-snug">
-                                                        "{r.comment}"
+                                                        &ldquo;{r.comment}&rdquo;
                                                     </p>
                                                 ) : (
                                                     <span className="text-[#57534E] italic text-[12px]">No comment</span>
