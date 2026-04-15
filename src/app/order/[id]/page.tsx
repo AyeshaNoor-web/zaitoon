@@ -151,37 +151,65 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
         <>
             <Navbar />
 
-            <main role="main" className="min-h-screen bg-[var(--olive-darkest)] pt-[100px] pb-[80px] px-4">
-                <div className="max-w-[600px] mx-auto space-y-6">
+            <main role="main" className="min-h-screen pt-[100px] pb-[80px] px-4"
+                style={{ background: 'linear-gradient(180deg, var(--olive-darkest) 0%, #1e2b12 100%)' }}>
+                {/* ambient glow */}
+                <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] pointer-events-none opacity-10"
+                    style={{ background: 'radial-gradient(circle, var(--amber-warm) 0%, transparent 70%)' }} />
+
+                <div className="max-w-[600px] mx-auto space-y-5 relative z-10">
 
                     {/* Header */}
-                    <div className="text-center pt-2 pb-2">
-                        <span className="text-[12px] font-[600] text-[var(--amber-pale)] uppercase tracking-[0.1em] mb-1 block">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, ease: [0.16,1,0.3,1] }}
+                        className="text-center pt-2 pb-2"
+                    >
+                        <span className="text-[11px] font-[700] uppercase tracking-[0.18em] mb-2 block" style={{ color: 'var(--amber-warm)', opacity: 0.8 }}>
                             Zaitoon Connect
                         </span>
-                        <h1 className="text-white font-display text-[28px] font-[700]">Order #{id}</h1>
-                    </div>
+                        <h1 className="text-white font-display text-[32px] font-[800]">Order #{id}</h1>
+                    </motion.div>
 
                     {/* Status Tracker */}
-                    <section aria-label="Order status" className="bg-white rounded-[8px] p-6 border-[2px] border-[var(--linen)]">
-                        <h2 className="text-[20px] mb-5 font-display font-[700] text-[var(--charcoal)] border-b border-[var(--linen)] pb-2 flex items-center justify-between">
-                            Status Tracker
+                    <motion.section
+                        aria-label="Order status"
+                        initial={{ opacity: 0, y: 24 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.55, delay: 0.1, ease: [0.16,1,0.3,1] }}
+                        className="rounded-[16px] p-6"
+                        style={{
+                            background: 'rgba(253,248,240,0.04)',
+                            backdropFilter: 'blur(16px)',
+                            WebkitBackdropFilter: 'blur(16px)',
+                            border: '1px solid rgba(253,248,240,0.10)',
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
+                        }}
+                    >
+                        <div className="flex items-center justify-between mb-5 pb-3"
+                            style={{ borderBottom: '1px solid rgba(253,248,240,0.08)' }}>
+                            <h2 className="text-[20px] font-display font-[700] text-white">
+                                Status Tracker
+                            </h2>
                             {statusIdx < STATUSES.length - 1 && (
-                                <span className="text-[14px] font-[700] text-[var(--olive-base)] font-body flex gap-1 items-baseline">
-                                    <span className="text-[20px]">{mins}</span>m
-                                    <span className="text-[14px]">{secs}s</span>
-                                    <span className="text-[12px] font-normal text-[var(--stone)] ml-1">est.</span>
+                                <span className="flex items-baseline gap-1 px-3 py-1 rounded-full text-[13px] font-[700]"
+                                    style={{ background: 'rgba(217,119,6,0.15)', color: 'var(--amber-pale)', border: '1px solid rgba(217,119,6,0.25)' }}>
+                                    <span className="text-[18px] leading-none">{mins}</span>m
+                                    <span>{secs}s</span>
+                                    <span className="text-[11px] font-[400] ml-0.5" style={{ color: 'rgba(253,248,240,0.5)' }}>est.</span>
                                 </span>
                             )}
-                        </h2>
+                        </div>
 
-                        {/* Progress bar */}
-                        <div className="w-full bg-[var(--linen)] h-[6px] rounded-full mb-8 relative overflow-hidden" aria-hidden="true">
+                        {/* Gradient Progress bar */}
+                        <div className="w-full h-[6px] rounded-full mb-8 overflow-hidden" style={{ background: 'rgba(253,248,240,0.08)' }} aria-hidden="true">
                             <motion.div
-                                className="absolute top-0 left-0 bottom-0 bg-[var(--amber-warm)] rounded-full"
+                                className="h-full rounded-full"
+                                style={{ background: 'linear-gradient(90deg, var(--amber-warm), var(--amber-bright))' }}
                                 initial={{ width: 0 }}
                                 animate={{ width: `${progressPct}%` }}
-                                transition={{ duration: 1, ease: 'easeOut' }}
+                                transition={{ duration: 1.2, ease: [0.16,1,0.3,1] }}
                             />
                         </div>
 
@@ -246,73 +274,86 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                                 [Dev] Advance status locally
                             </button>
                         )}
-                    </section>
+                    </motion.section>
 
                     {/* Receipt */}
-                    <section aria-label="Order Receipt" className="bg-[var(--parchment)] rounded-[8px] p-6 border border-[var(--linen)]">
-                        <h2 className="text-[18px] mb-4 font-display font-[700] text-[var(--charcoal)] flex items-center gap-2">
-                            <ShoppingBag className="w-5 h-5" /> Receipt
+                    <motion.section
+                        aria-label="Order Receipt"
+                        initial={{ opacity: 0, y: 24 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.55, delay: 0.2, ease: [0.16,1,0.3,1] }}
+                        className="rounded-[16px] p-6"
+                        style={{
+                            background: 'rgba(253,248,240,0.05)',
+                            backdropFilter: 'blur(16px)',
+                            WebkitBackdropFilter: 'blur(16px)',
+                            border: '1px solid rgba(253,248,240,0.1)',
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.15)'
+                        }}
+                    >
+                        <h2 className="text-[18px] mb-4 font-display font-[700] text-white flex items-center gap-2">
+                            <ShoppingBag className="w-5 h-5" style={{ color: 'var(--amber-warm)' }} /> Receipt
                         </h2>
 
                         <ul role="list" aria-label="Items ordered" className="space-y-3 mb-4">
                             {(order.order_items ?? []).map((item: any) => (
                                 <li key={item.id} className="flex justify-between items-start text-[14px]">
-                                    <div className="flex gap-2 text-[var(--charcoal)]">
-                                        <span className="font-[600] text-[var(--stone)]">{item.quantity}×</span>
+                                    <div className="flex gap-2">
+                                        <span className="font-[600]" style={{ color: 'rgba(253,248,240,0.4)' }}>{item.quantity}×</span>
                                         <span>
-                                            <span className="font-[500]">{item.name}</span>
+                                            <span className="font-[500] text-white">{item.name}</span>
                                             {item.size && (
-                                                <span className="text-[12px] text-[var(--stone)] capitalize block">
+                                                <span className="text-[12px] capitalize block" style={{ color: 'rgba(253,248,240,0.4)' }}>
                                                     ({item.size})
                                                 </span>
                                             )}
                                         </span>
                                     </div>
-                                    <span className="font-[600] text-[var(--charcoal)] shrink-0">
+                                    <span className="font-[700] shrink-0" style={{ color: 'var(--amber-pale)' }}>
                                         {formatPrice(item.subtotal)}
                                     </span>
                                 </li>
                             ))}
                         </ul>
 
-                        <div className="border-t-[2px] border-[var(--linen)] border-dashed my-4" aria-hidden="true" />
+                        <div className="my-4 h-[1px]" style={{ background: 'rgba(253,248,240,0.08)' }} aria-hidden="true" />
 
                         <div className="space-y-2 mb-4">
-                            <div className="flex justify-between text-[13px] text-[var(--stone)]">
+                            <div className="flex justify-between text-[13px]" style={{ color: 'rgba(253,248,240,0.5)' }}>
                                 <span>Subtotal</span>
-                                <span>{formatPrice(order.subtotal)}</span>
+                                <span className="text-white font-[600]">{formatPrice(order.subtotal)}</span>
                             </div>
-                            <div className="flex justify-between text-[13px] text-[var(--stone)]">
+                            <div className="flex justify-between text-[13px]" style={{ color: 'rgba(253,248,240,0.5)' }}>
                                 <span>Delivery Fee</span>
-                                <span>{(order.delivery_fee ?? 0) > 0 ? formatPrice(order.delivery_fee) : 'Free'}</span>
+                                <span className="text-white font-[600]">{(order.delivery_fee ?? 0) > 0 ? formatPrice(order.delivery_fee) : 'Free'}</span>
                             </div>
                             {(order.loyalty_discount ?? 0) > 0 && (
-                                <div className="flex justify-between text-[13px] font-[600] text-[var(--amber-warm)]">
+                                <div className="flex justify-between text-[13px] font-[700]" style={{ color: 'var(--amber-warm)' }}>
                                     <span>Loyalty Redeem</span>
                                     <span>−{formatPrice(order.loyalty_discount)}</span>
                                 </div>
                             )}
                         </div>
 
-                        <div className="border-t-[2px] border-[var(--olive-dark)] my-4" aria-hidden="true" />
+                        <div className="my-4 h-[1px]" style={{ background: 'rgba(253,248,240,0.12)' }} aria-hidden="true" />
 
                         <div className="flex justify-between items-baseline mb-4">
-                            <span className="text-[16px] font-[700] text-[var(--charcoal)]">Total</span>
-                            <span className="font-display font-[700] text-[24px] text-[var(--olive-base)]">
+                            <span className="text-[15px] font-[700] text-white">Total</span>
+                            <span className="font-display font-[800] text-[28px]" style={{ color: 'var(--amber-pale)' }}>
                                 {formatPrice(order.total)}
                             </span>
                         </div>
 
                         {order.delivery_address && (
-                            <div className="flex items-start gap-3 p-4 bg-white border border-[var(--linen)] rounded-[6px]">
-                                <MapPin className="w-5 h-5 text-[var(--amber-warm)] shrink-0 mt-0.5" />
-                                <div className="text-[13px] text-[var(--stone)] leading-snug">
-                                    <strong className="text-[var(--charcoal)] block mb-[2px]">Delivery Address</strong>
-                                    {order.delivery_address}
+                            <div className="flex items-start gap-3 p-4 rounded-[10px]" style={{ background: 'rgba(253,248,240,0.05)', border: '1px solid rgba(253,248,240,0.08)' }}>
+                                <MapPin className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--amber-warm)' }} />
+                                <div className="text-[13px] leading-snug">
+                                    <strong className="text-white block mb-[2px]">Delivery Address</strong>
+                                    <span style={{ color: 'rgba(253,248,240,0.5)' }}>{order.delivery_address}</span>
                                 </div>
                             </div>
                         )}
-                    </section>
+                    </motion.section>
 
                     {/* Review prompt — only when delivered, logged in, not yet reviewed */}
                     {order.status === 'delivered' && isAuthenticated && customer && !alreadyReviewed && (
@@ -342,28 +383,40 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
 
                     {/* WhatsApp CTA */}
                     {waURL && (
-                        <a
+                        <motion.a
                             href={waURL}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="bg-[#25D366] text-white px-6 py-4 rounded-[6px] shadow-[0_4px_16px_rgba(37,211,102,0.3)] flex items-center justify-between hover:-translate-y-1 transition-transform block"
+                            whileHover={{ y: -3 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="flex items-center justify-between px-6 py-4 rounded-[16px] text-white block"
+                            style={{
+                                background: 'linear-gradient(135deg, #25D366, #20bd5a)',
+                                boxShadow: '0 8px 24px rgba(37,211,102,0.35)'
+                            }}
                             aria-label="Confirm and send order to WhatsApp"
                         >
                             <div className="flex items-center gap-4">
-                                <MessageCircle className="w-7 h-7" />
+                                <div className="w-10 h-10 rounded-[10px] flex items-center justify-center"
+                                    style={{ background: 'rgba(255,255,255,0.15)' }}>
+                                    <MessageCircle className="w-5 h-5" />
+                                </div>
                                 <div className="text-left">
                                     <span className="font-[700] text-[16px] block mb-[2px] leading-tight">Confirm on WhatsApp</span>
-                                    <span className="font-[400] text-[13px] text-white/90">Send order to restaurant instantly.</span>
+                                    <span className="font-[400] text-[13px]" style={{ color: 'rgba(255,255,255,0.8)' }}>Send order to restaurant instantly.</span>
                                 </div>
                             </div>
-                            <ChevronRight className="w-6 h-6" />
-                        </a>
+                            <ChevronRight className="w-6 h-6" style={{ color: 'rgba(255,255,255,0.7)' }} />
+                        </motion.a>
                     )}
 
                     <div className="text-center pt-4">
                         <Link
                             href="/menu"
-                            className="text-[var(--amber-pale)] text-[14px] font-[600] border-b border-transparent hover:border-[var(--amber-pale)] pb-0.5 transition-colors"
+                            className="text-[14px] font-[600] transition-colors"
+                            style={{ color: 'rgba(253,248,240,0.5)' }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--amber-pale)' }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(253,248,240,0.5)' }}
                         >
                             ← Return to Menu
                         </Link>
