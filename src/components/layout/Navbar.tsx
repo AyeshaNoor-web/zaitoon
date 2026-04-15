@@ -22,6 +22,7 @@ export default function Navbar() {
     const [cartOpen, setCartOpen] = useState(false)
     const [badgeBounce, setBadgeBounce] = useState(false)
     const [mounted, setMounted] = useState(false)
+    const [scrolled, setScrolled] = useState(false)
     const pathname = usePathname()
     const itemCount = useCartStore(s => s.itemCount())
     const { nearestBranchName, locationSet } = useLocationStore()
@@ -59,6 +60,12 @@ export default function Navbar() {
     }, [])
 
     useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 20)
+        window.addEventListener('scroll', onScroll, { passive: true })
+        return () => window.removeEventListener('scroll', onScroll)
+    }, [])
+
+    useEffect(() => {
         if (itemCount > prevCount.current) {
             setBadgeBounce(true)
             setTimeout(() => setBadgeBounce(false), 550)
@@ -77,7 +84,14 @@ export default function Navbar() {
     }
 
     return (
-        <header role="banner" className="fixed top-0 left-0 right-0 z-50 bg-[var(--olive-darkest)] border-b-[3px] border-[var(--amber-warm)] h-[60px] lg:h-[68px]">
+        <header
+            role="banner"
+            className={`fixed top-0 left-0 right-0 z-50 h-[60px] lg:h-[68px] border-b-[2px] border-[var(--amber-warm)] transition-all duration-500 ${
+                scrolled
+                    ? 'bg-[rgba(50,62,32,0.88)] backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.25)]'
+                    : 'bg-[var(--olive-darkest)]'
+            }`}
+        >
             <nav aria-label="Main navigation" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
 
                 {/* Logo */}
@@ -101,10 +115,11 @@ export default function Navbar() {
                                             document.getElementById('branches')?.scrollIntoView({ behavior: 'smooth' })
                                         }
                                     } : undefined}
-                                    className={`relative px-1 text-[12px] font-[600] tracking-[0.1em] uppercase transition-all duration-200 flex items-center h-full border-b-[2px] ${active
+                                    className={`relative px-1 text-[12px] font-[600] tracking-[0.1em] uppercase transition-all duration-300 flex items-center h-full border-b-[2px] ${
+                                        active
                                         ? 'text-[var(--amber-pale)] border-[var(--amber-warm)]'
-                                        : 'text-[rgba(253,248,240,0.6)] hover:text-[var(--amber-pale)] border-transparent hover:border-[var(--amber-warm)]'
-                                        }`}
+                                        : 'text-[rgba(253,248,240,0.55)] hover:text-[var(--amber-pale)] border-transparent hover:border-[var(--amber-warm)]'
+                                    }`}
                                 >
                                     {link.label}
                                 </Link>

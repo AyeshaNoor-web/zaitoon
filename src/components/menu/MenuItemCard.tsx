@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Minus, Star, Clock, Flame, Leaf, Sparkles } from 'lucide-react'
+import { Plus, Minus, Star } from 'lucide-react'
 import { useCartStore } from '@/store/useCartStore'
 import { formatPrice } from '@/lib/payment'
 import { useLanguageStore } from '@/store/useLanguageStore'
@@ -28,8 +28,8 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
     const [selectedSize, setSelectedSize] = useState<'small' | 'large'>('small')
     const { items, addItem, updateQuantity } = useCartStore()
     const [showAddOns, setShowAddOns] = useState(false)
+    const [isHovered, setIsHovered] = useState(false)
 
-    // Support both camelCase (types) and snake_case (DB response)
     const hasSizes = item.hasSizes ?? (item as any).has_sizes ?? false
     const isAvailableRaw = item.isAvailable ?? (item as any).is_available
     const priceL = item.priceL ?? (item as any).price_large ?? null
@@ -46,16 +46,28 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
         ? (selectedSize === 'large' && priceL ? priceL : item.price)
         : item.price
     const isUnavailable = isAvailableRaw === false
-
     const emoji = FOOD_EMOJI[item.category ?? 'default'] ?? '🍽️'
 
     return (
         <article
             aria-label={`${item.name}, Rs. ${displayPrice}`}
-            className="card relative flex flex-col h-full overflow-hidden cursor-pointer"
+            className="relative flex flex-col h-full overflow-hidden cursor-pointer"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            style={{
+                background: 'white',
+                borderRadius: 14,
+                border: '1.5px solid var(--linen)',
+                transition: 'transform 0.35s cubic-bezier(0.16,1,0.3,1), box-shadow 0.35s cubic-bezier(0.16,1,0.3,1), border-color 0.3s ease',
+                transform: isHovered && !isUnavailable ? 'translateY(-5px)' : 'translateY(0)',
+                boxShadow: isHovered && !isUnavailable
+                    ? '0 16px 48px rgba(28,25,23,0.12), 0 4px 16px rgba(28,25,23,0.06)'
+                    : '0 1px 4px rgba(28,25,23,0.05)',
+                borderColor: isHovered && !isUnavailable ? 'rgba(217,119,6,0.35)' : 'var(--linen)',
+            }}
         >
-            {/* FULL WIDTH IMAGE AREA */}
-            <div className="relative w-full aspect-[5/3] overflow-hidden rounded-t-[8px]">
+            {/* IMAGE AREA */}
+            <div className="relative w-full aspect-[5/3] overflow-hidden" style={{ borderRadius: '12px 12px 0 0' }}>
                 {item.image_url ? (
                     <Image
                         src={item.image_url}
@@ -64,7 +76,11 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
                         height={300}
                         loading="lazy"
                         sizes="(max-width: 768px) 100vw, 33vw"
-                        className="w-full h-full object-cover transition-transform duration-500 ease-in-out hover:scale-[1.06]"
+                        className="w-full h-full object-cover"
+                        style={{
+                            transition: 'transform 0.6s cubic-bezier(0.16,1,0.3,1)',
+                            transform: isHovered ? 'scale(1.07)' : 'scale(1)',
+                        }}
                         onError={(e) => {
                             (e.target as HTMLImageElement).style.display = 'none';
                             (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
@@ -72,15 +88,25 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
                     />
                 ) : null}
 
-                {/* Fallback Emoji Centered Context */}
-                <div className={`absolute inset-0 flex items-center justify-center bg-[var(--cream)] ${item.image_url ? 'hidden' : ''}`}>
-                    <span className="text-6xl drop-shadow-sm select-none transition-transform duration-500 hover:scale-[1.1]">{emoji}</span>
+                {/* Fallback emoji */}
+                <div className={`absolute inset-0 flex items-center justify-center ${item.image_url ? 'hidden' : ''}`}
+                    style={{ background: 'var(--cream)' }}>
+                    <span className="text-6xl drop-shadow-sm select-none"
+                        style={{ transition: 'transform 0.5s ease', transform: isHovered ? 'scale(1.1)' : 'scale(1)' }}>
+                        {emoji}
+                    </span>
                 </div>
+
+                {/* Gradient overlay — subtle scrim at bottom */}
+                <div className="absolute inset-0 pointer-events-none"
+                    style={{ background: 'linear-gradient(180deg, transparent 55%, rgba(28,25,23,0.18) 100%)' }} />
 
                 {/* Sold Out Overlay */}
                 {isUnavailable && (
-                    <div className="absolute inset-0 bg-[rgba(28,36,22,0.75)] flex items-center justify-center z-30">
-                        <span className="text-white font-[700] text-[12px] tracking-[0.1em] uppercase backdrop-blur-sm px-3 py-1 border border-white/20 rounded-md">
+                    <div className="absolute inset-0 flex items-center justify-center z-30"
+                        style={{ background: 'rgba(28,25,23,0.72)', backdropFilter: 'blur(3px)' }}>
+                        <span className="text-white font-[700] text-[11px] tracking-[0.12em] uppercase px-3 py-1.5 rounded-[6px]"
+                            style={{ border: '1px solid rgba(255,255,255,0.18)' }}>
                             {t.soldOut}
                         </span>
                     </div>
@@ -88,38 +114,40 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
 
                 {/* Preptime Badge */}
                 {prepTime && (
-                    <div className={`absolute top-2 ${isRTL ? 'left-2' : 'right-2'} bg-[var(--olive-darkest)] text-[rgba(253,248,240,0.7)] text-[11px] px-[7px] py-[3px] rounded-[3px] z-20 flex items-center gap-1 font-[600]`}>
+                    <div className={`absolute top-2.5 ${isRTL ? 'left-2.5' : 'right-2.5'} z-20 flex items-center gap-1 text-[11px] font-[600] px-2 py-1 rounded-[6px]`}
+                        style={{
+                            background: 'rgba(28,25,23,0.65)',
+                            backdropFilter: 'blur(8px)',
+                            color: 'rgba(253,248,240,0.88)',
+                            border: '1px solid rgba(255,255,255,0.08)'
+                        }}>
                         🕐 {prepTime}m
                     </div>
                 )}
 
                 {/* Tags overlay */}
-                <div className={`absolute top-2 ${isRTL ? 'right-2' : 'left-2'} z-20 flex flex-col gap-1.5 align-start items-start`}>
+                <div className={`absolute top-2.5 ${isRTL ? 'right-2.5' : 'left-2.5'} z-20 flex flex-col gap-1.5 items-start`}>
                     {tags.slice(0, 2).map(tag => {
                         const cfg = TAG_CONFIG[tag]
                         if (!cfg) return null
-                        return (
-                            <span key={tag} className={`${cfg.bgClass}`}>
-                                {cfg.label}
-                            </span>
-                        )
+                        return <span key={tag} className={cfg.bgClass}>{cfg.label}</span>
                     })}
                 </div>
             </div>
 
             {/* CONTENT AREA */}
-            <div className="p-3 flex flex-col flex-1">
-                <h3 className="text-base font-bold mb-1 leading-snug truncate">{item.name}</h3>
+            <div className="p-3.5 flex flex-col flex-1">
+                <h3 className="text-[15px] font-[700] mb-1 leading-snug truncate text-[var(--charcoal)]">{item.name}</h3>
 
                 {/* Rating */}
-                <div className="flex items-center gap-[6px] mt-1" aria-label={`Rated ${item.rating} out of 5`}>
+                <div className="flex items-center gap-1.5 mt-0.5" aria-label={`Rated ${item.rating} out of 5`}>
                     <Star className="w-3 h-3 fill-[var(--amber-warm)] text-[var(--amber-warm)]" />
-                    <span className="text-[11px] text-[var(--stone)] font-[600]">{item.rating}</span>
+                    <span className="text-[11px] font-[600] text-[var(--stone)]">{item.rating}</span>
                 </div>
 
                 {/* Description */}
                 {item.description && (
-                    <p className="text-xs text-[var(--stone)] font-[300] leading-snug line-clamp-2 mt-1.5 flex-grow">
+                    <p className="text-[12px] text-[var(--stone)] font-[300] leading-snug line-clamp-2 mt-2 flex-grow">
                         {item.description}
                     </p>
                 )}
@@ -127,23 +155,26 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
 
                 {/* Size toggle */}
                 {hasSizes && !priceOnRequest && (
-                    <div
-                        role="radiogroup"
-                        aria-label="Select size"
-                        className="flex gap-2 mt-4"
-                    >
+                    <div role="radiogroup" aria-label="Select size" className="flex gap-2 mt-4">
                         {(['small', 'large'] as const).map(s => {
-                            const selected = selectedSize === s;
+                            const selected = selectedSize === s
                             return (
                                 <button
                                     key={s}
                                     role="radio"
                                     aria-checked={selected}
                                     onClick={() => setSelectedSize(s)}
-                                    className={`flex-1 py-[6px] rounded-[4px] text-[12px] font-[600] transition-colors border ${selected
-                                        ? 'bg-[var(--olive-base)] text-white border-[var(--olive-base)]'
-                                        : 'bg-transparent text-[var(--stone)] border-[var(--linen)] hover:border-[var(--olive-pale)] hover:text-[var(--charcoal)]'
-                                        }`}
+                                    className="flex-1 py-[7px] rounded-[6px] text-[12px] font-[600] transition-all duration-200"
+                                    style={{
+                                        background: selected
+                                            ? 'linear-gradient(135deg, var(--olive-base), var(--olive-dark))'
+                                            : 'transparent',
+                                        color: selected ? 'white' : 'var(--stone)',
+                                        border: selected
+                                            ? '1.5px solid transparent'
+                                            : '1.5px solid var(--linen)',
+                                        boxShadow: selected ? '0 2px 8px rgba(138,154,91,0.3)' : 'none',
+                                    }}
                                 >
                                     {s === 'small' ? t.smallSize : t.largeSize}
                                 </button>
@@ -152,12 +183,13 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
                     </div>
                 )}
 
-                {/* BOTTOM ROW (Price + Action) */}
-                <footer className="mt-3 pt-3 border-t border-[var(--linen)] flex items-center justify-between">
+                {/* BOTTOM ROW */}
+                <footer className="mt-3.5 pt-3.5 flex items-center justify-between"
+                    style={{ borderTop: '1px solid var(--linen)' }}>
                     {priceOnRequest ? (
                         <span className="text-[12px] italic text-[var(--stone)]">{t.askPrice}</span>
                     ) : (
-                        <span className="text-[14px] font-bold text-[var(--olive-darkest)]">
+                        <span className="font-display text-[15px] font-[700]" style={{ color: 'var(--olive-darkest)' }}>
                             {formatPrice(displayPrice!)}
                         </span>
                     )}
@@ -165,45 +197,57 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
                     {!isUnavailable && !priceOnRequest && (
                         <AnimatePresence mode="wait">
                             {qty === 0 ? (
-                                <motion.button key="add"
-                                    initial={{ scale: 0.8, opacity: 0 }}
+                                <motion.button
+                                    key="add"
+                                    initial={{ scale: 0.85, opacity: 0 }}
                                     animate={{ scale: 1, opacity: 1 }}
-                                    exit={{ scale: 0.8, opacity: 0 }}
-                                    whileTap={{ scale: 0.95 }}
+                                    exit={{ scale: 0.85, opacity: 0 }}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.94 }}
                                     transition={{ type: 'spring', stiffness: 500, damping: 25 }}
                                     onClick={() => setShowAddOns(true)}
                                     aria-label={`${t.add} ${item.name} ${t.addToCart}`}
-                                    className="btn-primary !px-4 !py-2 !min-h-[32px] !text-[12px]"
+                                    className="flex items-center gap-1.5 px-3.5 py-[7px] rounded-[7px] text-[12px] font-[700] tracking-wide transition-shadow"
+                                    style={{
+                                        background: 'linear-gradient(135deg, var(--amber-warm) 0%, #E67E00 100%)',
+                                        color: 'var(--olive-darkest)',
+                                        boxShadow: '0 3px 10px rgba(217,119,6,0.35)',
+                                    }}
                                 >
-                                    {t.add} <Plus className="w-4 h-4" />
+                                    {t.add} <Plus className="w-3.5 h-3.5" />
                                 </motion.button>
                             ) : (
-                                <motion.div key="qty"
-                                    initial={{ scale: 0.8, opacity: 0 }}
+                                <motion.div
+                                    key="qty"
+                                    initial={{ scale: 0.85, opacity: 0 }}
                                     animate={{ scale: 1, opacity: 1 }}
-                                    exit={{ scale: 0.8, opacity: 0 }}
-                                    className="flex items-center gap-2 bg-[var(--olive-darkest)] text-[var(--cream)] rounded-[4px] border-[2px] border-[var(--olive-base)] p-[2px]"
+                                    exit={{ scale: 0.85, opacity: 0 }}
+                                    className="flex items-center gap-1.5 rounded-[8px] p-[3px]"
+                                    style={{
+                                        background: 'linear-gradient(135deg, var(--olive-darkest), var(--olive-dark))',
+                                        border: '1.5px solid rgba(138,154,91,0.4)',
+                                    }}
                                 >
                                     <button
                                         onClick={() => updateQuantity(cartKey, qty - 1)}
                                         aria-label={`Remove one ${item.name}`}
-                                        className="w-[28px] h-[28px] flex items-center justify-center rounded-[3px] hover:bg-white/10 transition-colors"
+                                        className="w-[28px] h-[28px] flex items-center justify-center rounded-[5px] text-[var(--cream)] transition-colors hover:bg-white/10"
                                     >
-                                        <Minus className="w-[14px] h-[14px]" />
+                                        <Minus className="w-3.5 h-3.5" />
                                     </button>
                                     <span
                                         aria-live="polite"
                                         aria-label={`${qty} in cart`}
-                                        className="text-[14px] font-[600] w-[20px] text-center"
+                                        className="text-[14px] font-[700] w-[20px] text-center text-[var(--cream)]"
                                     >
                                         {qty}
                                     </span>
                                     <button
                                         onClick={() => updateQuantity(cartKey, qty + 1)}
                                         aria-label={`Add one more ${item.name}`}
-                                        className="w-[28px] h-[28px] flex items-center justify-center rounded-[3px] hover:bg-white/10 transition-colors"
+                                        className="w-[28px] h-[28px] flex items-center justify-center rounded-[5px] text-[var(--cream)] transition-colors hover:bg-white/10"
                                     >
-                                        <Plus className="w-[14px] h-[14px]" />
+                                        <Plus className="w-3.5 h-3.5" />
                                     </button>
                                 </motion.div>
                             )}
@@ -212,7 +256,7 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
                 </footer>
             </div>
 
-            {/* Add-Ons Modal — rendered via portal to escape overflow-hidden */}
+            {/* Add-Ons Modal Portal */}
             {showAddOns && typeof document !== 'undefined' && createPortal(
                 <AnimatePresence>
                     <AddOnsModal

@@ -1,10 +1,9 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import dynamic from 'next/dynamic'
-import { motion, type Variants } from 'framer-motion'
-import { Star, Truck, Zap, Award } from 'lucide-react'
+import { motion, useScroll, useTransform, AnimatePresence, type Variants } from 'framer-motion'
+import { Star, MapPin, Clock, ChevronRight, Flame, Zap, Award } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import MobileCartBar from '@/components/layout/MobileCartBar'
@@ -19,201 +18,247 @@ import { translations } from '@/lib/translations'
 
 const supabase = createClient()
 
+/* ── Animated Counter ── */
+function AnimatedCounter({ target, suffix = '' }: { target: number; suffix?: string }) {
+  const [count, setCount] = useState(0)
+  const ref = useRef<HTMLSpanElement>(null)
+  const [started, setStarted] = useState(false)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting && !started) setStarted(true) },
+      { threshold: 0.5 }
+    )
+    if (ref.current) observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [started])
+
+  useEffect(() => {
+    if (!started || target === 0) return
+    const duration = 1800
+    const steps = 60
+    const increment = target / steps
+    let current = 0
+    const timer = setInterval(() => {
+      current += increment
+      if (current >= target) { setCount(target); clearInterval(timer) }
+      else setCount(Math.floor(current))
+    }, duration / steps)
+    return () => clearInterval(timer)
+  }, [started, target])
+
+  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>
+}
+
 export default function HomePage() {
   const [loaded, setLoaded] = useState(false)
   const [branches, setBranches] = useState<any[]>([])
   const [menuItems, setMenuItems] = useState<any[]>([])
-  const [customerCount, setCustomerCount] = useState<number | null>(null)
-  const [branchCount, setBranchCount] = useState<number | null>(null)
+  const [customerCount, setCustomerCount] = useState<number>(0)
+  const [branchCount, setBranchCount] = useState<number>(0)
   const { language, isRTL } = useLanguageStore()
-  
   const { locationSet } = useLocationStore()
   const [showLocationModal, setShowLocationModal] = useState(false)
   const [storeHydrated, setStoreHydrated] = useState(false)
+  const heroRef = useRef<HTMLDivElement>(null)
+
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, 80])
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0])
 
   const t = translations[language]
 
-  // Wait for Zustand to hydrate from localStorage before checking
+  useEffect(() => { setStoreHydrated(true) }, [])
   useEffect(() => {
-    setStoreHydrated(true)
-  }, [])
-
-  useEffect(() => {
-    // Only run after store has hydrated from localStorage
     if (!storeHydrated) return
-
-    if (locationSet) {
-      // User already set location before — DO NOT show modal
-      setShowLocationModal(false)
-      return
-    }
-
-    // First time visitor — show modal after 1.2s delay
-    const timer = setTimeout(() => {
-      setShowLocationModal(true)
-    }, 1200)
-
+    if (locationSet) { setShowLocationModal(false); return }
+    const timer = setTimeout(() => setShowLocationModal(true), 1200)
     return () => clearTimeout(timer)
   }, [storeHydrated, locationSet])
 
-  const handleLocationSet = () => {
-    setShowLocationModal(false)
-  }
-
   useEffect(() => {
     Promise.all([getBranches(), getMenuItems()])
-      .then(([b, m]) => {
-        setBranches(b)
-        setMenuItems(m)
-      })
-      .finally(() => {
-        setLoaded(true)
-      })
-
-    // Live stats
-    supabase
-      .from('customers')
-      .select('id', { count: 'exact', head: true })
-      .then(({ count }) => setCustomerCount(count ?? 0))
-
-    supabase
-      .from('branches')
-      .select('id', { count: 'exact', head: true })
-      .eq('is_active', true)
-      .then(({ count }) => setBranchCount(count ?? 2))
+      .then(([b, m]) => { setBranches(b); setMenuItems(m) })
+      .finally(() => setLoaded(true))
+    supabase.from('customers').select('id', { count: 'exact', head: true }).then(({ count }) => setCustomerCount(count ?? 0))
+    supabase.from('branches').select('id', { count: 'exact', head: true }).eq('is_active', true).then(({ count }) => setBranchCount(count ?? 2))
   }, [])
 
   const featuredItems = menuItems.filter(i => (i.tags ?? []).includes('bestseller')).slice(0, 8)
 
-  const gridVariants = {
+  const gridVariants: Variants = {
     hidden: {},
     show: { transition: { staggerChildren: 0.07 } }
   }
-
   const cardVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } }
+    hidden: { opacity: 0, y: 24 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }
   }
+
+  const steps = [
+    { num: '01', icon: '📍', title: t.step1Title, desc: t.step1Desc },
+    { num: '02', icon: '🛒', title: t.step2Title, desc: t.step2Desc },
+    { num: '03', icon: '🚀', title: t.step3Title, desc: t.step3Desc },
+  ]
 
   return (
     <>
       {showLocationModal && (
-        <LocationModal 
-          onClose={handleLocationSet}
-          allowBackdropClose={locationSet}
-        />
+        <LocationModal onClose={() => setShowLocationModal(false)} allowBackdropClose={locationSet} />
       )}
       <Navbar />
 
       <motion.main
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
         role="main"
         dir={isRTL ? 'rtl' : 'ltr'}
-        className={isRTL ? 'font-[urdu-font-placeholder]' : ''}
       >
-        {/* 🔥 HERO SECTION */}
-        <section aria-label="Welcome to Zaitoon" className="relative w-full overflow-hidden bg-[var(--olive-darkest)] min-h-[100dvh]">
-          {/* Decorative right panel (desktop only) */}
+        {/* ══════════════════════════════════════════════
+            HERO SECTION — Premium olive + parallax
+        ══════════════════════════════════════════════ */}
+        <section
+          ref={heroRef}
+          aria-label="Welcome to Zaitoon"
+          className="relative w-full overflow-hidden min-h-[100dvh]"
+          style={{ background: 'linear-gradient(140deg, #3A4A22 0%, var(--olive-darkest) 45%, #2E3A1C 100%)' }}
+        >
+          {/* Ambient glow orbs */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full opacity-20"
+              style={{ background: 'radial-gradient(circle, var(--olive-light) 0%, transparent 70%)' }} />
+            <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full opacity-15"
+              style={{ background: 'radial-gradient(circle, var(--amber-warm) 0%, transparent 70%)' }} />
+          </div>
+
+          {/* Decorative diagonal right panel */}
           <div
-            className="hidden lg:block absolute top-0 right-0 bottom-0 bg-[var(--olive-dark)]"
+            className="hidden lg:block absolute top-0 right-0 bottom-0"
             style={{
               width: '42%',
+              background: 'linear-gradient(180deg, var(--olive-dark) 0%, #3E5128 100%)',
               clipPath: 'polygon(8% 0, 100% 0, 100% 100%, 0% 100%)'
             }}
           />
 
-          <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 w-full flex flex-col lg:flex-row items-center justify-between min-h-[100dvh] pt-[120px] pb-[80px]">
+          {/* Subtle grid texture overlay */}
+          <div className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(253,248,240,0.04) 1px, transparent 0)`,
+              backgroundSize: '40px 40px'
+            }}
+          />
 
+          <motion.div
+            style={{ y: heroY, opacity: heroOpacity }}
+            className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 w-full flex flex-col lg:flex-row items-center justify-between min-h-[100dvh] pt-[120px] pb-[80px]"
+          >
             {/* HERO LEFT CONTENT */}
             <div className="lg:w-[50%] flex flex-col items-start pt-8 lg:pt-0">
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.4 }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
               >
                 <p className={`section-label mb-6 text-[var(--amber-warm)] ${isRTL ? 'text-right' : ''}`}>
                   {t.est}
                 </p>
               </motion.div>
 
-                <h1 className={`text-white ${isRTL ? 'text-right' : ''}`}>
-                  <motion.span
-                    className="block"
-                    initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.65, delay: 0, ease: [0.22, 1, 0.36, 1] }}
-                  >
-                    {t.lahores}
-                  </motion.span>
-                  <motion.span
-                    className="block text-[var(--amber-pale)] italic"
-                    initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.65, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-                  >
-                    {t.finest}
-                  </motion.span>
-                  <motion.span
-                    className="block"
-                    initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.65, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                  >
-                    {t.bbqGrill}
-                  </motion.span>
-                </h1>
+              <h1 className={`text-white ${isRTL ? 'text-right' : ''}`}>
+                <motion.span
+                  className="block"
+                  initial={{ y: 50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  {t.lahores}
+                </motion.span>
+                <motion.span
+                  className="block italic"
+                  style={{ color: 'var(--amber-pale)', textShadow: '0 0 60px rgba(252,211,77,0.25)' }}
+                  initial={{ y: 50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  {t.finest}
+                </motion.span>
+                <motion.span
+                  className="block"
+                  initial={{ y: 50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.7, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  {t.bbqGrill}
+                </motion.span>
+              </h1>
 
               <motion.div
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-                className={`h-[3px] w-[64px] bg-[var(--amber-warm)] mt-6 mb-6 ${isRTL ? 'origin-right float-right' : 'origin-left'}`}
+                transition={{ duration: 0.7, delay: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                className={`h-[3px] w-[72px] mt-7 mb-7 rounded-full ${isRTL ? 'origin-right float-right' : 'origin-left'}`}
+                style={{ background: 'linear-gradient(90deg, var(--amber-warm), var(--amber-bright))' }}
               />
 
               <motion.div
-                initial={{ y: 24, opacity: 0 }}
+                initial={{ y: 28, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.6 }}
+                transition={{ duration: 0.6, delay: 0.65 }}
                 className={isRTL ? 'text-right' : ''}
               >
-                <p className="text-[17px] font-[300] text-[rgba(253,248,240,0.6)] leading-[1.6] max-w-md">
+                <p className="text-[17px] font-[300] leading-[1.7] max-w-md" style={{ color: 'rgba(253,248,240,0.65)' }}>
                   {t.heroDesc}
                 </p>
 
-                <div className={`flex flex-col sm:flex-row gap-4 mt-8 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
+                <div className={`flex flex-col sm:flex-row gap-3 mt-8 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
                   <Link href="/menu" className="btn-primary w-full sm:w-auto">
-                    {t.orderNow} →
+                    {t.orderNow} <ChevronRight className="w-4 h-4" />
                   </Link>
                   <Link href="/menu" className="btn-secondary w-full sm:w-auto">
                     {t.viewMenu}
                   </Link>
                 </div>
 
-                <div className={`flex flex-wrap items-center gap-6 mt-8 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                {/* Stats row */}
+                <div className={`flex flex-wrap items-center gap-6 mt-10 ${isRTL ? 'flex-row-reverse' : ''}`}>
                   {[
                     { icon: '⭐', label: t.rating },
                     { icon: '🚀', label: t.heroDelivery },
-                    { icon: '📍', label: branchCount !== null ? `${branchCount} ${t.branchCount}` : '…' },
+                    { icon: '📍', label: branchCount > 0 ? `${branchCount} ${t.branchCount}` : '…' },
                   ].map((badge, i) => (
                     <div key={i} className={`flex items-center gap-6 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                      <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                        <span className="text-[24px]">{badge.icon}</span>
-                        <span className="font-[300] text-[13px] text-white/50">{badge.label}</span>
-                      </div>
-                      {i < 2 && <div className="h-[24px] w-[1px] bg-[rgba(253,248,240,0.15)] hidden sm:block" />}
+                      <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.75 + i * 0.1, duration: 0.4 }}
+                        className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
+                      >
+                        <span className="text-[22px]">{badge.icon}</span>
+                        <span className="font-[400] text-[13px]" style={{ color: 'rgba(253,248,240,0.55)' }}>
+                          {badge.label}
+                        </span>
+                      </motion.div>
+                      {i < 2 && <div className="h-[20px] w-[1px] hidden sm:block" style={{ background: 'rgba(253,248,240,0.12)' }} />}
                     </div>
                   ))}
                 </div>
               </motion.div>
             </div>
 
-            {/* HERO RIGHT PANEL (Desktop Only) */}
+            {/* HERO RIGHT PANEL (Desktop) */}
             <motion.div
-              initial={{ x: 40, opacity: 0 }}
+              initial={{ x: 60, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+              transition={{ duration: 0.7, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
               className="hidden lg:flex w-[48%] relative justify-center"
             >
               <figure className="relative w-full max-w-[500px]">
+                {/* Glow behind image */}
+                <div className="absolute inset-[-20px] rounded-[20px] opacity-30 blur-3xl"
+                  style={{ background: 'radial-gradient(circle, var(--amber-warm) 0%, transparent 70%)' }} />
+
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="https://images.unsplash.com/photo-1544025162-d76694265947?w=800&q=85"
@@ -221,84 +266,165 @@ export default function HomePage() {
                   loading="lazy"
                   width={500}
                   height={600}
-                  className="w-full h-[600px] object-cover rounded-[8px]"
+                  className="relative w-full h-[580px] object-cover rounded-[16px]"
+                  style={{ boxShadow: '0 32px 80px rgba(0,0,0,0.40), 0 8px 24px rgba(0,0,0,0.20)' }}
                 />
 
-                <figcaption className="text-center mt-3 text-[12px] text-[var(--amber-pale)]">
+                <figcaption className="text-center mt-4 text-[12px]" style={{ color: 'var(--amber-pale)', opacity: 0.7 }}>
                   Zaitoon Special Shawarma — Rs. 790
                 </figcaption>
 
-                <div className={`absolute top-4 ${isRTL ? 'left-[-24px]' : 'right-[-24px]'} bg-[var(--amber-warm)] text-[var(--olive-darkest)] rounded-[4px] px-4 py-3 shadow-[0_8px_24px_rgba(0,0,0,0.15)]`}>
-                  <div className="font-display text-[32px] font-[800] leading-none mb-1">
-                    {customerCount !== null ? `${customerCount.toLocaleString()}+` : '…'}
+                {/* Floating customer badge */}
+                <motion.div
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                  className={`absolute top-6 ${isRTL ? 'left-[-28px]' : 'right-[-28px]'} rounded-[12px] px-5 py-4`}
+                  style={{
+                    background: 'linear-gradient(135deg, var(--amber-warm) 0%, #E67E00 100%)',
+                    color: 'var(--olive-darkest)',
+                    boxShadow: '0 12px 32px rgba(217,119,6,0.45), inset 0 1px 0 rgba(255,255,255,0.2)'
+                  }}
+                >
+                  <div className="font-display text-[34px] font-[800] leading-none mb-1">
+                    {customerCount > 0 ? <AnimatedCounter target={customerCount} suffix="+" /> : '…'}
                   </div>
-                  <div className="text-[12px] font-[600] uppercase tracking-[0.1em]">{t.happyCustomers}</div>
-                </div>
+                  <div className="text-[11px] font-[700] uppercase tracking-[0.12em]">{t.happyCustomers}</div>
+                </motion.div>
+
+                {/* Floating rating badge */}
+                <motion.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+                  className={`absolute bottom-20 ${isRTL ? 'right-[-24px]' : 'left-[-24px]'} glass-dark px-4 py-3 flex items-center gap-3`}
+                  style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.30)' }}
+                >
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-[16px]"
+                    style={{ background: 'rgba(217,119,6,0.2)', border: '1px solid rgba(217,119,6,0.3)' }}>
+                    ⭐
+                  </div>
+                  <div>
+                    <div className="text-white font-[700] text-[14px] leading-none">4.9 / 5</div>
+                    <div className="text-[11px] mt-0.5" style={{ color: 'rgba(253,248,240,0.5)' }}>Customer Rating</div>
+                  </div>
+                </motion.div>
               </figure>
             </motion.div>
+          </motion.div>
 
-          </div>
+          {/* Scroll indicator */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.4, duration: 0.6 }}
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-10"
+          >
+            <span className="text-[10px] font-[600] tracking-[0.2em] uppercase" style={{ color: 'rgba(253,248,240,0.35)' }}>
+              Scroll
+            </span>
+            <motion.div
+              animate={{ y: [0, 6, 0] }}
+              transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+              className="w-[1px] h-[32px] rounded-full"
+              style={{ background: 'linear-gradient(180deg, rgba(217,119,6,0.6), transparent)' }}
+            />
+          </motion.div>
         </section>
 
-        {/* 🍽️ FAN FAVOURITES SECTION */}
-        <section aria-label="Fan Favourite dishes" className="bg-[var(--cream)] py-[80px] px-6">
+        {/* ══════════════════════════════════════════════
+            FAN FAVOURITES — Enhanced cards
+        ══════════════════════════════════════════════ */}
+        <section aria-label="Fan Favourite dishes" className="py-[88px] px-6" style={{ background: 'linear-gradient(180deg, var(--cream) 0%, var(--parchment) 100%)' }}>
           <div className="max-w-7xl mx-auto">
-
             <motion.div
-              initial={{ opacity: 0, y: 28 }}
+              initial={{ opacity: 0, y: 32 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-              className="flex flex-col sm:flex-row items-baseline justify-between mb-8"
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col sm:flex-row items-baseline justify-between mb-10"
             >
               <div className={isRTL ? 'text-right' : ''}>
                 <span className="section-label">{t.ourSignatures}</span>
                 <h2 className="text-[var(--charcoal)]">{t.fanFavourites}</h2>
-
                 <motion.div
                   initial={{ scaleX: 0 }}
                   whileInView={{ scaleX: 1 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                  style={{ transformOrigin: isRTL ? 'right' : 'left', height: 3, backgroundColor: 'var(--amber-warm)', width: 56, marginTop: '20px', marginLeft: isRTL ? 'auto' : '0' }}
+                  transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                  style={{
+                    transformOrigin: isRTL ? 'right' : 'left',
+                    height: 3,
+                    background: 'linear-gradient(90deg, var(--amber-warm), var(--amber-bright))',
+                    width: 64,
+                    marginTop: '20px',
+                    borderRadius: 99,
+                    marginLeft: isRTL ? 'auto' : 0
+                  }}
                 />
               </div>
-
-              <Link href="/menu" className="text-[13px] text-[var(--olive-base)] hover:underline font-[600] mt-4 sm:mt-0">
+              <Link
+                href="/menu"
+                className="text-[13px] font-[700] mt-5 sm:mt-0 flex items-center gap-1 group transition-colors"
+                style={{ color: 'var(--olive-base)' }}
+              >
                 {t.viewAll}
+                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </motion.div>
 
             <div className="relative">
+              {/* Fade edges on mobile scroll */}
+              <div className="absolute left-0 top-0 bottom-0 w-6 z-10 pointer-events-none"
+                style={{ background: 'linear-gradient(90deg, var(--parchment), transparent)' }} />
+              <div className="absolute right-0 top-0 bottom-0 w-6 z-10 pointer-events-none"
+                style={{ background: 'linear-gradient(-90deg, var(--parchment), transparent)' }} />
+
               <motion.ul
                 role="list"
                 variants={gridVariants}
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true }}
-                className="flex gap-6 overflow-x-auto scrollbar-hide pb-6 pt-4 px-2 -mx-2 snap-x"
+                className="flex gap-5 overflow-x-auto scrollbar-hide pb-6 pt-4 px-2 -mx-2 snap-x"
               >
-                {featuredItems.map((item, i) => (
-                  <motion.li key={item.id} variants={cardVariants} className="snap-start shrink-0 w-[260px]">
+                {featuredItems.map((item) => (
+                  <motion.li key={item.id} variants={cardVariants} className="snap-start shrink-0 w-[264px]">
                     <MenuItemCard item={item} />
                   </motion.li>
                 ))}
               </motion.ul>
             </div>
-
           </div>
         </section>
 
-        {/* 🔢 HOW IT WORKS SECTION */}
-        <section aria-label="How to order from Zaitoon" className="bg-[var(--olive-dark)] py-[96px] px-6">
-          <div className="max-w-7xl mx-auto">
+        {/* ══════════════════════════════════════════════
+            HOW IT WORKS — Glassmorphism cards
+        ══════════════════════════════════════════════ */}
+        <section
+          aria-label="How to order from Zaitoon"
+          className="relative py-[100px] px-6 overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, var(--olive-dark) 0%, var(--olive-darkest) 60%, #2E3A1C 100%)' }}
+        >
+          {/* Background orbs */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full opacity-10"
+              style={{ background: 'radial-gradient(circle, var(--amber-warm) 0%, transparent 70%)' }} />
+          </div>
 
+          {/* Dot grid */}
+          <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
+            style={{
+              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(253,248,240,0.6) 1px, transparent 0)`,
+              backgroundSize: '32px 32px'
+            }}
+          />
+
+          <div className="relative z-10 max-w-7xl mx-auto">
             <motion.div
-              initial={{ opacity: 0, y: 28 }}
+              initial={{ opacity: 0, y: 32 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-              className="mb-[40px] text-center flex flex-col items-center"
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="mb-[56px] text-center flex flex-col items-center"
             >
               <span className="section-label" style={{ justifyContent: 'center' }}>{t.simpleProcess}</span>
               <h2 className="text-white">{t.howItWorks}</h2>
@@ -306,57 +432,74 @@ export default function HomePage() {
                 initial={{ scaleX: 0 }}
                 whileInView={{ scaleX: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                style={{ transformOrigin: 'center', height: 3, backgroundColor: 'var(--amber-warm)', width: 56, marginTop: '20px' }}
+                transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                style={{
+                  transformOrigin: 'center', height: 3,
+                  background: 'linear-gradient(90deg, var(--amber-warm), var(--amber-bright))',
+                  width: 64, marginTop: '20px', borderRadius: 99
+                }}
               />
             </motion.div>
 
-            <ol role="list" className="grid grid-cols-1 md:grid-cols-3 gap-8 relative mt-16">
+            <ol role="list" className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+              {/* Connecting line */}
+              <div className="hidden md:block absolute top-[52px] left-[calc(16.66%+26px)] right-[calc(16.66%+26px)] h-[1px] z-0"
+                style={{ background: 'linear-gradient(90deg, transparent, rgba(217,119,6,0.4), transparent)' }} />
 
-              {/* Decorative connecting lines (desktop only) */}
-              <div className="hidden md:block absolute top-[48px] left-[16%] right-[16%] h-[2px] bg-[var(--amber-rich)] opacity-30 z-0" />
-
-              {[
-                { num: '01', title: t.step1Title, desc: t.step1Desc },
-                { num: '02', title: t.step2Title, desc: t.step2Desc },
-                { num: '03', title: t.step3Title, desc: t.step3Desc },
-              ].map((step, i) => (
+              {steps.map((step, i) => (
                 <motion.li
                   key={step.num}
-                  initial={{ opacity: 0, y: 32 }}
+                  initial={{ opacity: 0, y: 40 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-50px' }}
-                  transition={{ type: 'spring', damping: 20, stiffness: 100, delay: i * 0.15 }}
-                  className={`card-dark relative p-8 pt-12 z-10 text-center flex flex-col items-center ${isRTL ? 'text-right' : ''}`}
+                  viewport={{ once: true, margin: '-40px' }}
+                  transition={{ duration: 0.6, delay: i * 0.15, ease: [0.16, 1, 0.3, 1] }}
+                  className={`relative p-8 pt-12 z-10 text-center flex flex-col items-center rounded-[16px] ${isRTL ? 'text-right' : ''}`}
+                  style={{
+                    background: 'rgba(253,248,240,0.05)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(253,248,240,0.10)',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.07)'
+                  }}
+                  whileHover={{ y: -4, boxShadow: '0 16px 48px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.1)' }}
                 >
-                  <span className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'} font-display text-[72px] font-[800] leading-none text-[rgba(253,248,240,0.06)] pointer-events-none`}>
+                  {/* Watermark number */}
+                  <span className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'} font-display text-[72px] font-[800] leading-none pointer-events-none select-none`}
+                    style={{ color: 'rgba(253,248,240,0.04)' }}>
                     {step.num}
                   </span>
 
-                  <div className="w-[52px] h-[52px] bg-[var(--olive-mid)] border-[2px] border-[var(--amber-warm)] rounded-[8px] flex items-center justify-center text-[24px] mb-6 shadow-[0_4px_16px_rgba(217,119,6,0.15)]">
-                    {i === 0 ? '📍' : i === 1 ? '🛒' : '🚀'}
+                  {/* Icon */}
+                  <div className="w-[56px] h-[56px] rounded-[12px] flex items-center justify-center text-[26px] mb-6"
+                    style={{
+                      background: 'rgba(138,154,91,0.2)',
+                      border: '1.5px solid rgba(217,119,6,0.5)',
+                      boxShadow: '0 4px 16px rgba(217,119,6,0.15)'
+                    }}>
+                    {step.icon}
                   </div>
 
-                  <div className="label text-[var(--amber-warm)] mb-3">{step.num}</div>
+                  <div className="label mb-3" style={{ color: 'var(--amber-warm)' }}>{step.num}</div>
                   <h3 className="text-white mb-4 text-[22px]">{step.title}</h3>
-                  <p className="text-[14px] font-[300] text-[rgba(253,248,240,0.55)] leading-[1.7] max-w-[240px]">
+                  <p className="text-[14px] font-[300] leading-[1.75] max-w-[240px]" style={{ color: 'rgba(253,248,240,0.5)' }}>
                     {step.desc}
                   </p>
                 </motion.li>
               ))}
             </ol>
-
           </div>
         </section>
 
-        {/* 📍 BRANCHES SECTION */}
-        <section id="branches" aria-label="Our branches" className="bg-[var(--cream)] py-[80px] px-6">
+        {/* ══════════════════════════════════════════════
+            BRANCHES — Clean cards with glow hover
+        ══════════════════════════════════════════════ */}
+        <section id="branches" aria-label="Our branches" className="py-[88px] px-6 bg-[var(--cream)]">
           <div className="max-w-7xl mx-auto">
             <motion.div
-              initial={{ opacity: 0, y: 28 }}
+              initial={{ opacity: 0, y: 32 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               className={`mb-12 ${isRTL ? 'text-right' : ''}`}
             >
               <span className="section-label">{t.branchCount}</span>
@@ -365,8 +508,14 @@ export default function HomePage() {
                 initial={{ scaleX: 0 }}
                 whileInView={{ scaleX: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                style={{ transformOrigin: isRTL ? 'right' : 'left', height: 3, backgroundColor: 'var(--amber-warm)', width: 56, marginTop: '20px', marginLeft: isRTL ? 'auto' : '0' }}
+                transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                style={{
+                  transformOrigin: isRTL ? 'right' : 'left',
+                  height: 3,
+                  background: 'linear-gradient(90deg, var(--amber-warm), var(--amber-bright))',
+                  width: 64, marginTop: '20px', borderRadius: 99,
+                  marginLeft: isRTL ? 'auto' : 0
+                }}
               />
             </motion.div>
 
@@ -374,44 +523,65 @@ export default function HomePage() {
               {branches.map((branch: any, i: number) => (
                 <motion.div
                   key={branch.id}
-                  initial={{ opacity: 0, y: 32 }}
+                  initial={{ opacity: 0, y: 36 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: '-40px' }}
-                  transition={{ duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                  className="bg-white rounded-[8px] border-[2px] border-[var(--linen)] p-6 hover:border-[var(--amber-warm)] transition-all hover:shadow-lg"
+                  transition={{ duration: 0.6, delay: i * 0.12, ease: [0.16, 1, 0.3, 1] }}
+                  whileHover={{ y: -4 }}
+                  className="group bg-white rounded-[16px] p-7 transition-all duration-300 cursor-default"
+                  style={{
+                    border: '1.5px solid var(--linen)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                  }}
+                  onMouseEnter={e => {
+                    const el = e.currentTarget as HTMLElement
+                    el.style.borderColor = 'var(--amber-warm)'
+                    el.style.boxShadow = '0 12px 40px rgba(217,119,6,0.15), 0 4px 12px rgba(0,0,0,0.06)'
+                  }}
+                  onMouseLeave={e => {
+                    const el = e.currentTarget as HTMLElement
+                    el.style.borderColor = 'var(--linen)'
+                    el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)'
+                  }}
                 >
-                  <div className="flex items-start justify-between gap-4 mb-4">
+                  <div className="flex items-start justify-between gap-4 mb-5">
                     <div>
-                      <h3 className="font-display text-[20px] font-[700] text-[var(--charcoal)] mb-1">{branch.name}</h3>
-                      <p className="text-[13px] text-[var(--stone)] leading-relaxed">{branch.address}</p>
+                      <h3 className="font-display text-[21px] font-[700] text-[var(--charcoal)] mb-1">{branch.name}</h3>
+                      <p className="text-[13px] leading-relaxed text-[var(--stone)]">{branch.address}</p>
                     </div>
-                    <div className="w-12 h-12 bg-[var(--olive-darkest)] rounded-[6px] flex items-center justify-center shrink-0">
-                      <span className="text-2xl">📍</span>
+                    <div className="w-12 h-12 rounded-[10px] flex items-center justify-center shrink-0 transition-transform group-hover:scale-110"
+                      style={{
+                        background: 'linear-gradient(135deg, var(--olive-darkest), var(--olive-dark))',
+                        boxShadow: '0 4px 12px rgba(92,110,58,0.3)'
+                      }}>
+                      <span className="text-xl">📍</span>
                     </div>
                   </div>
 
-                  <div className="space-y-2 mb-5">
+                  <div className="space-y-2.5 mb-6">
                     {branch.hours && (
-                      <div className="flex items-center gap-2 text-[13px] text-[var(--stone)]">
-                        <span>🕐</span>
+                      <div className="flex items-center gap-2.5 text-[13px] text-[var(--stone)]">
+                        <Clock className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--olive-base)' }} />
                         <span>{branch.hours}</span>
                       </div>
                     )}
                     {branch.phone && (
-                      <div className="flex items-center gap-2 text-[13px] text-[var(--stone)]">
-                        <span>📞</span>
-                        <a href={`tel:${branch.phone}`} className="hover:text-[var(--olive-base)] transition-colors">{branch.phone}</a>
+                      <div className="flex items-center gap-2.5 text-[13px] text-[var(--stone)]">
+                        <span className="w-3.5 h-3.5 text-center leading-none" style={{ color: 'var(--olive-base)' }}>📞</span>
+                        <a href={`tel:${branch.phone}`} className="hover:text-[var(--olive-base)] transition-colors font-[500]">
+                          {branch.phone}
+                        </a>
                       </div>
                     )}
                   </div>
 
-                  <div className="flex gap-3 pt-4 border-t border-[var(--linen)]">
+                  <div className="flex gap-3 pt-5 border-t border-[var(--linen)]">
                     {branch.whatsapp && (
                       <a
                         href={`https://wa.me/${branch.whatsapp.replace(/\D/g, '')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 bg-[#25D366] text-white px-4 py-2 rounded-[6px] text-[13px] font-bold hover:bg-[#20bd5a] transition-colors"
+                        target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-[8px] text-[13px] font-[700] text-white transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                        style={{ background: 'linear-gradient(135deg, #25D366, #20bd5a)', boxShadow: '0 3px 10px rgba(37,211,102,0.3)' }}
                       >
                         <span>💬</span> WhatsApp
                       </a>
@@ -419,7 +589,7 @@ export default function HomePage() {
                     {branch.phone && (
                       <a
                         href={`tel:${branch.phone}`}
-                        className="flex items-center gap-2 border-[2px] border-[var(--linen)] text-[var(--charcoal)] px-4 py-2 rounded-[6px] text-[13px] font-bold hover:border-[var(--olive-base)] hover:text-[var(--olive-base)] transition-colors"
+                        className="flex items-center gap-2 border-[1.5px] border-[var(--linen)] text-[var(--charcoal)] px-4 py-2.5 rounded-[8px] text-[13px] font-[700] hover:border-[var(--olive-base)] hover:text-[var(--olive-base)] transition-all hover:-translate-y-0.5"
                       >
                         <span>📞</span> Call
                       </a>
@@ -430,7 +600,6 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-
       </motion.main>
 
       <Footer />
