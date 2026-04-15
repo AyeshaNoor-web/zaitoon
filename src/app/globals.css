@@ -2,12 +2,12 @@
 
 @layer base {
   :root {
-    --olive-darkest: #1C2416;
-    --olive-dark: #2C3A1E;
-    --olive-mid: #3D5226;
-    --olive-base: #556B2F;
-    --olive-light: #6B8A3A;
-    --olive-pale: #8FAF5A;
+    --olive-darkest: #5C6E3A;
+    --olive-dark: #6B7D45;
+    --olive-mid: #7A8E50;
+    --olive-base: #8A9A5B;
+    --olive-light: #9EAD72;
+    --olive-pale: #B2C08A;
     --amber-deep: #92400E;
     --amber-rich: #B45309;
     --amber-warm: #D97706;
