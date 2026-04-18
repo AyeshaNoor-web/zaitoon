@@ -1,5 +1,5 @@
-﻿'use client'
-import { useState, useEffect } from 'react'
+'use client'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -29,7 +29,7 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; border: string }
 const TABS = ['orders', 'loyalty', 'profile'] as const
 type Tab = typeof TABS[number]
 
-const TAB_ICONS: Record<Tab, JSX.Element> = {
+const TAB_ICONS: Record<Tab, React.ReactElement> = {
     orders:  <ShoppingBag className="w-4 h-4" />,
     loyalty: <Award className="w-4 h-4" />,
     profile: <User className="w-4 h-4" />,
@@ -326,7 +326,7 @@ export default function AccountPage() {
                                         <div className="h-2.5 rounded-full overflow-hidden" style={{ background: 'var(--linen)' }}>
                                             <motion.div
                                                 className="h-full rounded-full"
-                                                style={{ background: 'linear-gradient(90deg, var(--green-base), var(--olive-light))' }}
+                                                style={{ background: 'linear-gradient(90deg, var(--green-base), var(--green-light))' }}
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${Math.min(100, Math.max(5, (customer.loyaltyPoints / nextTier.max) * 100))}%` }}
                                                 transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}

@@ -195,10 +195,11 @@ export default function LoyaltyPage() {
                             const isDone = TIER_ORDER.indexOf(t) < TIER_ORDER.indexOf(tier)
                             return (
                                 <div key={t} className="flex items-center flex-1">
-                                    <div className={`relative w-10 h-10 rounded-full flex items-center justify-center text-[18px] shrink-0 transition-all ${isCurrent ? 'ring-4 ring-offset-2' : ''}`}
+                                    <div className={`relative w-10 h-10 rounded-full flex items-center justify-center text-[18px] shrink-0 transition-all`}
                                         style={{
                                             background: isDone || isCurrent ? TIERS[t].color : 'var(--linen)',
-                                            ringColor: isCurrent ? TIERS[t].color : 'transparent',
+                                            outline: isCurrent ? `4px solid ${TIERS[t].color}` : 'none',
+                                            outlineOffset: '2px',
                                         }}>
                                         {TIER_ICONS[t]}
                                         {isCurrent && (
@@ -213,7 +214,7 @@ export default function LoyaltyPage() {
                                             style={{ background: 'var(--linen)' }}>
                                             <motion.div
                                                 className="h-full rounded-full"
-                                                style={{ background: 'linear-gradient(90deg, var(--green-base), var(--olive-light))' }}
+                                                style={{ background: 'linear-gradient(90deg, var(--green-base), var(--green-light))' }}
                                                 initial={{ width: 0 }}
                                                 whileInView={{
                                                     width: isDone ? '100%' : (isCurrent && nextCfg ? `${progress}%` : '0%')
