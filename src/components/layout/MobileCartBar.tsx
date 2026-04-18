@@ -45,10 +45,10 @@ export default function MobileCartBar() {
                     <div
                         className="px-4 pb-safe pt-2"
                         style={{
-                            background: 'rgba(252,248,240,0.95)',
+                            background: 'rgba(250,243,224,0.97)',
                             backdropFilter: 'blur(20px)',
                             WebkitBackdropFilter: 'blur(20px)',
-                            borderTop: '1px solid rgba(217,119,6,0.2)',
+                            borderTop: '1px solid rgba(46,204,113,0.25)',
                             boxShadow: '0 -8px 32px rgba(0,0,0,0.12)'
                         }}
                     >
@@ -58,7 +58,7 @@ export default function MobileCartBar() {
                                 <div className="flex justify-between text-[10px] font-[600] mb-1"
                                     style={{ color: 'var(--stone)' }}>
                                     <span>Min. order Rs. {MIN_ORDER}</span>
-                                    <span style={{ color: 'var(--amber-warm)' }}>
+                                    <span style={{ color: 'var(--orange-warm)' }}>
                                         Rs. {MIN_ORDER - subtotal} more
                                     </span>
                                 </div>
@@ -66,7 +66,7 @@ export default function MobileCartBar() {
                                     style={{ background: 'var(--linen)' }}>
                                     <motion.div
                                         className="h-full rounded-full"
-                                        style={{ background: 'linear-gradient(90deg, var(--amber-warm), var(--amber-bright))' }}
+                                        style={{ background: 'linear-gradient(90deg, var(--orange-warm), var(--green-base))' }}
                                         animate={{ width: `${progressPct}%` }}
                                         transition={{ duration: 0.4 }}
                                     />
@@ -94,16 +94,19 @@ export default function MobileCartBar() {
                         <motion.button
                             whileTap={{ scale: 0.97 }}
                             onClick={handleCheckout}
-                            className="w-full py-4 rounded-[14px] flex items-center justify-between px-5 font-[700] text-[14px] mb-1"
+                            className="w-full py-4 rounded-[14px] flex items-center justify-between px-5 font-[700] text-[14px] mb-1 relative overflow-hidden"
                             style={{
-                                background: 'linear-gradient(135deg, var(--amber-warm) 0%, #E67E00 100%)',
-                                color: 'var(--olive-darkest)',
-                                boxShadow: '0 6px 20px rgba(217,119,6,0.35)',
+                                background: 'linear-gradient(135deg, var(--orange-warm) 0%, #D08B05 100%)',
+                                color: '#fff',
+                                boxShadow: '0 6px 20px rgba(243,156,18,0.40)',
                             }}
                         >
+                            {/* Shine overlay */}
+                            <div className="absolute inset-0 pointer-events-none"
+                                style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%)' }} />
                             <span className={`flex items-center gap-2.5 ${isRTL ? 'flex-row-reverse' : ''}`}>
                                 <span className="w-8 h-8 rounded-[10px] flex items-center justify-center"
-                                    style={{ background: 'rgba(46,58,28,0.12)' }}>
+                                    style={{ background: 'rgba(255,255,255,0.15)' }}>
                                     <ShoppingCart className="w-4 h-4" />
                                 </span>
                                 <span>

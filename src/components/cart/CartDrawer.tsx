@@ -31,7 +31,7 @@ export default function CartDrawer({ open, onClose }: Props) {
                         onClick={onClose}
                         aria-hidden="true"
                         className="fixed inset-0 z-[70]"
-                        style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(3px)' }}
+                        style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)' }}
                     />
 
                     {/* Drawer */}
@@ -46,23 +46,23 @@ export default function CartDrawer({ open, onClose }: Props) {
                         transition={{ type: 'spring', damping: 30, stiffness: 320 }}
                         className="fixed right-0 top-0 bottom-0 z-[80] w-full md:w-[420px] flex flex-col"
                         style={{
-                            background: 'linear-gradient(180deg, #3A4A22 0%, var(--olive-darkest) 100%)',
-                            borderLeft: '2px solid rgba(217,119,6,0.4)',
-                            boxShadow: '-20px 0 60px rgba(0,0,0,0.4)',
+                            background: 'linear-gradient(180deg, #0D2015 0%, #111E13 100%)',
+                            borderLeft: '2px solid rgba(46,204,113,0.30)',
+                            boxShadow: '-20px 0 60px rgba(0,0,0,0.45)',
                         }}
                     >
                         {/* Header */}
                         <header className="flex items-center justify-between px-6 py-5"
-                            style={{ borderBottom: '1px solid rgba(253,248,240,0.08)' }}>
+                            style={{ borderBottom: '1px solid rgba(46,204,113,0.10)' }}>
                             <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-[8px] flex items-center justify-center"
-                                    style={{ background: 'rgba(217,119,6,0.15)', border: '1px solid rgba(217,119,6,0.3)' }}>
-                                    <ShoppingBag className="w-4 h-4" style={{ color: 'var(--amber-warm)' }} />
+                                <div className="w-9 h-9 rounded-[10px] flex items-center justify-center"
+                                    style={{ background: 'rgba(243,156,18,0.15)', border: '1px solid rgba(243,156,18,0.30)' }}>
+                                    <ShoppingBag className="w-4 h-4" style={{ color: 'var(--orange-warm)' }} />
                                 </div>
                                 <div>
                                     <h2 className="text-[20px] text-white font-display font-[700] leading-none">Your Order</h2>
                                     {itemCount > 0 && (
-                                        <p className="text-[11px] mt-0.5" style={{ color: 'rgba(253,248,240,0.4)' }}>
+                                        <p className="text-[11px] mt-0.5" style={{ color: 'rgba(250,243,224,0.40)' }}>
                                             {itemCount} item{itemCount > 1 ? 's' : ''}
                                         </p>
                                     )}
@@ -74,12 +74,12 @@ export default function CartDrawer({ open, onClose }: Props) {
                                 aria-label="Close cart"
                                 className="w-9 h-9 rounded-[8px] flex items-center justify-center transition-all"
                                 style={{
-                                    color: 'rgba(253,248,240,0.6)',
-                                    border: '1px solid rgba(253,248,240,0.12)',
-                                    background: 'rgba(253,248,240,0.04)'
+                                    color: 'rgba(250,243,224,0.6)',
+                                    border: '1px solid rgba(46,204,113,0.15)',
+                                    background: 'rgba(46,204,113,0.05)'
                                 }}
-                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(253,248,240,0.10)' }}
-                                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(253,248,240,0.04)' }}
+                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(46,204,113,0.12)' }}
+                                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(46,204,113,0.05)' }}
                             >
                                 <X className="w-4 h-4" />
                             </motion.button>
@@ -87,17 +87,17 @@ export default function CartDrawer({ open, onClose }: Props) {
 
                         {/* Min order progress bar */}
                         {items.length > 0 && subtotal() < MIN_ORDER && (
-                            <div className="px-6 py-3" style={{ borderBottom: '1px solid rgba(253,248,240,0.06)' }}>
+                            <div className="px-6 py-3" style={{ borderBottom: '1px solid rgba(46,204,113,0.07)' }}>
                                 <div className="flex justify-between text-[11px] mb-1.5"
-                                    style={{ color: 'rgba(253,248,240,0.45)' }}>
+                                    style={{ color: 'rgba(250,243,224,0.45)' }}>
                                     <span>Min. order: Rs. {MIN_ORDER}</span>
-                                    <span style={{ color: 'var(--amber-warm)' }}>Rs. {remaining} more</span>
+                                    <span style={{ color: 'var(--orange-warm)' }}>Rs. {remaining} more</span>
                                 </div>
                                 <div className="w-full h-[3px] rounded-full overflow-hidden"
-                                    style={{ background: 'rgba(253,248,240,0.08)' }}>
+                                    style={{ background: 'rgba(250,243,224,0.08)' }}>
                                     <motion.div
                                         className="h-full rounded-full"
-                                        style={{ background: 'linear-gradient(90deg, var(--amber-warm), var(--amber-bright))' }}
+                                        style={{ background: 'linear-gradient(90deg, var(--orange-warm), var(--green-base))' }}
                                         initial={{ width: 0 }}
                                         animate={{ width: `${progressPct}%` }}
                                         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
@@ -124,7 +124,7 @@ export default function CartDrawer({ open, onClose }: Props) {
                                     </motion.div>
                                     <div>
                                         <h3 className="text-white text-[20px] mb-2">Your cart is empty</h3>
-                                        <p className="text-[14px] font-[300]" style={{ color: 'rgba(253,248,240,0.4)' }}>
+                                        <p className="text-[14px] font-[300]" style={{ color: 'rgba(250,243,224,0.40)' }}>
                                             Add some delicious items from our menu.
                                         </p>
                                     </div>
@@ -147,41 +147,41 @@ export default function CartDrawer({ open, onClose }: Props) {
                                                 exit={{ opacity: 0, x: -24, height: 0, paddingTop: 0, paddingBottom: 0 }}
                                                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                                                 className="px-6 py-4"
-                                                style={{ borderBottom: '1px solid rgba(253,248,240,0.07)' }}
+                                                style={{ borderBottom: '1px solid rgba(46,204,113,0.08)' }}
                                             >
                                                 <div className="flex justify-between items-start mb-3">
                                                     <div className="flex-1 pr-3">
                                                         <div className="text-[15px] font-[600] text-white leading-snug">{item.name}</div>
                                                         {item.size && (
                                                             <div className="text-[11px] font-[400] capitalize mt-0.5"
-                                                                style={{ color: 'var(--amber-pale)', opacity: 0.7 }}>
+                                                                style={{ color: 'var(--orange-pale)', opacity: 0.7 }}>
                                                                 {item.size}
                                                             </div>
                                                         )}
                                                         {/* Add-ons summary */}
                                                         {(item as any).addOns && (item as any).addOns.length > 0 && (
-                                                            <div className="text-[11px] mt-1" style={{ color: 'rgba(253,248,240,0.35)' }}>
+                                                            <div className="text-[11px] mt-1" style={{ color: 'rgba(250,243,224,0.35)' }}>
                                                                 + {(item as any).addOns.map((a: any) => a.name).join(', ')}
                                                             </div>
                                                         )}
                                                     </div>
                                                     <div className="font-display text-[17px] font-[700] shrink-0"
-                                                        style={{ color: 'var(--amber-pale)' }}>
+                                                        style={{ color: 'var(--orange-pale)' }}>
                                                         {formatPrice(item.subtotal)}
                                                     </div>
                                                 </div>
 
                                                 <div className="flex items-center justify-between">
                                                     {/* Quantity stepper */}
-                                                    <div className="flex items-center gap-1.5 rounded-[8px] p-[3px]"
+                                                    <div className="flex items-center gap-1.5 rounded-[10px] p-[3px]"
                                                         style={{
-                                                            background: 'linear-gradient(135deg, var(--olive-darkest), var(--olive-dark))',
-                                                            border: '1.5px solid rgba(138,154,91,0.35)'
+                                                            background: 'rgba(46,204,113,0.10)',
+                                                            border: '1.5px solid rgba(46,204,113,0.25)'
                                                         }}>
                                                         <button
                                                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
                                                             aria-label={`Remove one ${item.name}`}
-                                                            className="w-[32px] h-[32px] flex items-center justify-center rounded-[5px] text-white transition-colors hover:bg-white/10"
+                                                            className="w-[32px] h-[32px] flex items-center justify-center rounded-[7px] text-white transition-colors hover:bg-[rgba(46,204,113,0.20)]"
                                                         >
                                                             <Minus className="w-3.5 h-3.5" />
                                                         </button>
@@ -194,7 +194,7 @@ export default function CartDrawer({ open, onClose }: Props) {
                                                         <button
                                                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                                             aria-label={`Add one more ${item.name}`}
-                                                            className="w-[32px] h-[32px] flex items-center justify-center rounded-[5px] text-white transition-colors hover:bg-white/10"
+                                                            className="w-[32px] h-[32px] flex items-center justify-center rounded-[7px] text-white transition-colors hover:bg-[rgba(46,204,113,0.20)]"
                                                         >
                                                             <Plus className="w-3.5 h-3.5" />
                                                         </button>
@@ -206,7 +206,7 @@ export default function CartDrawer({ open, onClose }: Props) {
                                                         onClick={() => removeItem(item.id)}
                                                         aria-label={`Remove ${item.name} from cart`}
                                                         className="text-[12px] font-[600] px-2.5 py-1 rounded-[6px] transition-all"
-                                                        style={{ color: 'rgba(253,248,240,0.3)', border: '1px solid transparent' }}
+                                                        style={{ color: 'rgba(250,243,224,0.30)', border: '1px solid transparent' }}
                                                         onMouseEnter={e => {
                                                             const el = e.currentTarget as HTMLElement
                                                             el.style.color = '#F87171'
@@ -215,7 +215,7 @@ export default function CartDrawer({ open, onClose }: Props) {
                                                         }}
                                                         onMouseLeave={e => {
                                                             const el = e.currentTarget as HTMLElement
-                                                            el.style.color = 'rgba(253,248,240,0.3)'
+                                                            el.style.color = 'rgba(250,243,224,0.30)'
                                                             el.style.borderColor = 'transparent'
                                                             el.style.background = 'transparent'
                                                         }}
@@ -234,35 +234,35 @@ export default function CartDrawer({ open, onClose }: Props) {
                         {items.length > 0 && (
                             <footer className="px-6 pt-5 pb-7 shrink-0"
                                 style={{
-                                    borderTop: '1px solid rgba(253,248,240,0.08)',
-                                    background: 'rgba(0,0,0,0.15)',
-                                    boxShadow: '0 -16px 32px rgba(0,0,0,0.15)'
+                                    borderTop: '1px solid rgba(46,204,113,0.10)',
+                                    background: 'rgba(0,0,0,0.20)',
+                                    boxShadow: '0 -16px 32px rgba(0,0,0,0.20)'
                                 }}>
                                 {/* Price rows */}
                                 <div className="space-y-2 mb-4">
                                     <div className="flex justify-between text-[13px]">
-                                        <span style={{ color: 'rgba(253,248,240,0.5)' }}>Subtotal</span>
+                                        <span style={{ color: 'rgba(250,243,224,0.50)' }}>Subtotal</span>
                                         <span className="text-white font-[600]">{formatPrice(subtotal())}</span>
                                     </div>
                                     <div className="flex justify-between text-[13px]">
-                                        <span style={{ color: 'rgba(253,248,240,0.5)' }}>Delivery</span>
+                                        <span style={{ color: 'rgba(250,243,224,0.50)' }}>Delivery</span>
                                         <span>
                                             {orderType !== 'delivery'
-                                                ? <span style={{ color: 'rgba(253,248,240,0.35)' }}>N/A</span>
+                                                ? <span style={{ color: 'rgba(250,243,224,0.35)' }}>N/A</span>
                                                 : deliveryFee > 0
                                                     ? <span className="text-white font-[600]">{formatPrice(deliveryFee)}</span>
-                                                    : <span className="italic text-[12px]" style={{ color: 'var(--amber-warm)' }}>Calculated at checkout</span>
+                                                    : <span className="italic text-[12px]" style={{ color: 'var(--orange-warm)' }}>Calculated at checkout</span>
                                             }
                                         </span>
                                     </div>
                                 </div>
 
                                 <div className="mb-5 pb-4"
-                                    style={{ borderTop: '1px solid rgba(253,248,240,0.08)', paddingTop: 16 }}>
+                                    style={{ borderTop: '1px solid rgba(46,204,113,0.10)', paddingTop: 16 }}>
                                     <div className="flex items-baseline justify-between" aria-label={`Order total: Rs. ${total()}`}>
                                         <span className="text-[15px] font-[700] text-white">Total</span>
                                         <span className="font-display text-[30px] font-[800] leading-none"
-                                            style={{ color: 'var(--amber-pale)' }}>
+                                            style={{ color: 'var(--orange-pale)' }}>
                                             {formatPrice(total())}
                                         </span>
                                     </div>
@@ -276,9 +276,9 @@ export default function CartDrawer({ open, onClose }: Props) {
                                             initial={{ opacity: 0, y: 8 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: 8 }}
-                                            className="mb-4 p-3 rounded-[8px] text-[12px] leading-snug"
+                                            className="mb-4 p-3 rounded-[10px] text-[12px] leading-snug"
                                             style={{
-                                                background: 'rgba(185,28,28,0.2)',
+                                                background: 'rgba(185,28,28,0.20)',
                                                 border: '1px solid rgba(248,113,113,0.35)',
                                                 color: '#FCA5A5'
                                             }}

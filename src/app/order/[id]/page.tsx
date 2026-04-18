@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -85,10 +85,10 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
     if (loading) return (
         <>
             <Navbar />
-            <main role="main" className="min-h-screen bg-[var(--olive-darkest)] pt-[120px] pb-16 px-4 flex items-center justify-center">
+            <main role="main" className="min-h-screen bg-[#0D2015] pt-[120px] pb-16 px-4 flex items-center justify-center">
                 <div role="status" aria-busy="true" className="flex flex-col items-center gap-4">
-                    <div className="w-10 h-10 border-[3px] border-[var(--amber-warm)] border-t-transparent rounded-full animate-spin" />
-                    <p className="font-[600] text-[var(--amber-pale)]">Loading order details…</p>
+                    <div className="w-10 h-10 border-[3px] border-[var(--orange-warm)] border-t-transparent rounded-full animate-spin" />
+                    <p className="font-[600] text-[var(--orange-pale)]">Loading order details…</p>
                 </div>
             </main>
             <Footer />
@@ -99,16 +99,16 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
     if (notFound || !order) return (
         <>
             <Navbar />
-            <main role="main" className="min-h-screen bg-[var(--olive-darkest)] pt-[120px] pb-16 px-4 flex items-center justify-center">
+            <main role="main" className="min-h-screen bg-[#0D2015] pt-[120px] pb-16 px-4 flex items-center justify-center">
                 <div className="text-center space-y-4">
                     <p className="text-5xl">🔍</p>
-                    <h1 className="text-[22px] font-display font-[700] text-[var(--amber-pale)]">Order not found</h1>
+                    <h1 className="text-[22px] font-display font-[700] text-[var(--orange-pale)]">Order not found</h1>
                     <p className="text-white/50 text-sm">
                         No order found with number <span className="font-mono text-white/70">#{id}</span>
                     </p>
                     <Link
                         href="/order"
-                        className="inline-block mt-4 text-[var(--amber-pale)] border border-[var(--amber-warm)] px-6 py-3 rounded-xl text-sm font-semibold hover:bg-[var(--amber-warm)]/10 transition-colors"
+                        className="inline-block mt-4 text-[var(--orange-pale)] border border-[var(--orange-warm)] px-6 py-3 rounded-xl text-sm font-semibold hover:bg-[var(--orange-warm)]/10 transition-colors"
                     >
                         ← Try another order
                     </Link>
@@ -152,10 +152,10 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
             <Navbar />
 
             <main role="main" className="min-h-screen pt-[100px] pb-[80px] px-4"
-                style={{ background: 'linear-gradient(180deg, var(--olive-darkest) 0%, #1e2b12 100%)' }}>
+                style={{ background: 'linear-gradient(180deg, #0D2015 0%, #1e2b12 100%)' }}>
                 {/* ambient glow */}
                 <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] pointer-events-none opacity-10"
-                    style={{ background: 'radial-gradient(circle, var(--amber-warm) 0%, transparent 70%)' }} />
+                    style={{ background: 'radial-gradient(circle, var(--orange-warm) 0%, transparent 70%)' }} />
 
                 <div className="max-w-[600px] mx-auto space-y-5 relative z-10">
 
@@ -166,7 +166,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                         transition={{ duration: 0.5, ease: [0.16,1,0.3,1] }}
                         className="text-center pt-2 pb-2"
                     >
-                        <span className="text-[11px] font-[700] uppercase tracking-[0.18em] mb-2 block" style={{ color: 'var(--amber-warm)', opacity: 0.8 }}>
+                        <span className="text-[11px] font-[700] uppercase tracking-[0.18em] mb-2 block" style={{ color: 'var(--orange-warm)', opacity: 0.8 }}>
                             Zaitoon Connect
                         </span>
                         <h1 className="text-white font-display text-[32px] font-[800]">Order #{id}</h1>
@@ -194,7 +194,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                             </h2>
                             {statusIdx < STATUSES.length - 1 && (
                                 <span className="flex items-baseline gap-1 px-3 py-1 rounded-full text-[13px] font-[700]"
-                                    style={{ background: 'rgba(217,119,6,0.15)', color: 'var(--amber-pale)', border: '1px solid rgba(217,119,6,0.25)' }}>
+                                    style={{ background: 'rgba(217,119,6,0.15)', color: 'var(--orange-pale)', border: '1px solid rgba(217,119,6,0.25)' }}>
                                     <span className="text-[18px] leading-none">{mins}</span>m
                                     <span>{secs}s</span>
                                     <span className="text-[11px] font-[400] ml-0.5" style={{ color: 'rgba(253,248,240,0.5)' }}>est.</span>
@@ -206,7 +206,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                         <div className="w-full h-[6px] rounded-full mb-8 overflow-hidden" style={{ background: 'rgba(253,248,240,0.08)' }} aria-hidden="true">
                             <motion.div
                                 className="h-full rounded-full"
-                                style={{ background: 'linear-gradient(90deg, var(--amber-warm), var(--amber-bright))' }}
+                                style={{ background: 'linear-gradient(90deg, var(--orange-warm), var(--orange-bright))' }}
                                 initial={{ width: 0 }}
                                 animate={{ width: `${progressPct}%` }}
                                 transition={{ duration: 1.2, ease: [0.16,1,0.3,1] }}
@@ -225,7 +225,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                                             {i < STATUSES.length - 1 && (
                                                 <div
                                                     className="absolute top-[28px] left-[13px] w-[2px] h-[36px]"
-                                                    style={{ backgroundColor: isDone ? 'var(--amber-warm)' : 'var(--linen)' }}
+                                                    style={{ backgroundColor: isDone ? 'var(--orange-warm)' : 'var(--linen)' }}
                                                     aria-hidden="true"
                                                 />
                                             )}
@@ -233,8 +233,8 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                                             <div
                                                 className="w-[28px] h-[28px] rounded-full flex items-center justify-center border-[2px] shrink-0 z-10 bg-white"
                                                 style={{
-                                                    borderColor: isDone ? 'var(--amber-warm)' : 'var(--linen)',
-                                                    color: isDone ? 'var(--amber-warm)' : 'var(--linen)',
+                                                    borderColor: isDone ? 'var(--orange-warm)' : 'var(--linen)',
+                                                    color: isDone ? 'var(--orange-warm)' : 'var(--linen)',
                                                 }}
                                             >
                                                 {isDone && <Check className="w-[14px] h-[14px]" strokeWidth={3} />}
@@ -243,7 +243,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                                             {/* Pulse ring on active step */}
                                             {isActive && i < STATUSES.length - 1 && (
                                                 <motion.div
-                                                    className="absolute top-[2px] left-0 w-[28px] h-[28px] rounded-full border-[2px] border-[var(--amber-warm)]"
+                                                    className="absolute top-[2px] left-0 w-[28px] h-[28px] rounded-full border-[2px] border-[var(--orange-warm)]"
                                                     initial={{ opacity: 0.8, scale: 1 }}
                                                     animate={{ opacity: 0, scale: 1.6 }}
                                                     transition={{ repeat: Infinity, duration: 1.5, ease: 'easeOut' }}
@@ -253,7 +253,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                                         </div>
 
                                         <div className="flex-1 pt-[2px]">
-                                            <div className={`font-[700] text-[15px] ${isActive ? 'text-[var(--olive-base)]' : isDone ? 'text-[var(--charcoal)]' : 'text-[var(--stone)]'}`}>
+                                            <div className={`font-[700] text-[15px] ${isActive ? 'text-[var(--green-base)]' : isDone ? 'text-[var(--charcoal)]' : 'text-[var(--stone)]'}`}>
                                                 {info.label}
                                             </div>
                                             <div className="text-[13px] text-[var(--stone)] mt-1 font-[400]">
@@ -292,7 +292,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                         }}
                     >
                         <h2 className="text-[18px] mb-4 font-display font-[700] text-white flex items-center gap-2">
-                            <ShoppingBag className="w-5 h-5" style={{ color: 'var(--amber-warm)' }} /> Receipt
+                            <ShoppingBag className="w-5 h-5" style={{ color: 'var(--orange-warm)' }} /> Receipt
                         </h2>
 
                         <ul role="list" aria-label="Items ordered" className="space-y-3 mb-4">
@@ -309,7 +309,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                                             )}
                                         </span>
                                     </div>
-                                    <span className="font-[700] shrink-0" style={{ color: 'var(--amber-pale)' }}>
+                                    <span className="font-[700] shrink-0" style={{ color: 'var(--orange-pale)' }}>
                                         {formatPrice(item.subtotal)}
                                     </span>
                                 </li>
@@ -328,7 +328,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                                 <span className="text-white font-[600]">{(order.delivery_fee ?? 0) > 0 ? formatPrice(order.delivery_fee) : 'Free'}</span>
                             </div>
                             {(order.loyalty_discount ?? 0) > 0 && (
-                                <div className="flex justify-between text-[13px] font-[700]" style={{ color: 'var(--amber-warm)' }}>
+                                <div className="flex justify-between text-[13px] font-[700]" style={{ color: 'var(--orange-warm)' }}>
                                     <span>Loyalty Redeem</span>
                                     <span>−{formatPrice(order.loyalty_discount)}</span>
                                 </div>
@@ -339,14 +339,14 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
 
                         <div className="flex justify-between items-baseline mb-4">
                             <span className="text-[15px] font-[700] text-white">Total</span>
-                            <span className="font-display font-[800] text-[28px]" style={{ color: 'var(--amber-pale)' }}>
+                            <span className="font-display font-[800] text-[28px]" style={{ color: 'var(--orange-pale)' }}>
                                 {formatPrice(order.total)}
                             </span>
                         </div>
 
                         {order.delivery_address && (
                             <div className="flex items-start gap-3 p-4 rounded-[10px]" style={{ background: 'rgba(253,248,240,0.05)', border: '1px solid rgba(253,248,240,0.08)' }}>
-                                <MapPin className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--amber-warm)' }} />
+                                <MapPin className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--orange-warm)' }} />
                                 <div className="text-[13px] leading-snug">
                                     <strong className="text-white block mb-[2px]">Delivery Address</strong>
                                     <span style={{ color: 'rgba(253,248,240,0.5)' }}>{order.delivery_address}</span>
@@ -361,19 +361,19 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                             initial={{ opacity: 0, y: 12 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 }}
-                            className="bg-[var(--amber-warm)]/10 border-[2px] border-[var(--amber-warm)] rounded-[8px] p-5 flex items-center justify-between gap-4"
+                            className="bg-[var(--orange-warm)]/10 border-[2px] border-[var(--orange-warm)] rounded-[8px] p-5 flex items-center justify-between gap-4"
                         >
                             <div>
-                                <p className="font-[700] text-[var(--amber-pale)] text-[15px] leading-snug">
+                                <p className="font-[700] text-[var(--orange-pale)] text-[15px] leading-snug">
                                     How was your meal? ⭐
                                 </p>
-                                <p className="text-[var(--amber-pale)]/70 text-[13px] mt-0.5">
+                                <p className="text-[var(--orange-pale)]/70 text-[13px] mt-0.5">
                                     Leave a review — earn <strong>20 pts</strong>!
                                 </p>
                             </div>
                             <button
                                 onClick={() => setReviewOpen(true)}
-                                className="shrink-0 flex items-center gap-2 bg-[var(--amber-warm)] text-[var(--olive-darkest)] font-[700] text-[13px] px-4 py-2.5 rounded-[6px] hover:bg-[var(--amber-bright)] transition-colors"
+                                className="shrink-0 flex items-center gap-2 bg-[var(--orange-warm)] text-[#0D2015] font-[700] text-[13px] px-4 py-2.5 rounded-[6px] hover:bg-[var(--orange-bright)] transition-colors"
                             >
                                 <Star className="w-4 h-4" fill="currentColor" />
                                 Rate Now
@@ -415,7 +415,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                             href="/menu"
                             className="text-[14px] font-[600] transition-colors"
                             style={{ color: 'rgba(253,248,240,0.5)' }}
-                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--amber-pale)' }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--orange-pale)' }}
                             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(253,248,240,0.5)' }}
                         >
                             ← Return to Menu

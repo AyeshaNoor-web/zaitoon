@@ -241,8 +241,8 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                             <div className="p-7">
                                 {/* Icon */}
                                 <div className="w-14 h-14 rounded-[14px] flex items-center justify-center mx-auto mb-5"
-                                    style={{ background: 'rgba(138,154,91,0.12)', border: '1.5px solid rgba(138,154,91,0.2)' }}>
-                                    <MapPin className="w-7 h-7" style={{ color: 'var(--olive-base)' }} />
+                                    style={{ background: 'rgba(46,204,113,0.10)', border: '1.5px solid rgba(46,204,113,0.20)' }}>
+                                    <MapPin className="w-7 h-7" style={{ color: 'var(--green-dark)' }} />
                                 </div>
 
                                 {/* ── SUCCESS STATE ──────────────────────────────────── */}
@@ -261,13 +261,13 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                         <p className="text-[13px] leading-snug" style={{ color: 'var(--stone)' }}>
                                             {confirmed.address}
                                         </p>
-                                        <p className="text-[13px] font-[600]" style={{ color: 'var(--olive-dark)' }}>
+                                        <p className="text-[13px] font-[600]" style={{ color: 'var(--green-dark)' }}>
                                             Nearest branch: <strong>{confirmed.branchName}</strong> ({confirmed.distanceKm} km)
                                         </p>
                                         {confirmed.deliveryFee !== null ? (
                                             confirmed.deliveryFee === 0
                                                 ? <p className="text-[13px] font-[700]" style={{ color: '#16A34A' }}>🎉 Free delivery!</p>
-                                                : <p className="text-[13px] font-[700]" style={{ color: 'var(--amber-warm)' }}>Delivery fee: Rs. {confirmed.deliveryFee}</p>
+                                                : <p className="text-[13px] font-[700]" style={{ color: 'var(--orange-warm)' }}>Delivery fee: Rs. {confirmed.deliveryFee}</p>
                                         ) : (
                                             <div className="flex items-center gap-2 justify-center text-[13px] font-[700]" style={{ color: '#DC2626' }}>
                                                 <AlertTriangle className="w-4 h-4" />
@@ -284,7 +284,7 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                         {detecting ? (
                                             <div className="flex flex-col items-center gap-4">
                                                 <div className="w-12 h-12 rounded-full border-[3px] border-t-transparent animate-spin"
-                                                    style={{ borderColor: 'var(--olive-base)', borderTopColor: 'transparent' }} />
+                                                    style={{ borderColor: 'var(--green-base)', borderTopColor: 'transparent' }} />
                                                 <p className="text-[14px]" style={{ color: 'var(--stone)' }}>Waiting for GPS signal…</p>
                                             </div>
                                         ) : error ? (
@@ -292,7 +292,7 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                                 <p role="alert" className="text-[13px] rounded-[10px] p-3" style={{ color: '#DC2626', background: 'rgba(220,38,38,0.06)', border: '1px solid rgba(220,38,38,0.15)' }}>{error}</p>
                                                 <button onClick={() => { setMode('pick'); setError('') }}
                                                     className="text-[13px] font-[600] transition-colors"
-                                                    style={{ color: 'var(--olive-base)' }}>← Back</button>
+                                                    style={{ color: 'var(--green-base)' }}>← Back</button>
                                             </div>
                                         ) : null}
                                     </div>
@@ -321,7 +321,7 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                                     color: 'var(--charcoal)',
                                                     outline: 'none'
                                                 }}
-                                                onFocus={e => { e.currentTarget.style.borderColor = 'var(--olive-base)' }}
+                                                onFocus={e => { e.currentTarget.style.borderColor = 'var(--green-base)' }}
                                                 onBlur={e => { e.currentTarget.style.borderColor = 'var(--linen)' }}
                                             />
                                         </div>
@@ -347,7 +347,7 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                                 )}
                                             </div>
                                             {manualFee && (
-                                                <p className="mt-2 text-[12px] font-[600]" style={{ color: manualFee.outOfRange ? '#DC2626' : 'var(--olive-dark)' }}>
+                                                <p className="mt-2 text-[12px] font-[600]" style={{ color: manualFee.outOfRange ? '#DC2626' : 'var(--green-dark)' }}>
                                                     {manualFee.outOfRange
                                                         ? `⚠ Outside delivery range (${manualFee.distanceKm} km). Takeaway only.`
                                                         : `📍 ${manualFee.distanceKm} km · Fee: ${manualFee.fee === 0 ? 'Free' : `Rs. ${manualFee.fee}`}`}
@@ -367,7 +367,7 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                                 onClick={() => { setMode('pick'); setError('') }}
                                                 className="flex-1 py-3 rounded-[12px] text-[13px] font-[700] transition-all"
                                                 style={{ background: 'transparent', border: '2px solid var(--linen)', color: 'var(--stone)' }}
-                                                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'var(--olive-base)'; el.style.color = 'var(--olive-base)' }}
+                                                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'var(--green-base)'; el.style.color = 'var(--green-base)' }}
                                                 onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'var(--linen)'; el.style.color = 'var(--stone)' }}
                                             >
                                                 ← Back
@@ -377,8 +377,8 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                                 disabled={confirming || !manualAddress.trim() || !manualCoords}
                                                 className="flex-1 py-3 rounded-[12px] text-[13px] font-[700] text-white transition-all disabled:opacity-40"
                                                 style={{
-                                                    background: 'linear-gradient(135deg, var(--olive-darkest), var(--olive-dark))',
-                                                    boxShadow: '0 4px 14px rgba(92,110,58,0.35)'
+                                                    background: 'linear-gradient(135deg, var(--green-dark), var(--green-darkest))',
+                                                    boxShadow: '0 4px 14px rgba(46,204,113,0.35)'
                                                 }}
                                             >
                                                 {confirming ? 'Saving…' : 'Confirm Location'}
@@ -417,8 +417,8 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                             disabled={detecting}
                                             className="w-full text-white py-4 rounded-[14px] font-[700] text-[14px] flex items-center justify-center gap-2.5 disabled:opacity-60 transition-all"
                                             style={{
-                                                background: 'linear-gradient(135deg, var(--olive-darkest), var(--olive-dark))',
-                                                boxShadow: '0 6px 20px rgba(92,110,58,0.35)'
+                                                background: 'linear-gradient(135deg, var(--green-dark), var(--green-darkest))',
+                                                boxShadow: '0 6px 20px rgba(46,204,113,0.35)'
                                             }}
                                         >
                                             <Navigation className="w-4 h-4" />
@@ -432,8 +432,8 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                             className="w-full py-4 rounded-[14px] font-[700] text-[14px] flex items-center justify-center gap-2.5 transition-all"
                                             style={{
                                                 background: 'transparent',
-                                                border: '2px solid var(--olive-base)',
-                                                color: 'var(--olive-base)'
+                                                border: '2px solid var(--green-base)',
+                                                color: 'var(--green-base)'
                                             }}
                                         >
                                             <Pencil className="w-4 h-4" />

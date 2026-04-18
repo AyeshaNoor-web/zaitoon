@@ -86,10 +86,10 @@ export default function Navbar() {
     return (
         <header
             role="banner"
-            className={`fixed top-0 left-0 right-0 z-50 h-[60px] lg:h-[68px] border-b-[2px] border-[var(--amber-warm)] transition-all duration-500 ${
+            className={`fixed top-0 left-0 right-0 z-50 h-[60px] lg:h-[68px] border-b-[2px] border-[var(--green-base)] transition-all duration-500 ${
                 scrolled
-                    ? 'bg-[rgba(50,62,32,0.88)] backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.25)]'
-                    : 'bg-[var(--olive-darkest)]'
+                    ? 'bg-[rgba(13,32,21,0.92)] backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.30)]'
+                    : 'bg-[#0D2015]'
             }`}
         >
             <nav aria-label="Main navigation" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
@@ -117,8 +117,8 @@ export default function Navbar() {
                                     } : undefined}
                                     className={`relative px-1 text-[12px] font-[600] tracking-[0.1em] uppercase transition-all duration-300 flex items-center h-full border-b-[2px] ${
                                         active
-                                        ? 'text-[var(--amber-pale)] border-[var(--amber-warm)]'
-                                        : 'text-[rgba(253,248,240,0.55)] hover:text-[var(--amber-pale)] border-transparent hover:border-[var(--amber-warm)]'
+                                        ? 'text-[var(--green-light)] border-[var(--green-base)]'
+                                        : 'text-[rgba(250,243,224,0.55)] hover:text-[var(--green-light)] border-transparent hover:border-[var(--green-base)]'
                                     }`}
                                 >
                                     {link.label}
@@ -130,12 +130,12 @@ export default function Navbar() {
 
                 {/* Right Actions */}
                 <div className="flex items-center gap-4 relative">
-                    {/* Location Display — shows GPS-detected nearest branch */}
+                    {/* Location Display */}
                     {mounted && (
                         <button
                             onClick={() => setLocationModalOpen(true)}
                             aria-label={locationSet ? 'Change delivery location' : 'Set delivery location'}
-                            className={`hidden md:flex items-center gap-1.5 text-[12px] font-[600] px-3 py-1.5 rounded-md border border-[rgba(253,248,240,0.2)] transition-all hover:bg-white/5 ${locationSet ? 'text-[var(--amber-warm)]' : 'text-[rgba(253,248,240,0.5)]'}`}
+                            className={`hidden md:flex items-center gap-1.5 text-[12px] font-[600] px-3 py-1.5 rounded-md border border-[rgba(46,204,113,0.25)] transition-all hover:bg-[rgba(46,204,113,0.08)] ${locationSet ? 'text-[var(--green-light)]' : 'text-[rgba(250,243,224,0.5)]'}`}
                             title="Set your delivery location"
                         >
                             <MapPin className="w-4 h-4" />
@@ -144,7 +144,6 @@ export default function Navbar() {
                             </span>
                         </button>
                     )}
-
 
                     {/* WhatsApp Button */}
                     <a
@@ -160,7 +159,7 @@ export default function Navbar() {
                     {/* Language Toggle */}
                     <button
                         onClick={() => setLanguage(language === 'en' ? 'ur' : 'en')}
-                        className="w-[36px] h-[36px] rounded-full border border-[rgba(253,248,240,0.3)] text-[12px] font-bold text-[var(--amber-pale)] hover:bg-[var(--olive-mid)] transition-colors flex items-center justify-center"
+                        className="w-[36px] h-[36px] rounded-full border border-[rgba(46,204,113,0.3)] text-[12px] font-bold text-[var(--green-light)] hover:bg-[rgba(46,204,113,0.15)] transition-colors flex items-center justify-center"
                         title={language === 'en' ? 'اردو میں دیکھیں' : 'Switch to English'}
                     >
                         {language === 'en' ? 'اردو' : 'EN'}
@@ -175,21 +174,20 @@ export default function Navbar() {
                                     alignItems: 'center',
                                     gap: 8,
                                     padding: '6px 12px',
-                                    backgroundColor: '#1C2416',
-                                    border: '1px solid #3D5226',
-                                    borderRadius: 4,
+                                    backgroundColor: 'rgba(46,204,113,0.12)',
+                                    border: '1px solid rgba(46,204,113,0.30)',
+                                    borderRadius: 6,
                                     cursor: 'pointer',
-                                    color: '#FCD34D',
+                                    color: 'var(--green-light)',
                                     fontSize: 13,
                                     fontWeight: 600,
                                 }}
                             >
                                 {/* Avatar circle */}
                                 <span style={{
-                                    width: 32,
-                                    height: 32,
+                                    width: 32, height: 32,
                                     borderRadius: '50%',
-                                    backgroundColor: '#556B2F',
+                                    background: 'linear-gradient(135deg, var(--green-dark), var(--green-base))',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
@@ -216,9 +214,9 @@ export default function Navbar() {
                                             top: '100%',
                                             right: 0,
                                             marginTop: 8,
-                                            backgroundColor: '#FFFDF9',
-                                            border: '1px solid #EDE0C4',
-                                            borderRadius: 8,
+                                            backgroundColor: '#FAFFF8',
+                                            border: '1px solid rgba(46,204,113,0.2)',
+                                            borderRadius: 10,
                                             padding: 8,
                                             minWidth: 180,
                                             boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
@@ -228,7 +226,7 @@ export default function Navbar() {
                                         {/* Points summary */}
                                         <div style={{
                                             padding: '8px 12px',
-                                            borderBottom: '1px solid #EDE0C4',
+                                            borderBottom: '1px solid rgba(46,204,113,0.15)',
                                             marginBottom: 4,
                                         }}>
                                             <p style={{ fontSize: 12, color: '#78716C', margin: 0 }}>
@@ -270,7 +268,12 @@ export default function Navbar() {
                         aria-label={`Shopping cart, ${mounted ? itemCount : 0} items`}
                         aria-expanded={cartOpen}
                         aria-controls="cart-drawer"
-                        className="bg-[var(--amber-warm)] text-[var(--olive-darkest)] rounded-[4px] px-4 py-2 font-[600] text-[13px] tracking-[0.06em] flex items-center gap-2 hover:bg-[var(--amber-bright)] transition-colors min-h-[44px]"
+                        className="relative rounded-[8px] px-4 py-2 font-[700] text-[13px] tracking-[0.06em] flex items-center gap-2 transition-all min-h-[44px] overflow-hidden"
+                        style={{
+                            background: 'linear-gradient(135deg, var(--orange-warm) 0%, #D08B05 100%)',
+                            color: '#fff',
+                            boxShadow: '0 4px 14px rgba(243,156,18,0.38)',
+                        }}
                     >
                         <ShoppingCart className="w-5 h-5" />
                         <span className="hidden sm:inline">{t.cart}</span>
@@ -296,7 +299,7 @@ export default function Navbar() {
                         onClick={() => setDrawerOpen(true)}
                         aria-label="Open menu"
                         aria-expanded={drawerOpen}
-                        className="lg:hidden w-[44px] h-[44px] flex items-center justify-center text-[var(--cream)] hover:text-[var(--amber-warm)] transition-colors"
+                        className="lg:hidden w-[44px] h-[44px] flex items-center justify-center text-[var(--cream)] hover:text-[var(--green-light)] transition-colors"
                     >
                         <Menu className="w-6 h-6" />
                     </motion.button>
@@ -314,7 +317,7 @@ export default function Navbar() {
                             exit={{ opacity: 0 }}
                             onClick={() => setDrawerOpen(false)}
                             aria-hidden="true"
-                            className="fixed inset-0 z-[60] bg-black/50"
+                            className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
                         />
 
                         {/* Drawer */}
@@ -326,14 +329,15 @@ export default function Navbar() {
                             animate={{ x: 0 }}
                             exit={{ x: -280 }}
                             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                            className="fixed left-0 top-0 bottom-0 z-[70] w-[280px] bg-[var(--olive-darkest)] shadow-2xl flex flex-col pt-4 border-t-[3px] border-[var(--amber-warm)]"
+                            className="fixed left-0 top-0 bottom-0 z-[70] w-[280px] shadow-2xl flex flex-col pt-4 border-t-[3px] border-[var(--green-base)]"
+                            style={{ background: '#0D2015' }}
                         >
                             {/* Header */}
                             <div className="flex items-center justify-between px-5 py-2 mb-4">
                                 <Image src="/logo-en.png" alt="Zaitoon logo" width={140} height={38} priority style={{ mixBlendMode: 'screen', height: '36px', width: 'auto' }} />
                                 <button onClick={() => setDrawerOpen(false)}
                                     aria-label="Close menu"
-                                    className="w-[44px] h-[44px] flex items-center justify-center text-[var(--cream)] border border-[rgba(253,248,240,0.2)] rounded">
+                                    className="w-[44px] h-[44px] flex items-center justify-center text-[var(--cream)] border border-[rgba(46,204,113,0.25)] rounded-[8px] hover:bg-[rgba(46,204,113,0.12)] transition-colors">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
@@ -361,9 +365,9 @@ export default function Navbar() {
                                                     }
                                                 }}
                                                 aria-current={active ? 'page' : undefined}
-                                                className={`flex items-center min-h-[48px] px-4 font-[600] text-[14px] uppercase tracking-[0.05em] transition-all border-l-[3px] ${active
-                                                    ? 'bg-[var(--olive-mid)] text-[var(--amber-pale)] border-[var(--amber-warm)]'
-                                                    : 'text-[rgba(253,248,240,0.6)] border-transparent hover:bg-[var(--olive-mid)] hover:text-[var(--cream)]'
+                                                className={`flex items-center min-h-[48px] px-4 font-[600] text-[14px] uppercase tracking-[0.05em] transition-all border-l-[3px] rounded-r-[8px] ${active
+                                                    ? 'bg-[rgba(46,204,113,0.15)] text-[var(--green-light)] border-[var(--green-base)]'
+                                                    : 'text-[rgba(250,243,224,0.60)] border-transparent hover:bg-[rgba(46,204,113,0.08)] hover:text-[var(--cream)]'
                                                     }`}
                                             >
                                                 {link.label}
@@ -387,7 +391,7 @@ export default function Navbar() {
                                 <motion.li variants={navItemVariants}>
                                     <button
                                         onClick={() => setLanguage(language === 'en' ? 'ur' : 'en')}
-                                        className="flex items-center gap-3 min-h-[48px] px-4 font-[600] text-[14px] text-[var(--amber-pale)]"
+                                        className="flex items-center gap-3 min-h-[48px] px-4 font-[600] text-[14px] text-[var(--green-light)]"
                                     >
                                         🌐 {language === 'en' ? 'اردو میں دیکھیں' : 'Switch to English'}
                                     </button>
@@ -395,22 +399,22 @@ export default function Navbar() {
                             </motion.ul>
 
                             {/* Bottom */}
-                            <div className="p-5 border-t border-[rgba(253,248,240,0.1)] space-y-4">
+                            <div className="p-5 border-t border-[rgba(46,204,113,0.12)] space-y-4">
                                 {mounted && (
                                     <button
                                         onClick={() => { setDrawerOpen(false); setLocationModalOpen(true) }}
-                                        className="flex items-center justify-center gap-2 text-[14px] font-[600] text-[rgba(253,248,240,0.8)] py-4 border-b border-[rgba(253,248,240,0.1)] mb-2 text-center w-full"
+                                        className="flex items-center justify-center gap-2 text-[14px] font-[600] text-[rgba(250,243,224,0.8)] py-4 border-b border-[rgba(46,204,113,0.12)] mb-2 text-center w-full"
                                     >
-                                        <MapPin className="w-4 h-4 text-[var(--amber-warm)]" />
+                                        <MapPin className="w-4 h-4 text-[var(--green-base)]" />
                                         <span>{locationSet && nearestBranchName ? `Nearest: ${nearestBranchName}` : 'Set Location'}</span>
                                     </button>
                                 )}
                                 {mounted && isAuthenticated && customer ? (
                                     <div className="flex flex-col gap-2 mb-2">
-                                        <Link href="/account" onClick={() => setDrawerOpen(false)} className="text-[14px] font-[600] text-[var(--amber-pale)] hover:text-white text-center py-2">
+                                        <Link href="/account" onClick={() => setDrawerOpen(false)} className="text-[14px] font-[600] text-[var(--green-light)] hover:text-white text-center py-2">
                                             {t.myAccount}
                                         </Link>
-                                        <button onClick={() => { setDrawerOpen(false); signOut() }} className="text-[14px] text-[rgba(253,248,240,0.6)] hover:text-red-400 text-center pb-2">
+                                        <button onClick={() => { setDrawerOpen(false); signOut() }} className="text-[14px] text-[rgba(250,243,224,0.6)] hover:text-red-400 text-center pb-2">
                                             {t.signOut}
                                         </button>
                                     </div>
@@ -421,7 +425,7 @@ export default function Navbar() {
                                     {t.orderNow} →
                                 </Link>
                                 <a href="tel:+923291330234"
-                                    className="flex items-center justify-center gap-2 text-[rgba(253,248,240,0.6)] hover:text-[var(--amber-warm)] font-[600] min-h-[44px]">
+                                    className="flex items-center justify-center gap-2 text-[rgba(250,243,224,0.6)] hover:text-[var(--orange-warm)] font-[600] min-h-[44px]">
                                     <Phone className="w-4 h-4" /> 0329-1330234
                                 </a>
                             </div>
@@ -430,9 +434,8 @@ export default function Navbar() {
                 )}
             </AnimatePresence>
 
-            {/* If CartDrawer exists, render it here */}
+            {/* CartDrawer */}
             {<CartDrawer open={cartOpen} onClose={() => setCartOpen(!cartOpen)} />}
-
 
             {/* Location Modal */}
             {locationModalOpen && (

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -34,12 +34,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     const sidebar = (
-        <aside aria-label="Admin sidebar" className="bg-[var(--olive-mid)] h-full flex flex-col border-r-[2px] border-[var(--linen)] shadow-[4px_0_24px_rgba(0,0,0,0.2)]">
+        <aside aria-label="Admin sidebar" className="bg-[var(--green-mid)] h-full flex flex-col border-r-[2px] border-[var(--linen)] shadow-[4px_0_24px_rgba(0,0,0,0.2)]">
             {/* Logo */}
             <header className="p-6 border-b border-[rgba(253,248,240,0.1)]">
                 <div className="flex items-center gap-3">
                     <Image src="/logo-en.png" alt="Zaitoon logo" width={120} height={32} priority className="h-8 w-auto mix-blend-screen" />
-                    <span className="bg-[var(--amber-warm)] text-[var(--olive-darkest)] text-[10px] uppercase tracking-[0.1em] font-[700] px-[8px] py-[2px] rounded-sm">Admin</span>
+                    <span className="bg-[var(--orange-warm)] text-[#0D2015] text-[10px] uppercase tracking-[0.1em] font-[700] px-[8px] py-[2px] rounded-sm">Admin</span>
                 </div>
             </header>
 
@@ -55,8 +55,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             onClick={() => setOpen(false)}
                             aria-current={isActive ? 'page' : undefined}
                             className={`flex items-center gap-3 px-4 py-3 rounded-[6px] text-[14px] font-[600] transition-colors border-l-[3px] ${isActive
-                                ? 'bg-[var(--olive-darkest)] text-[var(--cream)] border-[var(--amber-warm)] shadow-inner'
-                                : 'border-transparent text-[rgba(253,248,240,0.6)] hover:text-[var(--cream)] hover:bg-[var(--olive-dark)]'
+                                ? 'bg-[#0D2015] text-[var(--cream)] border-[var(--orange-warm)] shadow-inner'
+                                : 'border-transparent text-[rgba(253,248,240,0.6)] hover:text-[var(--cream)] hover:bg-[var(--green-dark)]'
                                 }`}
                         >
                             <Icon className="w-[18px] h-[18px]" />
@@ -73,7 +73,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <span className="text-[18px]">👤</span>
                         <div className="flex-1 min-w-0">
                             <p className="text-[13px] font-bold text-white truncate">{name}</p>
-                            <span className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-sm font-bold ${role === 'owner' ? 'bg-[var(--amber-warm)] text-[var(--olive-darkest)]' : 'bg-[var(--olive-pale)] text-[var(--cream)]'}`}>
+                            <span className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-sm font-bold ${role === 'owner' ? 'bg-[var(--orange-warm)] text-[#0D2015]' : 'bg-[var(--green-pale)] text-[var(--cream)]'}`}>
                                 {role}
                             </span>
                         </div>
@@ -91,7 +91,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                 <Link
                     href="/"
-                    className="flex items-center gap-2 text-[13px] text-[var(--stone)] hover:text-[var(--amber-pale)] font-[500] transition-colors border border-transparent hover:border-[var(--amber-pale)] w-full justify-center py-2 rounded-[4px]"
+                    className="flex items-center gap-2 text-[13px] text-[var(--stone)] hover:text-[var(--orange-pale)] font-[500] transition-colors border border-transparent hover:border-[var(--orange-pale)] w-full justify-center py-2 rounded-[4px]"
                 >
                     <ArrowLeft className="w-4 h-4" /> Back to Application
                 </Link>
@@ -100,21 +100,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     )
 
     return (
-        <div className="flex h-screen bg-[var(--olive-darkest)] overflow-hidden">
+        <div className="flex h-screen bg-[#0D2015] overflow-hidden">
             {/* Desktop sidebar */}
             <div className="hidden lg:block w-[260px] shrink-0 h-full">{sidebar}</div>
 
             {/* Mobile top bar */}
-            <header className="lg:hidden fixed top-0 left-0 right-0 z-50 h-[60px] bg-[var(--olive-mid)] border-b border-[var(--linen)] flex items-center justify-between px-4">
+            <header className="lg:hidden fixed top-0 left-0 right-0 z-50 h-[60px] bg-[var(--green-mid)] border-b border-[var(--linen)] flex items-center justify-between px-4">
                 <button
                     onClick={() => setOpen(true)}
                     aria-label="Open admin menu"
-                    className="text-[var(--cream)] hover:text-[var(--amber-warm)] p-2 transition-colors"
+                    className="text-[var(--cream)] hover:text-[var(--orange-warm)] p-2 transition-colors"
                 >
                     <Menu className="w-6 h-6" />
                 </button>
                 <div className="flex items-center gap-2">
-                    <span className="font-display text-[18px] text-[var(--amber-pale)] font-[700]">Admin</span>
+                    <span className="font-display text-[18px] text-[var(--orange-pale)] font-[700]">Admin</span>
                 </div>
                 <button
                     onClick={handleLogout}
@@ -151,7 +151,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             <button
                                 onClick={() => setOpen(false)}
                                 aria-label="Close admin menu"
-                                className="absolute top-[20px] right-[16px] text-[var(--stone)] hover:text-[var(--cream)] w-8 h-8 flex items-center justify-center bg-[var(--olive-darkest)] rounded-[4px] z-10"
+                                className="absolute top-[20px] right-[16px] text-[var(--stone)] hover:text-[var(--cream)] w-8 h-8 flex items-center justify-center bg-[#0D2015] rounded-[4px] z-10"
                             >
                                 <X className="w-5 h-5" />
                             </button>

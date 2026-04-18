@@ -200,7 +200,7 @@ export default function AddOnsModal({ mainItem, onClose }: Props) {
                             Want to add anything extra?
                         </h2>
                         <p className="text-[12px] text-[var(--stone)] mt-0.5">
-                            Adding: <span className="font-[600] text-[var(--olive-base)]">{mainItem.name}</span>
+                            Adding: <span className="font-[600] text-[var(--green-dark)]">{mainItem.name}</span>
                         </p>
                     </div>
                     <button
@@ -216,7 +216,7 @@ export default function AddOnsModal({ mainItem, onClose }: Props) {
                 <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-12 gap-3">
-                            <div className="w-7 h-7 border-[3px] border-[var(--linen)] border-t-[var(--olive-base)] rounded-full animate-spin" />
+                            <div className="w-7 h-7 border-[3px] border-[var(--linen)] border-t-[var(--green-base)] rounded-full animate-spin" />
                             <p className="text-[12px] text-[var(--stone)]">Loading extras…</p>
                         </div>
                     ) : error || addOns.length === 0 ? (
@@ -240,15 +240,15 @@ export default function AddOnsModal({ mainItem, onClose }: Props) {
                                                 <li
                                                     key={addon.id}
                                                     className={`flex items-center justify-between px-3.5 py-3 rounded-[10px] border-[1.5px] transition-all duration-200 ${qty > 0
-                                                        ? 'border-[var(--olive-base)] bg-[var(--cream)] shadow-sm'
-                                                        : 'border-[var(--linen)] bg-white hover:border-[var(--olive-pale)]'
+                                                        ? 'border-[var(--green-base)] bg-[var(--cream)] shadow-sm'
+                                                        : 'border-[var(--linen)] bg-white hover:border-[var(--green-pale)]'
                                                         }`}
                                                 >
                                                     <div className="flex-1 min-w-0">
                                                         <span className="text-[14px] font-[600] text-[var(--charcoal)] block truncate">
                                                             {addon.name}
                                                         </span>
-                                                        <span className="text-[12px] font-[600] text-[var(--olive-base)]">
+                                                        <span className="text-[12px] font-[600] text-[var(--green-dark)]">
                                                             +{formatPrice(addon.price)}
                                                         </span>
                                                     </div>
@@ -258,12 +258,13 @@ export default function AddOnsModal({ mainItem, onClose }: Props) {
                                                             <button
                                                                 onClick={() => setQty(addon.id, 1)}
                                                                 aria-label={`Add ${addon.name}`}
-                                                                className="w-8 h-8 rounded-full bg-[var(--olive-base)] text-white flex items-center justify-center hover:bg-[var(--olive-dark)] transition-colors shadow-sm"
+                                                                className="w-8 h-8 rounded-full text-white flex items-center justify-center transition-colors shadow-sm"
+                                                                style={{ background: 'linear-gradient(135deg, var(--orange-warm), #D08B05)', boxShadow: '0 2px 8px rgba(243,156,18,0.35)' }}
                                                             >
                                                                 <Plus className="w-4 h-4" />
                                                             </button>
                                                         ) : (
-                                                            <div className="flex items-center gap-1.5 bg-[var(--olive-darkest)] rounded-full px-1.5 py-1">
+                                                            <div className="flex items-center gap-1.5 rounded-full px-1.5 py-1" style={{ background: 'linear-gradient(135deg, var(--green-dark), var(--green-darkest))' }}>
                                                                 <button
                                                                     onClick={() => setQty(addon.id, qty - 1)}
                                                                     aria-label={`Remove one ${addon.name}`}
@@ -302,9 +303,9 @@ export default function AddOnsModal({ mainItem, onClose }: Props) {
                 <footer className="px-5 py-4 border-t border-[var(--linen)] shrink-0 space-y-2.5 bg-white">
                     {selectedCount > 0 && (
                         <p className="text-[12px] text-center text-[var(--stone)]">
-                            {selectedCount} extra{selectedCount !== 1 ? 's' : ''} selected
+                             {selectedCount} extra{selectedCount !== 1 ? 's' : ''} selected
                             &nbsp;·&nbsp;
-                            <span className="font-[700] text-[var(--olive-base)]">+{formatPrice(totalAddOnCost)}</span>
+                            <span className="font-[700] text-[var(--green-dark)]">+{formatPrice(totalAddOnCost)}</span>
                         </p>
                     )}
                     <button

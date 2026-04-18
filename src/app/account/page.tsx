@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -121,7 +121,7 @@ export default function AccountPage() {
                     transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                     className="w-full rounded-[20px] p-7 md:p-10 text-white relative overflow-hidden mb-8"
                     style={{
-                        background: 'linear-gradient(135deg, #2E3A1C 0%, var(--olive-darkest) 50%, #3A4A22 100%)',
+                        background: 'linear-gradient(135deg, #2E3A1C 0%, #0D2015 50%, #3A4A22 100%)',
                         boxShadow: '0 20px 60px rgba(46,58,28,0.4)',
                     }}
                 >
@@ -129,7 +129,7 @@ export default function AccountPage() {
                     <div className="absolute top-0 right-0 w-72 h-72 rounded-full pointer-events-none opacity-10"
                         style={{ background: 'radial-gradient(circle, white 0%, transparent 70%)', transform: 'translate(30%, -40%)' }} />
                     <div className="absolute bottom-0 left-0 w-56 h-56 rounded-full pointer-events-none opacity-[0.08]"
-                        style={{ background: 'radial-gradient(circle, var(--amber-warm) 0%, transparent 70%)', transform: 'translate(-30%, 40%)' }} />
+                        style={{ background: 'radial-gradient(circle, var(--orange-warm) 0%, transparent 70%)', transform: 'translate(-30%, 40%)' }} />
                     {/* Dot grid */}
                     <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
                         style={{ backgroundImage: `radial-gradient(circle at 1px 1px, rgba(253,248,240,0.6) 1px, transparent 0)`, backgroundSize: '28px 28px' }} />
@@ -140,9 +140,9 @@ export default function AccountPage() {
                             whileHover={{ scale: 1.05 }}
                             className="w-24 h-24 md:w-28 md:h-28 rounded-full flex items-center justify-center font-display text-[44px] font-[800] border-4 shrink-0"
                             style={{
-                                background: 'linear-gradient(135deg, var(--amber-warm), #E67E00)',
+                                background: 'linear-gradient(135deg, var(--orange-warm), #E67E00)',
                                 borderColor: 'rgba(253,248,240,0.15)',
-                                color: 'var(--olive-darkest)',
+                                color: '#0D2015',
                                 boxShadow: '0 8px 24px rgba(217,119,6,0.5)'
                             }}
                         >
@@ -159,14 +159,14 @@ export default function AccountPage() {
                             <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
                                 <span className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] font-[700] tracking-wider uppercase"
                                     style={{
-                                        background: 'linear-gradient(135deg, var(--amber-warm), #E67E00)',
-                                        color: 'var(--olive-darkest)',
+                                        background: 'linear-gradient(135deg, var(--orange-warm), #E67E00)',
+                                        color: '#0D2015',
                                         boxShadow: '0 3px 10px rgba(217,119,6,0.4)'
                                     }}>
                                     {tierIcon} {customer.tier}
                                 </span>
                                 <span className="px-4 py-1.5 rounded-full text-[13px] font-[700]"
-                                    style={{ background: 'rgba(253,248,240,0.08)', color: 'var(--amber-pale)', border: '1px solid rgba(253,248,240,0.12)' }}>
+                                    style={{ background: 'rgba(253,248,240,0.08)', color: 'var(--orange-pale)', border: '1px solid rgba(253,248,240,0.12)' }}>
                                     ⭐ {customer.loyaltyPoints} pts
                                 </span>
                             </div>
@@ -194,7 +194,7 @@ export default function AccountPage() {
                             className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-[9px] text-[13px] font-[700] capitalize transition-all duration-250 relative"
                             style={{
                                 background: activeTab === tab ? 'white' : 'transparent',
-                                color: activeTab === tab ? 'var(--olive-dark)' : 'var(--stone)',
+                                color: activeTab === tab ? 'var(--green-dark)' : 'var(--stone)',
                                 boxShadow: activeTab === tab ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
                             }}
                         >
@@ -218,7 +218,7 @@ export default function AccountPage() {
                             <div className="space-y-4">
                                 {loadingOrders ? (
                                     <div className="py-16 flex flex-col items-center gap-4">
-                                        <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--olive-base)' }} />
+                                        <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--green-base)' }} />
                                         <p className="text-[14px]" style={{ color: 'var(--stone)' }}>Loading orders…</p>
                                     </div>
                                 ) : orders.length === 0 ? (
@@ -273,7 +273,7 @@ export default function AccountPage() {
                                                                 {formatPrice(order.total)}
                                                             </p>
                                                             <p className="text-[11px] font-[700] uppercase tracking-wider mt-0.5"
-                                                                style={{ color: 'var(--olive-base)' }}>
+                                                                style={{ color: 'var(--green-base)' }}>
                                                                 {order.order_type}
                                                             </p>
                                                         </div>
@@ -285,9 +285,9 @@ export default function AccountPage() {
                                                             {order.order_items.map((i: any) => `${i.quantity}× ${i.name}`).join(', ')}
                                                         </p>
                                                         <div className="w-8 h-8 rounded-full flex items-center justify-center ml-3 transition-all"
-                                                            style={{ background: 'var(--cream)', color: 'var(--olive-base)' }}
-                                                            onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'var(--amber-warm)'; el.style.color = 'white' }}
-                                                            onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'var(--cream)'; el.style.color = 'var(--olive-base)' }}>
+                                                            style={{ background: 'var(--cream)', color: 'var(--green-base)' }}
+                                                            onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'var(--orange-warm)'; el.style.color = 'white' }}
+                                                            onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'var(--cream)'; el.style.color = 'var(--green-base)' }}>
                                                             <ChevronRight className="w-4 h-4" />
                                                         </div>
                                                     </div>
@@ -306,13 +306,13 @@ export default function AccountPage() {
                                 <div className="bg-white rounded-[20px] p-7 text-center"
                                     style={{ border: '1.5px solid var(--linen)', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
                                     <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-                                        style={{ background: 'linear-gradient(135deg, var(--amber-warm), #E67E00)', boxShadow: '0 6px 20px rgba(217,119,6,0.35)' }}>
+                                        style={{ background: 'linear-gradient(135deg, var(--orange-warm), #E67E00)', boxShadow: '0 6px 20px rgba(217,119,6,0.35)' }}>
                                         <Star fill="white" className="w-8 h-8 text-white" />
                                     </div>
                                     <p className="text-[12px] font-[700] uppercase tracking-widest mb-1"
                                         style={{ color: 'var(--stone)' }}>Points Balance</p>
                                     <p className="font-display font-[800] text-[60px] leading-none mb-2"
-                                        style={{ color: 'var(--amber-warm)' }}>
+                                        style={{ color: 'var(--orange-warm)' }}>
                                         {customer.loyaltyPoints}
                                     </p>
 
@@ -326,7 +326,7 @@ export default function AccountPage() {
                                         <div className="h-2.5 rounded-full overflow-hidden" style={{ background: 'var(--linen)' }}>
                                             <motion.div
                                                 className="h-full rounded-full"
-                                                style={{ background: 'linear-gradient(90deg, var(--olive-base), var(--olive-light))' }}
+                                                style={{ background: 'linear-gradient(90deg, var(--green-base), var(--olive-light))' }}
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${Math.min(100, Math.max(5, (customer.loyaltyPoints / nextTier.max) * 100))}%` }}
                                                 transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
@@ -354,7 +354,7 @@ export default function AccountPage() {
                                         ].map((rule, i) => (
                                             <li key={i} className="flex gap-4">
                                                 <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5"
-                                                    style={{ background: 'rgba(138,154,91,0.12)', color: 'var(--olive-base)' }}>
+                                                    style={{ background: 'rgba(138,154,91,0.12)', color: 'var(--green-base)' }}>
                                                     <CheckCircle2 className="w-4 h-4" />
                                                 </div>
                                                 <div>
@@ -395,7 +395,7 @@ export default function AccountPage() {
                                                     color: 'var(--charcoal)',
                                                     outline: 'none'
                                                 }}
-                                                onFocus={e => { e.currentTarget.style.borderColor = 'var(--olive-base)' }}
+                                                onFocus={e => { e.currentTarget.style.borderColor = 'var(--green-base)' }}
                                                 onBlur={e => { e.currentTarget.style.borderColor = 'var(--linen)' }}
                                             />
                                         </div>

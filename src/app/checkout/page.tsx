@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
@@ -456,11 +456,11 @@ export default function CheckoutPage() {
                                             ? 'border-red-400 focus:border-red-500 focus:shadow-[0_0_0_3px_rgba(239,68,68,0.15)]'
                                             : isValidPakistaniPhone(customerPhone)
                                                 ? 'border-green-500 focus:border-green-600'
-                                                : 'border-[var(--linen)] focus:border-[var(--olive-base)] focus:shadow-[0_0_0_3px_rgba(85,107,47,0.15)]'}`}
+                                                : 'border-[var(--linen)] focus:border-[var(--green-base)] focus:shadow-[0_0_0_3px_rgba(46,204,113,0.15)]'}`}
                                 />
                                 {lookingUp && (
                                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                                        <div className="w-4 h-4 border-2 border-[var(--olive-base)] border-t-transparent rounded-full animate-spin" />
+                                        <div className="w-4 h-4 border-2 border-[var(--green-base)] border-t-transparent rounded-full animate-spin" />
                                         <span className="text-[11px] text-[var(--stone)]">Looking up...</span>
                                     </div>
                                 )}
@@ -506,7 +506,7 @@ export default function CheckoutPage() {
                                 value={customerName} onChange={e => setCustomerName(e.target.value)}
                                 placeholder="e.g. Ahmed Ali"
                                 style={{ backgroundColor: isReturning ? '#F5F5F5' : 'white' }}
-                                className={`w-full bg-white border-[2px] border-[var(--linen)] rounded-[4px] px-4 py-3 text-[15px] text-[var(--charcoal)] focus:outline-none focus:border-[var(--olive-base)] focus:shadow-[0_0_0_3px_rgba(85,107,47,0.15)] transition-all`}
+                                className={`w-full bg-white border-[2px] border-[var(--linen)] rounded-[4px] px-4 py-3 text-[15px] text-[var(--charcoal)] focus:outline-none focus:border-[var(--green-base)] focus:shadow-[0_0_0_3px_rgba(46,204,113,0.15)] transition-all`}
                             />
                             {isReturning && (
                                 <p className="text-[11px] text-[var(--stone)] mt-1">✓ Auto-filled from your last order</p>
@@ -514,8 +514,8 @@ export default function CheckoutPage() {
                         </div>
 
                         {isAuthenticated && availablePoints > 0 && (
-                            <div className="rounded-xl bg-[var(--olive-darkest)] px-4 py-3 flex items-center justify-between">
-                                <span className="text-[var(--amber-pale)] text-[13px] font-semibold">
+                            <div className="rounded-xl px-4 py-3 flex items-center justify-between" style={{background:'linear-gradient(135deg,var(--green-dark),var(--green-darkest))',border:'1px solid rgba(46,204,113,0.25)'}}>
+                                <span className="text-[var(--orange-pale)] text-[13px] font-semibold">
                                     🎁 Loyalty points available
                                 </span>
                                 <span className="text-white font-bold">{availablePoints} pts</span>
@@ -551,15 +551,15 @@ export default function CheckoutPage() {
                                         key={type.id} type="button" role="radio" aria-checked={sel}
                                         onClick={() => setOrderType(type.id)}
                                         className={`relative flex flex-col items-center text-center p-4 rounded-[8px] border-[2px] transition-all ${sel
-                                            ? 'bg-[var(--parchment)] border-[var(--olive-base)] shadow-md'
-                                            : 'bg-white border-[var(--linen)] hover:border-[var(--olive-pale)]'}`}
+                                            ? 'bg-[var(--parchment)] border-[var(--green-base)] shadow-md'
+                                            : 'bg-white border-[var(--linen)] hover:border-[var(--green-pale)]'}`}
                                     >
                                         {sel && (
-                                            <div className="absolute top-0 right-0 w-5 h-5 bg-[var(--olive-base)] text-white flex items-center justify-center rounded-bl-[4px] rounded-tr-[6px]">
+                                            <div className="absolute top-0 right-0 w-5 h-5 bg-[var(--green-base)] text-white flex items-center justify-center rounded-bl-[4px] rounded-tr-[6px]">
                                                 <Check className="w-3 h-3" />
                                             </div>
                                         )}
-                                        <div className={`w-10 h-10 mb-2 rounded-full flex items-center justify-center ${sel ? 'bg-[var(--olive-base)] text-white' : 'bg-[var(--linen)] text-[var(--stone)]'}`}>
+                                        <div className={`w-10 h-10 mb-2 rounded-full flex items-center justify-center ${sel ? 'bg-[var(--green-base)] text-white' : 'bg-[var(--linen)] text-[var(--stone)]'}`}>
                                             <Icon className="w-5 h-5" />
                                         </div>
                                         <span className={`font-[600] text-[14px] ${sel ? 'text-[var(--charcoal)]' : 'text-[var(--stone)]'}`}>
@@ -576,7 +576,7 @@ export default function CheckoutPage() {
                                 {locationSet && !storedOutOfRange ? (
                                     /* ── CONFIRMED LOCATION CARD ── */
                                     <div className="bg-[#1C2416] rounded-[10px] p-4 space-y-2">
-                                        <p className="text-[var(--amber-pale)] text-[13px] font-bold uppercase tracking-wide">📍 Delivery Location</p>
+                                        <p className="text-[var(--orange-pale)] text-[13px] font-bold uppercase tracking-wide">📍 Delivery Location</p>
                                         <p className="text-white text-[14px] leading-snug">{storedDeliveryAddress}</p>
                                         <p className="text-white/60 text-[12px]">
                                             {storedDistance} km from {storedBranchName} · {storedFee === 0 ? 'Free delivery' : `Rs. ${storedFee} delivery fee`}
@@ -584,7 +584,7 @@ export default function CheckoutPage() {
                                         <button
                                             type="button"
                                             onClick={() => setLocationModalOpen(true)}
-                                            className="mt-1 text-[12px] font-semibold text-[var(--amber-warm)] underline underline-offset-2 hover:text-[var(--amber-pale)] transition-colors"
+                                            className="mt-1 text-[12px] font-semibold text-[var(--orange-warm)] underline underline-offset-2 hover:text-[var(--orange-pale)] transition-colors"
                                         >
                                             Change Location
                                         </button>
@@ -629,7 +629,7 @@ export default function CheckoutPage() {
                                             value={manualAddress}
                                             onChange={e => setManualAddress(e.target.value)}
                                             placeholder="e.g. House 12, Street 5, Block C, Wapda Town"
-                                            className="w-full bg-white border-[2px] border-[var(--linen)] rounded-[4px] px-4 py-3 text-[15px] text-[var(--charcoal)] focus:outline-none focus:border-[var(--olive-base)] focus:shadow-[0_0_0_3px_rgba(85,107,47,0.15)] transition-all resize-none"
+                                            className="w-full bg-white border-[2px] border-[var(--linen)] rounded-[4px] px-4 py-3 text-[15px] text-[var(--charcoal)] focus:outline-none focus:border-[var(--green-base)] focus:shadow-[0_0_0_3px_rgba(46,204,113,0.15)] transition-all resize-none"
                                         />
                                         {manualAddress.trim().length > 0 && manualAddress.trim().length < 5 && (
                                             <p role="alert" className="text-[12px] text-red-600 mt-1">⚠ Please enter your full house/street address.</p>
@@ -650,8 +650,8 @@ export default function CheckoutPage() {
                                             key={b.id} type="button"
                                             onClick={() => setSelectedBranchId(b.id)}
                                             className={`p-4 text-left border-[2px] rounded-[8px] transition-all ${selectedBranchId === b.id
-                                                ? 'border-[var(--olive-base)] bg-[var(--cream)] shadow-sm'
-                                                : 'border-[var(--linen)] bg-white hover:border-[var(--olive-pale)]'}`}
+                                                ? 'border-[var(--green-base)] bg-[var(--cream)] shadow-sm'
+                                                : 'border-[var(--linen)] bg-white hover:border-[var(--green-pale)]'}`}
                                         >
                                             <div className="font-[700] text-[15px] text-[var(--charcoal)]">{b.name}</div>
                                             <div className="text-[12px] text-[var(--stone)] mt-0.5">{b.address}</div>
@@ -678,8 +678,8 @@ export default function CheckoutPage() {
 
                         <div role="radiogroup" aria-label="Payment method" className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {([
-                                { id: 'cod', title: 'Cash on Delivery', icon: '💵', color: 'var(--olive-base)' },
-                                { id: 'jazzcash', title: 'JazzCash', icon: '📱', color: 'var(--amber-warm)' },
+                                { id: 'cod', title: 'Cash on Delivery', icon: '💵', color: 'var(--green-base)' },
+                                { id: 'jazzcash', title: 'JazzCash', icon: '📱', color: 'var(--orange-warm)' },
                             ] as const).map(method => {
                                 const sel = payMethod === method.id
                                 return (
@@ -709,8 +709,8 @@ export default function CheckoutPage() {
                         <div className="border-t border-[var(--linen)] pt-5 space-y-4">
                             {/* Loyalty points */}
                             {isAuthenticated && availablePoints > 0 && (
-                                <div className="bg-[var(--olive-darkest)] rounded-xl p-4 space-y-2">
-                                    <p className="text-[var(--amber-pale)] text-[13px] font-semibold">
+                                <div className="rounded-xl p-4 space-y-2" style={{background:'linear-gradient(135deg,var(--green-dark),var(--green-darkest))',border:'1px solid rgba(46,204,113,0.25)'}}>
+                                    <p className="text-[var(--orange-pale)] text-[13px] font-semibold">
                                         🎁 Redeem Loyalty Points ({availablePoints} available)
                                     </p>
                                     <p className="text-white/60 text-[12px]">
@@ -721,11 +721,11 @@ export default function CheckoutPage() {
                                         type="range" min={0} max={maxRedeemablePoints(cartSubtotal, availablePoints)}
                                         step={1} value={loyaltyRedeem}
                                         onChange={e => setLoyaltyRedeem(Number(e.target.value))}
-                                        className="w-full accent-[var(--amber-warm)]"
+                                        className="w-full accent-[var(--orange-warm)]"
                                     />
                                     <div className="flex justify-between text-[12px]">
                                         <span className="text-white/60">0 pts</span>
-                                        <span className="text-[var(--amber-pale)] font-bold">
+                                        <span className="text-[var(--orange-pale)] font-bold">
                                             {loyaltyRedeem} pts = {formatPrice(loyaltyDiscount)} off
                                         </span>
                                     </div>
@@ -786,7 +786,7 @@ export default function CheckoutPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         className="flex flex-col items-center justify-center text-center py-14 space-y-5"
                     >
-                        <div className="w-20 h-20 bg-[var(--olive-base)] text-white rounded-full flex items-center justify-center shadow-[0_4px_20px_rgba(85,107,47,0.35)]">
+                        <div className="w-20 h-20 text-white rounded-full flex items-center justify-center" style={{background:'linear-gradient(135deg,var(--green-dark),var(--green-base))',boxShadow:'0 4px 20px rgba(46,204,113,0.40)'}}>
                             <Check className="w-10 h-10" strokeWidth={3} />
                         </div>
                         <h2 className="text-[26px] font-display font-[700] text-[var(--charcoal)]">Order Placed!</h2>
@@ -794,7 +794,7 @@ export default function CheckoutPage() {
                             Your order has been saved. Opening WhatsApp to confirm with the branch…
                         </p>
                         <div className="pt-4">
-                            <div className="w-6 h-6 border-[3px] border-[var(--linen)] border-t-[var(--olive-base)] rounded-full animate-spin mx-auto" />
+                            <div className="w-6 h-6 border-[3px] border-[var(--linen)] border-t-[var(--green-base)] rounded-full animate-spin mx-auto" />
                         </div>
                     </motion.div>
                 )
@@ -847,22 +847,22 @@ export default function CheckoutPage() {
                                                 {i > 0 && (
                                                     <div
                                                         className="absolute top-[15px] -left-1/2 w-full h-[2px] transition-colors duration-300"
-                                                        style={{ backgroundColor: completed ? 'var(--olive-base)' : 'var(--linen)' }}
+                                                        style={{ backgroundColor: completed ? 'var(--green-base)' : 'var(--linen)' }}
                                                     />
                                                 )}
                                                 <div
                                                     className="relative z-10 w-[30px] h-[30px] rounded-full flex items-center justify-center font-[700] text-[13px] border-[2px] transition-all duration-300"
                                                     style={{
-                                                        background: completed ? 'var(--olive-base)' : active ? 'var(--amber-warm)' : 'var(--linen)',
-                                                        borderColor: completed ? 'var(--olive-base)' : active ? 'var(--amber-warm)' : 'var(--linen)',
-                                                        color: completed ? '#fff' : active ? 'var(--olive-darkest)' : 'var(--stone)',
+                                                        background: completed ? 'var(--green-base)' : active ? 'var(--orange-warm)' : 'var(--linen)',
+                                                        borderColor: completed ? 'var(--green-base)' : active ? 'var(--orange-warm)' : 'var(--linen)',
+                                                        color: completed ? '#fff' : active ? '#fff' : 'var(--stone)',
                                                     }}
                                                 >
                                                     {completed ? <Check className="w-3.5 h-3.5" strokeWidth={3} /> : i + 1}
                                                 </div>
                                                 <span
                                                     className="mt-1.5 text-[10px] font-[700] uppercase tracking-[0.07em]"
-                                                    style={{ color: active ? 'var(--amber-warm)' : 'var(--stone)' }}
+                                                    style={{ color: active ? 'var(--orange-warm)' : 'var(--stone)' }}
                                                 >
                                                     {label}
                                                 </span>
@@ -920,8 +920,8 @@ export default function CheckoutPage() {
                     </section>
 
                     {/* ── RIGHT: Order summary ── */}
-                    <aside aria-label="Order summary" className="lg:col-span-4 bg-[var(--olive-darkest)] rounded-[10px] p-6 sticky top-[100px] shadow-2xl">
-                        <h2 className="font-display text-[22px] text-[var(--amber-pale)] mb-5">Order Summary</h2>
+                    <aside aria-label="Order summary" className="lg:col-span-4 rounded-[14px] p-6 sticky top-[100px] shadow-2xl" style={{background:'linear-gradient(180deg,#0D2015 0%,#0F1E12 100%)',border:'1.5px solid rgba(46,204,113,0.20)'}}>
+                        <h2 className="font-display text-[22px] mb-5" style={{color:'var(--orange-pale)'}}>Order Summary</h2>
 
                         <ul className="space-y-3 mb-5 max-h-[260px] overflow-y-auto pr-1">
                             {cartItems.map(item => (
@@ -972,7 +972,7 @@ export default function CheckoutPage() {
                             )}
 
                             {loyaltyDiscount > 0 && (
-                                <div className="flex justify-between text-[var(--amber-pale)] font-[600]">
+                                <div className="flex justify-between text-[var(--orange-pale)] font-[600]">
                                     <span>Loyalty Discount</span>
                                     <span>−{formatPrice(loyaltyDiscount)}</span>
                                 </div>
@@ -981,7 +981,7 @@ export default function CheckoutPage() {
 
                         <div className="border-t border-white/20 mt-4 pt-4 flex items-center justify-between mb-6">
                             <span className="text-[15px] font-[600] text-white">Total</span>
-                            <span className="font-display text-[30px] font-[700] text-[var(--amber-pale)] leading-none">
+                            <span className="font-display text-[30px] font-[700] leading-none" style={{color:'var(--orange-pale)'}}>
                                 {formatPrice(total)}
                             </span>
                         </div>

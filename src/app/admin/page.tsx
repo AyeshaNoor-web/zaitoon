@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
@@ -27,8 +27,8 @@ export default function AdminPage() {
     const delivered = orders.filter(o => o.status === 'delivered').length
 
     const STATS = [
-        { icon: Package, label: 'Total Orders', value: orders.length, bg: 'bg-[var(--olive-mid)]', text: 'text-[var(--cream)]' },
-        { icon: TrendingUp, label: 'Revenue', value: formatPrice(revenue), bg: 'bg-[var(--amber-warm)]', text: 'text-[var(--olive-darkest)]' },
+        { icon: Package, label: 'Total Orders', value: orders.length, bg: 'bg-[var(--green-mid)]', text: 'text-[var(--cream)]' },
+        { icon: TrendingUp, label: 'Revenue', value: formatPrice(revenue), bg: 'bg-[var(--orange-warm)]', text: 'text-[#0D2015]' },
         { icon: ClipboardList, label: 'Active Orders', value: active, bg: 'bg-[var(--parchment)]', text: 'text-[var(--charcoal)]' },
         { icon: CheckCircle, label: 'Delivered', value: delivered, bg: 'bg-[var(--parchment)]', text: 'text-[var(--charcoal)]' },
     ]
@@ -53,9 +53,9 @@ export default function AdminPage() {
                                 transition={{ delay: i * 0.08, ease: "easeOut", duration: 0.4 }}
                                 className={`${s.bg} rounded-[8px] p-6 border-[2px] ${s.bg === 'bg-[var(--parchment)]' ? 'border-[var(--linen)]' : 'border-transparent'} shadow-md`}
                             >
-                                <Icon className={`w-8 h-8 mb-4 ${s.bg === 'bg-[var(--amber-warm)]' ? 'text-[var(--olive-darkest)]' : 'text-[var(--stone)]'}`} />
+                                <Icon className={`w-8 h-8 mb-4 ${s.bg === 'bg-[var(--orange-warm)]' ? 'text-[#0D2015]' : 'text-[var(--stone)]'}`} />
                                 <div className={`font-display text-[36px] font-[700] leading-none mb-1 ${s.text}`}>{s.value}</div>
-                                <div className={`text-[13px] font-[600] uppercase tracking-[0.05em] ${s.bg === 'bg-[var(--parchment)]' ? 'text-[var(--stone)]' : 'text-white/70'} ${s.bg === 'bg-[var(--amber-warm)]' ? '!text-[var(--olive-darkest)] opacity-70' : ''}`}>
+                                <div className={`text-[13px] font-[600] uppercase tracking-[0.05em] ${s.bg === 'bg-[var(--parchment)]' ? 'text-[var(--stone)]' : 'text-white/70'} ${s.bg === 'bg-[var(--orange-warm)]' ? '!text-[#0D2015] opacity-70' : ''}`}>
                                     {s.label}
                                 </div>
                             </motion.div>
@@ -80,7 +80,7 @@ export default function AdminPage() {
                             >
                                 <Link
                                     href={card.href}
-                                    className="block bg-[var(--parchment)] rounded-[8px] p-[24px] border-[2px] border-[var(--linen)] hover:border-[var(--olive-pale)] hover:-translate-y-1 transition-all h-full"
+                                    className="block bg-[var(--parchment)] rounded-[8px] p-[24px] border-[2px] border-[var(--linen)] hover:border-[var(--green-pale)] hover:-translate-y-1 transition-all h-full"
                                 >
                                     <div className="text-[32px] mb-4 drop-shadow-sm">{card.emoji}</div>
                                     <h3 className="font-display text-[20px] font-[700] text-[var(--charcoal)] mb-2">{card.label}</h3>

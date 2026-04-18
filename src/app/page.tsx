@@ -116,20 +116,28 @@ export default function HomePage() {
         dir={isRTL ? 'rtl' : 'ltr'}
       >
         {/* ══════════════════════════════════════════════
-            HERO SECTION — Premium olive + parallax
+            HERO SECTION — Fresh green + orange gradient
         ══════════════════════════════════════════════ */}
         <section
           ref={heroRef}
           aria-label="Welcome to Zaitoon"
           className="relative w-full overflow-hidden min-h-[100dvh]"
-          style={{ background: 'linear-gradient(140deg, #3A4A22 0%, var(--olive-darkest) 45%, #2E3A1C 100%)' }}
+          style={{ background: 'linear-gradient(140deg, #0D2015 0%, #1A3A28 45%, #0F2A1D 100%)' }}
         >
-          {/* Ambient glow orbs */}
+          {/* Animated ambient orbs */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full opacity-20"
-              style={{ background: 'radial-gradient(circle, var(--olive-light) 0%, transparent 70%)' }} />
-            <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full opacity-15"
-              style={{ background: 'radial-gradient(circle, var(--amber-warm) 0%, transparent 70%)' }} />
+            <motion.div
+              animate={{ scale: [1, 1.15, 1], opacity: [0.20, 0.30, 0.20] }}
+              transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+              className="absolute top-[-15%] left-[-8%] w-[600px] h-[600px] rounded-full"
+              style={{ background: 'radial-gradient(circle, rgba(46,204,113,0.35) 0%, transparent 70%)' }}
+            />
+            <motion.div
+              animate={{ scale: [1, 1.2, 1], opacity: [0.18, 0.28, 0.18] }}
+              transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+              className="absolute bottom-[-10%] right-[-5%] w-[520px] h-[520px] rounded-full"
+              style={{ background: 'radial-gradient(circle, rgba(243,156,18,0.30) 0%, transparent 70%)' }}
+            />
           </div>
 
           {/* Decorative diagonal right panel */}
@@ -137,15 +145,15 @@ export default function HomePage() {
             className="hidden lg:block absolute top-0 right-0 bottom-0"
             style={{
               width: '42%',
-              background: 'linear-gradient(180deg, var(--olive-dark) 0%, #3E5128 100%)',
+              background: 'linear-gradient(180deg, rgba(26,58,40,0.9) 0%, rgba(15,42,28,1) 100%)',
               clipPath: 'polygon(8% 0, 100% 0, 100% 100%, 0% 100%)'
             }}
           />
 
-          {/* Subtle grid texture overlay */}
+          {/* Dot grid */}
           <div className="absolute inset-0 pointer-events-none"
             style={{
-              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(253,248,240,0.04) 1px, transparent 0)`,
+              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(46,204,113,0.06) 1px, transparent 0)`,
               backgroundSize: '40px 40px'
             }}
           />
@@ -161,7 +169,7 @@ export default function HomePage() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
               >
-                <p className={`section-label mb-6 text-[var(--amber-warm)] ${isRTL ? 'text-right' : ''}`}>
+                <p className={`section-label mb-6 text-[var(--orange-warm)] ${isRTL ? 'text-right' : ''}`}>
                   {t.est}
                 </p>
               </motion.div>
@@ -177,7 +185,7 @@ export default function HomePage() {
                 </motion.span>
                 <motion.span
                   className="block italic"
-                  style={{ color: 'var(--amber-pale)', textShadow: '0 0 60px rgba(252,211,77,0.25)' }}
+                  style={{ color: 'var(--orange-pale)', textShadow: '0 0 60px rgba(243,156,18,0.30)' }}
                   initial={{ y: 50, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
@@ -199,7 +207,7 @@ export default function HomePage() {
                 animate={{ scaleX: 1 }}
                 transition={{ duration: 0.7, delay: 0.55, ease: [0.16, 1, 0.3, 1] }}
                 className={`h-[3px] w-[72px] mt-7 mb-7 rounded-full ${isRTL ? 'origin-right float-right' : 'origin-left'}`}
-                style={{ background: 'linear-gradient(90deg, var(--amber-warm), var(--amber-bright))' }}
+                style={{ background: 'linear-gradient(90deg, var(--orange-warm), var(--green-base))' }}
               />
 
               <motion.div
@@ -208,7 +216,7 @@ export default function HomePage() {
                 transition={{ duration: 0.6, delay: 0.65 }}
                 className={isRTL ? 'text-right' : ''}
               >
-                <p className="text-[17px] font-[300] leading-[1.7] max-w-md" style={{ color: 'rgba(253,248,240,0.65)' }}>
+                <p className="text-[17px] font-[300] leading-[1.7] max-w-md" style={{ color: 'rgba(250,243,224,0.65)' }}>
                   {t.heroDesc}
                 </p>
 
@@ -236,11 +244,11 @@ export default function HomePage() {
                         className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
                       >
                         <span className="text-[22px]">{badge.icon}</span>
-                        <span className="font-[400] text-[13px]" style={{ color: 'rgba(253,248,240,0.55)' }}>
+                        <span className="font-[400] text-[13px]" style={{ color: 'rgba(250,243,224,0.55)' }}>
                           {badge.label}
                         </span>
                       </motion.div>
-                      {i < 2 && <div className="h-[20px] w-[1px] hidden sm:block" style={{ background: 'rgba(253,248,240,0.12)' }} />}
+                      {i < 2 && <div className="h-[20px] w-[1px] hidden sm:block" style={{ background: 'rgba(46,204,113,0.20)' }} />}
                     </div>
                   ))}
                 </div>
@@ -257,7 +265,7 @@ export default function HomePage() {
               <figure className="relative w-full max-w-[500px]">
                 {/* Glow behind image */}
                 <div className="absolute inset-[-20px] rounded-[20px] opacity-30 blur-3xl"
-                  style={{ background: 'radial-gradient(circle, var(--amber-warm) 0%, transparent 70%)' }} />
+                  style={{ background: 'radial-gradient(circle, rgba(46,204,113,0.4) 0%, rgba(243,156,18,0.2) 100%)' }} />
 
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -266,11 +274,11 @@ export default function HomePage() {
                   loading="lazy"
                   width={500}
                   height={600}
-                  className="relative w-full h-[580px] object-cover rounded-[16px]"
-                  style={{ boxShadow: '0 32px 80px rgba(0,0,0,0.40), 0 8px 24px rgba(0,0,0,0.20)' }}
+                  className="relative w-full h-[580px] object-cover rounded-[20px]"
+                  style={{ boxShadow: '0 32px 80px rgba(0,0,0,0.45), 0 8px 24px rgba(0,0,0,0.25)' }}
                 />
 
-                <figcaption className="text-center mt-4 text-[12px]" style={{ color: 'var(--amber-pale)', opacity: 0.7 }}>
+                <figcaption className="text-center mt-4 text-[12px]" style={{ color: 'var(--orange-pale)', opacity: 0.7 }}>
                   Zaitoon Special Shawarma — Rs. 790
                 </figcaption>
 
@@ -278,11 +286,11 @@ export default function HomePage() {
                 <motion.div
                   animate={{ y: [0, -8, 0] }}
                   transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                  className={`absolute top-6 ${isRTL ? 'left-[-28px]' : 'right-[-28px]'} rounded-[12px] px-5 py-4`}
+                  className={`absolute top-6 ${isRTL ? 'left-[-28px]' : 'right-[-28px]'} rounded-[14px] px-5 py-4`}
                   style={{
-                    background: 'linear-gradient(135deg, var(--amber-warm) 0%, #E67E00 100%)',
-                    color: 'var(--olive-darkest)',
-                    boxShadow: '0 12px 32px rgba(217,119,6,0.45), inset 0 1px 0 rgba(255,255,255,0.2)'
+                    background: 'linear-gradient(135deg, var(--orange-warm) 0%, #C47D0A 100%)',
+                    color: '#fff',
+                    boxShadow: '0 12px 32px rgba(243,156,18,0.45), inset 0 1px 0 rgba(255,255,255,0.2)'
                   }}
                 >
                   <div className="font-display text-[34px] font-[800] leading-none mb-1">
@@ -299,12 +307,12 @@ export default function HomePage() {
                   style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.30)' }}
                 >
                   <div className="w-8 h-8 rounded-full flex items-center justify-center text-[16px]"
-                    style={{ background: 'rgba(217,119,6,0.2)', border: '1px solid rgba(217,119,6,0.3)' }}>
+                    style={{ background: 'rgba(46,204,113,0.2)', border: '1px solid rgba(46,204,113,0.35)' }}>
                     ⭐
                   </div>
                   <div>
                     <div className="text-white font-[700] text-[14px] leading-none">4.9 / 5</div>
-                    <div className="text-[11px] mt-0.5" style={{ color: 'rgba(253,248,240,0.5)' }}>Customer Rating</div>
+                    <div className="text-[11px] mt-0.5" style={{ color: 'rgba(250,243,224,0.5)' }}>Customer Rating</div>
                   </div>
                 </motion.div>
               </figure>
@@ -318,14 +326,14 @@ export default function HomePage() {
             transition={{ delay: 1.4, duration: 0.6 }}
             className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-10"
           >
-            <span className="text-[10px] font-[600] tracking-[0.2em] uppercase" style={{ color: 'rgba(253,248,240,0.35)' }}>
+            <span className="text-[10px] font-[600] tracking-[0.2em] uppercase" style={{ color: 'rgba(250,243,224,0.35)' }}>
               Scroll
             </span>
             <motion.div
               animate={{ y: [0, 6, 0] }}
               transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
               className="w-[1px] h-[32px] rounded-full"
-              style={{ background: 'linear-gradient(180deg, rgba(217,119,6,0.6), transparent)' }}
+              style={{ background: 'linear-gradient(180deg, rgba(46,204,113,0.7), transparent)' }}
             />
           </motion.div>
         </section>
@@ -353,10 +361,8 @@ export default function HomePage() {
                   style={{
                     transformOrigin: isRTL ? 'right' : 'left',
                     height: 3,
-                    background: 'linear-gradient(90deg, var(--amber-warm), var(--amber-bright))',
-                    width: 64,
-                    marginTop: '20px',
-                    borderRadius: 99,
+                    background: 'linear-gradient(90deg, var(--orange-warm), var(--green-base))',
+                    width: 64, marginTop: '20px', borderRadius: 99,
                     marginLeft: isRTL ? 'auto' : 0
                   }}
                 />
@@ -364,7 +370,7 @@ export default function HomePage() {
               <Link
                 href="/menu"
                 className="text-[13px] font-[700] mt-5 sm:mt-0 flex items-center gap-1 group transition-colors"
-                style={{ color: 'var(--olive-base)' }}
+                style={{ color: 'var(--green-dark)' }}
               >
                 {t.viewAll}
                 <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -402,18 +408,18 @@ export default function HomePage() {
         <section
           aria-label="How to order from Zaitoon"
           className="relative py-[100px] px-6 overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, var(--olive-dark) 0%, var(--olive-darkest) 60%, #2E3A1C 100%)' }}
+          style={{ background: 'linear-gradient(135deg, #0D2015 0%, #1A3A28 60%, #0F2A1D 100%)' }}
         >
           {/* Background orbs */}
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full opacity-10"
-              style={{ background: 'radial-gradient(circle, var(--amber-warm) 0%, transparent 70%)' }} />
+            <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full opacity-12"
+              style={{ background: 'radial-gradient(circle, rgba(46,204,113,0.20) 0%, transparent 70%)' }} />
           </div>
 
           {/* Dot grid */}
           <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
             style={{
-              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(253,248,240,0.6) 1px, transparent 0)`,
+              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(250,243,224,0.6) 1px, transparent 0)`,
               backgroundSize: '32px 32px'
             }}
           />
@@ -435,7 +441,7 @@ export default function HomePage() {
                 transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 style={{
                   transformOrigin: 'center', height: 3,
-                  background: 'linear-gradient(90deg, var(--amber-warm), var(--amber-bright))',
+                  background: 'linear-gradient(90deg, var(--orange-warm), var(--green-base))',
                   width: 64, marginTop: '20px', borderRadius: 99
                 }}
               />
@@ -444,7 +450,7 @@ export default function HomePage() {
             <ol role="list" className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
               {/* Connecting line */}
               <div className="hidden md:block absolute top-[52px] left-[calc(16.66%+26px)] right-[calc(16.66%+26px)] h-[1px] z-0"
-                style={{ background: 'linear-gradient(90deg, transparent, rgba(217,119,6,0.4), transparent)' }} />
+                style={{ background: 'linear-gradient(90deg, transparent, rgba(46,204,113,0.3), transparent)' }} />
 
               {steps.map((step, i) => (
                 <motion.li
@@ -453,35 +459,35 @@ export default function HomePage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: '-40px' }}
                   transition={{ duration: 0.6, delay: i * 0.15, ease: [0.16, 1, 0.3, 1] }}
-                  className={`relative p-8 pt-12 z-10 text-center flex flex-col items-center rounded-[16px] ${isRTL ? 'text-right' : ''}`}
+                  className={`relative p-8 pt-12 z-10 text-center flex flex-col items-center rounded-[18px] ${isRTL ? 'text-right' : ''}`}
                   style={{
-                    background: 'rgba(253,248,240,0.05)',
+                    background: 'rgba(46,204,113,0.05)',
                     backdropFilter: 'blur(16px)',
                     WebkitBackdropFilter: 'blur(16px)',
-                    border: '1px solid rgba(253,248,240,0.10)',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.07)'
+                    border: '1px solid rgba(46,204,113,0.14)',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.15), inset 0 1px 0 rgba(46,204,113,0.08)'
                   }}
-                  whileHover={{ y: -4, boxShadow: '0 16px 48px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.1)' }}
+                  whileHover={{ y: -4, boxShadow: '0 16px 48px rgba(0,0,0,0.25), 0 0 0 1px rgba(46,204,113,0.20)' }}
                 >
                   {/* Watermark number */}
                   <span className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'} font-display text-[72px] font-[800] leading-none pointer-events-none select-none`}
-                    style={{ color: 'rgba(253,248,240,0.04)' }}>
+                    style={{ color: 'rgba(46,204,113,0.06)' }}>
                     {step.num}
                   </span>
 
                   {/* Icon */}
-                  <div className="w-[56px] h-[56px] rounded-[12px] flex items-center justify-center text-[26px] mb-6"
+                  <div className="w-[56px] h-[56px] rounded-[14px] flex items-center justify-center text-[26px] mb-6"
                     style={{
-                      background: 'rgba(138,154,91,0.2)',
-                      border: '1.5px solid rgba(217,119,6,0.5)',
-                      boxShadow: '0 4px 16px rgba(217,119,6,0.15)'
+                      background: 'rgba(46,204,113,0.15)',
+                      border: '1.5px solid rgba(243,156,18,0.45)',
+                      boxShadow: '0 4px 16px rgba(243,156,18,0.15)'
                     }}>
                     {step.icon}
                   </div>
 
-                  <div className="label mb-3" style={{ color: 'var(--amber-warm)' }}>{step.num}</div>
+                  <div className="label mb-3" style={{ color: 'var(--orange-warm)' }}>{step.num}</div>
                   <h3 className="text-white mb-4 text-[22px]">{step.title}</h3>
-                  <p className="text-[14px] font-[300] leading-[1.75] max-w-[240px]" style={{ color: 'rgba(253,248,240,0.5)' }}>
+                  <p className="text-[14px] font-[300] leading-[1.75] max-w-[240px]" style={{ color: 'rgba(250,243,224,0.50)' }}>
                     {step.desc}
                   </p>
                 </motion.li>
@@ -512,7 +518,7 @@ export default function HomePage() {
                 style={{
                   transformOrigin: isRTL ? 'right' : 'left',
                   height: 3,
-                  background: 'linear-gradient(90deg, var(--amber-warm), var(--amber-bright))',
+                  background: 'linear-gradient(90deg, var(--orange-warm), var(--green-base))',
                   width: 64, marginTop: '20px', borderRadius: 99,
                   marginLeft: isRTL ? 'auto' : 0
                 }}
@@ -528,15 +534,15 @@ export default function HomePage() {
                   viewport={{ once: true, margin: '-40px' }}
                   transition={{ duration: 0.6, delay: i * 0.12, ease: [0.16, 1, 0.3, 1] }}
                   whileHover={{ y: -4 }}
-                  className="group bg-white rounded-[16px] p-7 transition-all duration-300 cursor-default"
+                  className="group bg-white rounded-[18px] p-7 transition-all duration-300 cursor-default"
                   style={{
                     border: '1.5px solid var(--linen)',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                   }}
                   onMouseEnter={e => {
                     const el = e.currentTarget as HTMLElement
-                    el.style.borderColor = 'var(--amber-warm)'
-                    el.style.boxShadow = '0 12px 40px rgba(217,119,6,0.15), 0 4px 12px rgba(0,0,0,0.06)'
+                    el.style.borderColor = 'var(--green-base)'
+                    el.style.boxShadow = '0 12px 40px rgba(46,204,113,0.15), 0 4px 12px rgba(0,0,0,0.06)'
                   }}
                   onMouseLeave={e => {
                     const el = e.currentTarget as HTMLElement
@@ -549,10 +555,10 @@ export default function HomePage() {
                       <h3 className="font-display text-[21px] font-[700] text-[var(--charcoal)] mb-1">{branch.name}</h3>
                       <p className="text-[13px] leading-relaxed text-[var(--stone)]">{branch.address}</p>
                     </div>
-                    <div className="w-12 h-12 rounded-[10px] flex items-center justify-center shrink-0 transition-transform group-hover:scale-110"
+                    <div className="w-12 h-12 rounded-[12px] flex items-center justify-center shrink-0 transition-transform group-hover:scale-110"
                       style={{
-                        background: 'linear-gradient(135deg, var(--olive-darkest), var(--olive-dark))',
-                        boxShadow: '0 4px 12px rgba(92,110,58,0.3)'
+                        background: 'linear-gradient(135deg, var(--green-dark), var(--green-base))',
+                        boxShadow: '0 4px 12px rgba(46,204,113,0.35)'
                       }}>
                       <span className="text-xl">📍</span>
                     </div>
@@ -561,14 +567,14 @@ export default function HomePage() {
                   <div className="space-y-2.5 mb-6">
                     {branch.hours && (
                       <div className="flex items-center gap-2.5 text-[13px] text-[var(--stone)]">
-                        <Clock className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--olive-base)' }} />
+                        <Clock className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--green-dark)' }} />
                         <span>{branch.hours}</span>
                       </div>
                     )}
                     {branch.phone && (
                       <div className="flex items-center gap-2.5 text-[13px] text-[var(--stone)]">
-                        <span className="w-3.5 h-3.5 text-center leading-none" style={{ color: 'var(--olive-base)' }}>📞</span>
-                        <a href={`tel:${branch.phone}`} className="hover:text-[var(--olive-base)] transition-colors font-[500]">
+                        <span className="w-3.5 h-3.5 text-center leading-none" style={{ color: 'var(--green-dark)' }}>📞</span>
+                        <a href={`tel:${branch.phone}`} className="hover:text-[var(--green-dark)] transition-colors font-[500]">
                           {branch.phone}
                         </a>
                       </div>
@@ -580,7 +586,7 @@ export default function HomePage() {
                       <a
                         href={`https://wa.me/${branch.whatsapp.replace(/\D/g, '')}`}
                         target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-[8px] text-[13px] font-[700] text-white transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-[10px] text-[13px] font-[700] text-white transition-all hover:-translate-y-0.5 hover:shadow-lg"
                         style={{ background: 'linear-gradient(135deg, #25D366, #20bd5a)', boxShadow: '0 3px 10px rgba(37,211,102,0.3)' }}
                       >
                         <span>💬</span> WhatsApp
@@ -589,7 +595,7 @@ export default function HomePage() {
                     {branch.phone && (
                       <a
                         href={`tel:${branch.phone}`}
-                        className="flex items-center gap-2 border-[1.5px] border-[var(--linen)] text-[var(--charcoal)] px-4 py-2.5 rounded-[8px] text-[13px] font-[700] hover:border-[var(--olive-base)] hover:text-[var(--olive-base)] transition-all hover:-translate-y-0.5"
+                        className="flex items-center gap-2 border-[1.5px] border-[var(--linen)] text-[var(--charcoal)] px-4 py-2.5 rounded-[10px] text-[13px] font-[700] hover:border-[var(--green-base)] hover:text-[var(--green-dark)] transition-all hover:-translate-y-0.5"
                       >
                         <span>📞</span> Call
                       </a>

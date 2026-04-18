@@ -94,7 +94,7 @@ export default function ReviewModal({
                                         Thanks for the review!
                                     </h2>
                                     <p className="text-[var(--stone)] text-[15px] leading-snug">
-                                        <span className="font-bold text-[var(--olive-base)]">20 points</span> have been added to your loyalty account.
+                                        <span className="font-bold text-[var(--green-base)]">20 points</span> have been added to your loyalty account.
                                     </p>
                                     <div className="flex gap-1 mt-1">
                                         {[1, 2, 3, 4, 5].map(s => (
@@ -119,7 +119,7 @@ export default function ReviewModal({
                                             How was your meal?
                                         </h2>
                                         <p className="text-[var(--stone)] text-[13px] mt-1">
-                                            Leave a review — earn <span className="font-bold text-[var(--olive-base)]">20 pts</span> ⭐
+                                            Leave a review — earn <span className="font-bold text-[var(--green-base)]">20 pts</span> ⭐
                                         </p>
                                     </div>
 
@@ -159,7 +159,7 @@ export default function ReviewModal({
                                             placeholder="Tell us about your experience (optional)…"
                                             value={comment}
                                             onChange={e => setComment(e.target.value)}
-                                            className="w-full px-4 py-3 bg-white border-[2px] border-[var(--linen)] rounded-2xl text-[14px] text-[var(--charcoal)] placeholder:text-[var(--stone)] focus:outline-none focus:border-[var(--olive-base)] transition-colors resize-none"
+                                            className="w-full px-4 py-3 bg-white border-[2px] border-[var(--linen)] rounded-2xl text-[14px] text-[var(--charcoal)] placeholder:text-[var(--stone)] focus:outline-none focus:border-[var(--green-base)] transition-colors resize-none"
                                         />
                                         <span className="absolute bottom-3 right-3 text-[11px] text-[var(--stone)]">
                                             {comment.length}/300
@@ -177,10 +177,10 @@ export default function ReviewModal({
                                     <button
                                         onClick={handleSubmit}
                                         disabled={submitting}
-                                        className="w-full py-4 rounded-2xl bg-[var(--amber-warm)] text-[var(--olive-darkest)] font-bold text-[15px] hover:bg-[var(--amber-bright)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                                        className="w-full py-4 rounded-2xl bg-[var(--orange-warm)] text-[var(--green-darkest)] font-bold text-[15px] hover:bg-[var(--orange-bright)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                                     >
                                         {submitting ? (
-                                            <span className="w-5 h-5 border-2 border-[var(--olive-darkest)]/30 border-t-[var(--olive-darkest)] rounded-full animate-spin" />
+                                            <span className="w-5 h-5 border-2 border-[var(--green-darkest)]/30 border-t-[var(--green-darkest)] rounded-full animate-spin" />
                                         ) : (
                                             <>⭐ Submit Review</>
                                         )}

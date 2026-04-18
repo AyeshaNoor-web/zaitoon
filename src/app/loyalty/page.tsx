@@ -92,8 +92,8 @@ export default function LoyaltyPage() {
     }
 
     const earnWays = [
-        { icon: <ShoppingCart className="w-5 h-5" />, title: 'Place an Order', pts: '1 pt / Rs.100', color: 'var(--olive-base)' },
-        { icon: <Users className="w-5 h-5" />, title: 'Refer a Friend', pts: '100 pts each', color: 'var(--amber-warm)' },
+        { icon: <ShoppingCart className="w-5 h-5" />, title: 'Place an Order', pts: '1 pt / Rs.100', color: 'var(--green-base)' },
+        { icon: <Users className="w-5 h-5" />, title: 'Refer a Friend', pts: '100 pts each', color: 'var(--orange-warm)' },
         { icon: <Star className="w-5 h-5" />, title: 'Leave a Review', pts: '20 pts', color: '#8B5CF6' },
     ]
 
@@ -103,11 +103,11 @@ export default function LoyaltyPage() {
 
             {/* ── HERO ── */}
             <section className="relative pt-28 pb-20 px-6 overflow-hidden"
-                style={{ background: 'linear-gradient(140deg, #2E3A1C 0%, var(--olive-darkest) 50%, #3A4A22 100%)' }}>
+                style={{ background: 'linear-gradient(140deg, #2E3A1C 0%, #0D2015 50%, #3A4A22 100%)' }}>
                 {/* Ambient glows */}
                 <div className="absolute inset-0 pointer-events-none">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full opacity-15"
-                        style={{ background: 'radial-gradient(circle, var(--amber-warm) 0%, transparent 70%)' }} />
+                        style={{ background: 'radial-gradient(circle, var(--orange-warm) 0%, transparent 70%)' }} />
                 </div>
                 {/* Dot grid */}
                 <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
@@ -121,8 +121,8 @@ export default function LoyaltyPage() {
                     >
                         <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[12px] font-[700] mb-6 uppercase tracking-wider"
                             style={{
-                                background: 'linear-gradient(135deg, var(--amber-warm), #E67E00)',
-                                color: 'var(--olive-darkest)',
+                                background: 'linear-gradient(135deg, var(--orange-warm), #E67E00)',
+                                color: '#0D2015',
                                 boxShadow: '0 4px 16px rgba(217,119,6,0.4)'
                             }}>
                             {TIER_ICONS[tier]} {tierCfg.label} Member
@@ -152,7 +152,7 @@ export default function LoyaltyPage() {
                         }}
                     >
                         <div className="font-display text-[72px] font-[800] leading-none"
-                            style={{ color: 'var(--amber-warm)', textShadow: '0 0 60px rgba(217,119,6,0.4)' }}>
+                            style={{ color: 'var(--orange-warm)', textShadow: '0 0 60px rgba(217,119,6,0.4)' }}>
                             <AnimatedCount to={c.loyaltyPoints} />
                         </div>
                         <div className="text-[13px] font-[600] mt-2 uppercase tracking-wider"
@@ -203,7 +203,7 @@ export default function LoyaltyPage() {
                                         {TIER_ICONS[t]}
                                         {isCurrent && (
                                             <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-[700] uppercase tracking-wider whitespace-nowrap"
-                                                style={{ color: 'var(--olive-base)' }}>
+                                                style={{ color: 'var(--green-base)' }}>
                                                 You
                                             </div>
                                         )}
@@ -213,7 +213,7 @@ export default function LoyaltyPage() {
                                             style={{ background: 'var(--linen)' }}>
                                             <motion.div
                                                 className="h-full rounded-full"
-                                                style={{ background: 'linear-gradient(90deg, var(--olive-base), var(--olive-light))' }}
+                                                style={{ background: 'linear-gradient(90deg, var(--green-base), var(--olive-light))' }}
                                                 initial={{ width: 0 }}
                                                 whileInView={{
                                                     width: isDone ? '100%' : (isCurrent && nextCfg ? `${progress}%` : '0%')
@@ -234,7 +234,7 @@ export default function LoyaltyPage() {
                         </p>
                     )}
                     {!nextCfg && (
-                        <p className="text-[13px] text-center mt-8 font-[600]" style={{ color: 'var(--amber-warm)' }}>
+                        <p className="text-[13px] text-center mt-8 font-[600]" style={{ color: 'var(--orange-warm)' }}>
                             💎 You've reached the highest tier — Platinum!
                         </p>
                     )}
@@ -270,7 +270,7 @@ export default function LoyaltyPage() {
                                     <p className="text-[11px] mt-1" style={{ color: 'var(--stone)' }}>
                                         {cfg.min === 0 ? 'Starter tier' : `From ${cfg.min.toLocaleString()} pts`}
                                     </p>
-                                    <p className="text-[11px] mt-2 font-[600]" style={{ color: 'var(--olive-base)' }}>
+                                    <p className="text-[11px] mt-2 font-[600]" style={{ color: 'var(--green-base)' }}>
                                         {TIER_PERKS[t]}
                                     </p>
                                     {isCurrent && (
@@ -355,7 +355,7 @@ export default function LoyaltyPage() {
                             <div className="rounded-[10px] px-4 py-3 mb-4 font-mono text-[13px] break-all"
                                 style={{
                                     background: 'var(--parchment)', border: '1px solid var(--linen)',
-                                    color: 'var(--olive-dark)'
+                                    color: 'var(--green-dark)'
                                 }}>
                                 {referralUrl}
                             </div>
@@ -364,7 +364,7 @@ export default function LoyaltyPage() {
                                     onClick={copyLink}
                                     className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[10px] text-[13px] font-[700] text-white transition-all hover:-translate-y-0.5"
                                     style={{
-                                        background: 'linear-gradient(135deg, var(--olive-darkest), var(--olive-dark))',
+                                        background: 'linear-gradient(135deg, #0D2015, var(--green-dark))',
                                         boxShadow: '0 4px 14px rgba(92,110,58,0.35)'
                                     }}
                                 >

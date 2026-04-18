@@ -91,41 +91,47 @@ export default function MenuPage() {
         <div
           className="sticky top-[60px] lg:top-[68px] z-40 w-full"
           style={{
-            background: "linear-gradient(180deg, var(--olive-darkest) 0%, #384823 100%)",
-            borderBottom: "2px solid rgba(217,119,6,0.35)",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
+            background: "linear-gradient(180deg, #0D2015 0%, #111E13 100%)",
+            borderBottom: "2px solid rgba(46,204,113,0.30)",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.30)",
           }}
         >
           <div className="max-w-7xl mx-auto flex flex-col">
 
             {/* Row 1: Search + Filters */}
             <div className="w-full flex flex-col md:flex-row items-center gap-3 px-4 lg:px-8 py-3"
-              style={{ borderBottom: "1px solid rgba(253,248,240,0.06)" }}>
+              style={{ borderBottom: "1px solid rgba(46,204,113,0.08)" }}>
 
               {/* Search */}
               <div className="relative w-full md:max-w-[320px] shrink-0">
                 <Search className={`absolute ${isRTL ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 w-4 h-4`}
-                  style={{ color: "rgba(253,248,240,0.4)" }} />
+                  style={{ color: "rgba(250,243,224,0.40)" }} />
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder={t.searchMenu}
                   aria-label={t.searchMenu}
-                  className={`w-full rounded-[8px] text-white text-[14px] transition-all ${isRTL ? "pr-9 pl-10" : "pl-9 pr-10"} py-2.5`}
+                  className={`w-full rounded-[10px] text-white text-[14px] transition-all ${isRTL ? "pr-9 pl-10" : "pl-9 pr-10"} py-2.5`}
                   style={{
-                    background: "rgba(253,248,240,0.07)",
-                    border: "1px solid rgba(253,248,240,0.12)",
+                    background: "rgba(46,204,113,0.07)",
+                    border: "1px solid rgba(46,204,113,0.15)",
                     outline: "none",
                     color: "white",
                   }}
-                  onFocus={e => { e.currentTarget.style.borderColor = "rgba(217,119,6,0.6)"; e.currentTarget.style.background = "rgba(253,248,240,0.10)" }}
-                  onBlur={e => { e.currentTarget.style.borderColor = "rgba(253,248,240,0.12)"; e.currentTarget.style.background = "rgba(253,248,240,0.07)" }}
+                  onFocus={e => {
+                    e.currentTarget.style.borderColor = "rgba(46,204,113,0.55)";
+                    e.currentTarget.style.background = "rgba(46,204,113,0.12)";
+                  }}
+                  onBlur={e => {
+                    e.currentTarget.style.borderColor = "rgba(46,204,113,0.15)";
+                    e.currentTarget.style.background = "rgba(46,204,113,0.07)";
+                  }}
                 />
                 {search && (
                   <button
                     onClick={() => setSearch("")}
                     className={`absolute ${isRTL ? "left-3" : "right-3"} top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full transition-colors hover:bg-white/10`}
-                    style={{ color: "rgba(253,248,240,0.5)" }}
+                    style={{ color: "rgba(250,243,224,0.50)" }}
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -146,11 +152,11 @@ export default function MenuPage() {
                       className="shrink-0 rounded-[20px] px-4 py-[6px] text-[12px] font-[700] tracking-wide transition-all duration-200"
                       style={{
                         background: active
-                          ? "linear-gradient(135deg, var(--amber-warm), #E67E00)"
-                          : "rgba(253,248,240,0.06)",
-                        color: active ? "var(--olive-darkest)" : "rgba(253,248,240,0.55)",
-                        border: active ? "none" : "1px solid rgba(253,248,240,0.12)",
-                        boxShadow: active ? "0 3px 10px rgba(217,119,6,0.35)" : "none",
+                          ? "linear-gradient(135deg, var(--orange-warm), #D08B05)"
+                          : "rgba(46,204,113,0.07)",
+                        color: active ? "#fff" : "rgba(250,243,224,0.55)",
+                        border: active ? "none" : "1px solid rgba(46,204,113,0.15)",
+                        boxShadow: active ? "0 3px 10px rgba(243,156,18,0.38)" : "none",
                         transform: active ? "scale(1.02)" : "scale(1)",
                       }}
                     >
@@ -161,23 +167,23 @@ export default function MenuPage() {
 
                 {/* Sort */}
                 <div className="flex items-center gap-1.5 ml-auto shrink-0">
-                  <SlidersHorizontal className="w-3.5 h-3.5" style={{ color: "rgba(253,248,240,0.4)" }} />
+                  <SlidersHorizontal className="w-3.5 h-3.5" style={{ color: "rgba(250,243,224,0.40)" }} />
                   <select
                     value={sort}
                     onChange={(e) => setSort(e.target.value as SortOption)}
                     aria-label="Sort items"
-                    className="rounded-[6px] text-[12px] font-[600] px-2 py-1.5 transition-colors cursor-pointer"
+                    className="rounded-[8px] text-[12px] font-[600] px-2 py-1.5 transition-colors cursor-pointer"
                     style={{
-                      background: "rgba(253,248,240,0.07)",
-                      border: "1px solid rgba(253,248,240,0.12)",
-                      color: "rgba(253,248,240,0.7)",
+                      background: "rgba(46,204,113,0.08)",
+                      border: "1px solid rgba(46,204,113,0.15)",
+                      color: "rgba(250,243,224,0.70)",
                       outline: "none",
                     }}
                   >
-                    <option value="default" style={{ background: "#3A4A22" }}>Default</option>
-                    <option value="price-asc" style={{ background: "#3A4A22" }}>Price ↑</option>
-                    <option value="price-desc" style={{ background: "#3A4A22" }}>Price ↓</option>
-                    <option value="rating" style={{ background: "#3A4A22" }}>Top Rated</option>
+                    <option value="default" style={{ background: "#0D2015" }}>Default</option>
+                    <option value="price-asc" style={{ background: "#0D2015" }}>Price ↑</option>
+                    <option value="price-desc" style={{ background: "#0D2015" }}>Price ↓</option>
+                    <option value="rating" style={{ background: "#0D2015" }}>Top Rated</option>
                   </select>
                 </div>
               </div>
@@ -195,16 +201,16 @@ export default function MenuPage() {
                         role="tab"
                         onClick={() => handleCategoryClick(cat.id)}
                         aria-selected={active}
-                        className="flex items-center gap-2 whitespace-nowrap transition-all duration-250 rounded-[8px] px-4 py-2"
+                        className="flex items-center gap-2 whitespace-nowrap transition-all duration-250 rounded-[10px] px-4 py-2"
                         style={{
                           background: active
-                            ? "linear-gradient(135deg, var(--amber-warm), #E67E00)"
-                            : "rgba(253,248,240,0.05)",
-                          color: active ? "var(--olive-darkest)" : "rgba(253,248,240,0.6)",
+                            ? "linear-gradient(135deg, var(--orange-warm), #D08B05)"
+                            : "rgba(46,204,113,0.06)",
+                          color: active ? "#fff" : "rgba(250,243,224,0.60)",
                           fontWeight: active ? 700 : 600,
                           fontSize: 13,
-                          boxShadow: active ? "0 3px 12px rgba(217,119,6,0.35)" : "none",
-                          border: active ? "none" : "1px solid rgba(253,248,240,0.08)",
+                          boxShadow: active ? "0 3px 12px rgba(243,156,18,0.38)" : "none",
+                          border: active ? "none" : "1px solid rgba(46,204,113,0.10)",
                           transform: active ? "scale(1.02)" : "scale(1)",
                         }}
                       >
@@ -212,8 +218,8 @@ export default function MenuPage() {
                         <span
                           className="text-[10px] px-1.5 py-0.5 rounded-full font-[700]"
                           style={{
-                            background: active ? "rgba(92,110,58,0.3)" : "rgba(253,248,240,0.08)",
-                            color: active ? "rgba(92,110,58,0.9)" : "rgba(253,248,240,0.4)",
+                            background: active ? "rgba(255,255,255,0.20)" : "rgba(46,204,113,0.12)",
+                            color: active ? "rgba(255,255,255,0.90)" : "rgba(250,243,224,0.40)",
                           }}
                         >
                           {itemCount}
@@ -235,7 +241,7 @@ export default function MenuPage() {
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-start gap-4 mb-8 p-5 rounded-[12px]"
+              className="flex items-start gap-4 mb-8 p-5 rounded-[14px]"
               style={{
                 background: "white",
                 border: "1.5px solid var(--linen)",
@@ -261,7 +267,7 @@ export default function MenuPage() {
               transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
               className="mb-8"
             >
-              <h2 className={`text-[var(--olive-dark)] flex items-baseline gap-3 ${isRTL ? "flex-row-reverse" : ""}`}>
+              <h2 className={`text-[var(--green-dark)] flex items-baseline gap-3 ${isRTL ? "flex-row-reverse" : ""}`}>
                 {activeCategoryLabel ?? t.menu}
                 <span className="text-[13px] text-[var(--stone)] font-[400] font-body">
                   ({allItems.filter((i) => i.category_id === activeCategory).length} {t.itemsCount})
@@ -275,7 +281,7 @@ export default function MenuPage() {
                 style={{
                   transformOrigin: isRTL ? "right" : "left",
                   height: 3,
-                  background: "linear-gradient(90deg, var(--amber-warm), var(--amber-bright))",
+                  background: "linear-gradient(90deg, var(--orange-warm), var(--green-base))",
                   width: 64,
                   marginTop: 10,
                   borderRadius: 99,
