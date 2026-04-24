@@ -151,7 +151,22 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
                         {item.description}
                     </p>
                 )}
-                {!item.description && <div className="flex-grow" />}
+
+                {/* Variants / Options */}
+                {item.item_variants && item.item_variants.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                        {item.item_variants.map(v => (
+                            <span key={v.id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[5px] text-[10px] font-[600]"
+                                style={{ background: 'var(--parchment)', color: 'var(--stone)', border: '1px solid var(--linen)' }}>
+                                {v.label}
+                                <span style={{ color: 'var(--green-dark)', fontWeight: 700 }}>Rs.{v.price}</span>
+                            </span>
+                        ))}
+                    </div>
+                )}
+
+                {!item.description && (!item.item_variants || item.item_variants.length === 0) && <div className="flex-grow" />}
+
 
                 {/* Size toggle */}
                 {hasSizes && !priceOnRequest && (

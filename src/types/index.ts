@@ -16,6 +16,14 @@ export interface Branch {
     is_active?: boolean
 }
 
+export interface ItemVariant {
+    id: string
+    menu_item_id: string
+    label: string
+    price: number
+    display_order: number
+}
+
 export interface MenuItem {
     id: string
     name: string
@@ -39,6 +47,8 @@ export interface MenuItem {
     price_on_request?: boolean
     display_order?: number
     categories?: { label: string; icon: string }
+    // Variants / Options (e.g. Chicken Rs.850, Beef Rs.950)
+    item_variants?: ItemVariant[]
     // Legacy camelCase used by MenuItemCard
     isAvailable?: boolean
     hasSizes?: boolean

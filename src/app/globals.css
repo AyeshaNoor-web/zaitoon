@@ -2,6 +2,16 @@
 
 @layer base {
   :root {
+    /* ── Radix/shadcn base tokens (required by dialog, popover, etc.) ── */
+    --background:   255 255 255;   /* white  */
+    --foreground:   26 21 18;      /* charcoal */
+    --border:       232 217 184;   /* linen */
+    --ring:         46 204 113;    /* green-base */
+    --muted:        250 246 239;
+    --muted-foreground: 90 83 78;
+    --accent:       250 246 239;
+    --accent-foreground: 26 21 18;
+
     /* ── Brand Primary: Fresh Green ── */
     --green-darkest: #1A7A45;
     --green-dark:    #22964F;
