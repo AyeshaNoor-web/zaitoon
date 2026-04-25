@@ -82,6 +82,7 @@ export default function MenuPage() {
     const grouped: Record<string, MenuItem[]> = {};
     categories.forEach((cat) => { grouped[cat.id] = []; });
     filteredItems.forEach((item) => {
+      if (!item.category_id) return;
       if (!grouped[item.category_id]) grouped[item.category_id] = [];
       grouped[item.category_id].push(item);
     });
