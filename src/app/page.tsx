@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
-import { motion, useScroll, useTransform, type Variants } from 'framer-motion'
+import { motion, useScroll, useTransform, AnimatePresence, type Variants } from 'framer-motion'
 import { Clock, ChevronRight, Star, Rocket, MapPin, ShoppingBag, Truck, Phone, MessageCircle } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -9,7 +9,8 @@ import MobileCartBar from '@/components/layout/MobileCartBar'
 import MenuItemCard from '@/components/menu/MenuItemCard'
 import LocationModal from '@/components/LocationModal'
 import { getBranches } from '@/lib/api/branches'
-import { getMenuItems } from '@/lib/api/menu'
+import { getMenuItems, getSiteContent } from '@/lib/api/menu'
+import { getFAQs, type FAQ } from '@/lib/api/faqs'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguageStore } from '@/store/useLanguageStore'
 import { useLocationStore } from '@/store/useLocationStore'
@@ -22,6 +23,8 @@ export default function HomePage() {
   const [branches, setBranches] = useState<any[]>([])
   const [menuItems, setMenuItems] = useState<any[]>([])
   const [branchCount, setBranchCount] = useState<number>(0)
+  const [faqs, setFaqs] = useState<FAQ[]>([])
+  const [openFaq, setOpenFaq] = useState<string | null>(null)
   const { language, isRTL } = useLanguageStore()
   const { locationSet } = useLocationStore()
   const [showLocationModal, setShowLocationModal] = useState(false)
@@ -33,9 +36,11 @@ export default function HomePage() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0])
 
   const t = translations[language]
-  const heroIntro = language === 'ur'
-    ? 'اصلی لبنانی ذائقہ، فلیم گرل چکن کے ساتھ'
-    : 'Fresh Lebanese Taste with Flame-Grilled Chicken'
+  const [heroIntro, setHeroIntro] = useState(
+    language === 'ur'
+      ? 'اصلی لبنانی ذائقہ، فلیم گرل چکن کے ساتھ'
+      : 'Fresh Lebanese Taste with Flame-Grilled Chicken'
+  )
 
   useEffect(() => { setStoreHydrated(true) }, [])
   useEffect(() => {
@@ -46,10 +51,16 @@ export default function HomePage() {
   }, [storeHydrated, locationSet])
 
   useEffect(() => {
-    Promise.all([getBranches(), getMenuItems()])
-      .then(([b, m]) => { setBranches(b); setMenuItems(m) })
+    Promise.all([getBranches(), getMenuItems(), getSiteContent()])
+      .then(([b, m, content]) => {
+        setBranches(b)
+        setMenuItems(m)
+        const key = language === 'ur' ? 'hero_tagline_ur' : 'hero_tagline_en'
+        if (content[key]) setHeroIntro(content[key])
+      })
       .finally(() => setLoaded(true))
     supabase.from('branches').select('id', { count: 'exact', head: true }).eq('is_active', true).then(({ count }) => setBranchCount(count ?? 2))
+    getFAQs(true).then(setFaqs).catch(() => {})
   }, [])
 
   const featuredItems = menuItems.filter(i => (i.tags ?? []).includes('bestseller')).slice(0, 8)
@@ -536,6 +547,77 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* ── FAQ SECTION ── */}
+        {faqs.length > 0 && (
+          <section className="w-full max-w-3xl mx-auto px-4 lg:px-8 py-16">
+            <p className="section-label mb-3 text-center">Got Questions?</p>
+            <h2 className="text-center text-[var(--charcoal)] mb-10" style={{ fontFamily: 'var(--font-display)', fontWeight: 700 }}>
+              Frequently Asked Questions
+            </h2>
+            <div className="space-y-3">
+              {faqs.map((faq, i) => {
+                const isOpen = openFaq === faq.id
+                const question = (language === 'ur' && faq.question_ur) ? faq.question_ur : faq.question
+                const answer   = (language === 'ur' && faq.answer_ur)   ? faq.answer_ur   : faq.answer
+                return (
+                  <motion.div
+                    key={faq.id}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.35, delay: i * 0.05 }}
+                    className="rounded-[16px] overflow-hidden"
+                    style={{
+                      background: isOpen ? 'white' : 'rgba(255,255,255,0.75)',
+                      border: isOpen ? '1.5px solid rgba(184,98,94,0.30)' : '1px solid var(--linen)',
+                      boxShadow: isOpen ? '0 8px 24px rgba(76,92,45,0.10)' : 'none',
+                      transition: 'all 0.25s ease',
+                    }}
+                  >
+                    <button
+                      onClick={() => setOpenFaq(isOpen ? null : faq.id)}
+                      className={`w-full flex items-center justify-between px-5 py-4 text-left gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}
+                      aria-expanded={isOpen}
+                    >
+                      <span className="text-[15px] font-[700] text-[var(--charcoal)] leading-snug flex-1">
+                        {question}
+                      </span>
+                      <span
+                        className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-transform duration-300"
+                        style={{
+                          background: isOpen ? 'linear-gradient(135deg, #B8625E, #A6524F)' : 'rgba(184,98,94,0.12)',
+                          color: isOpen ? 'white' : 'var(--charcoal)',
+                          transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                        }}
+                      >
+                        <ChevronRight className="w-4 h-4 rotate-90" />
+                      </span>
+                    </button>
+                    <AnimatePresence initial={false}>
+                      {isOpen && (
+                        <motion.div
+                          key="answer"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                          className="overflow-hidden"
+                        >
+                          <p className="px-5 pb-5 text-[14px] leading-relaxed text-[var(--stone)]"
+                            style={isRTL ? { textAlign: 'right' } : {}}>
+                            {answer}
+                          </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                )
+              })}
+            </div>
+          </section>
+        )}
+
       </motion.main>
 
       <Footer />

@@ -1,13 +1,14 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
-import { Save, Plus, Trash2, Globe, Star, ToggleLeft, ToggleRight, GripVertical } from 'lucide-react'
+import { Save, Plus, Trash2, Globe, Star, ToggleLeft, ToggleRight, GripVertical, HelpCircle, ChevronUp, ChevronDown } from 'lucide-react'
 import AdminLayout from '@/components/admin/AdminLayout'
 import {
     getSiteContent, updateSiteContentBulk,
     getPopularCombos, createPopularCombo, updatePopularCombo, deletePopularCombo,
     type PopularCombo,
 } from '@/lib/api/menu'
+import { getFAQs, createFAQ, updateFAQ, deleteFAQ, type FAQ } from '@/lib/api/faqs'
 
 // ── Shared field styles ────────────────────────────────────────────────────────
 const fieldCls = 'w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 bg-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100 placeholder-gray-400 transition'
@@ -44,6 +45,12 @@ export default function AdminContentPage() {
     const [newCombo, setNewCombo] = useState(emptyCombo())
     const [addingCombo, setAddingCombo] = useState(false)
 
+    // ── FAQ state ───────────────────────────────────────────────────────────
+    const [faqs, setFaqs] = useState<FAQ[]>([])
+    const [savingFaq, setSavingFaq] = useState<string | null>(null)
+    const [newFaq, setNewFaq] = useState({ question: '', answer: '', question_ur: '', answer_ur: '' })
+    const [addingFaq, setAddingFaq] = useState(false)
+
     // ── Load all data on mount ───────────────────────────────────────────────
     useEffect(() => {
         getSiteContent()
@@ -52,6 +59,9 @@ export default function AdminContentPage() {
         getPopularCombos(false)
             .then(setCombos)
             .catch(err => toast.error('Failed to load combos: ' + err.message))
+        getFAQs(false)
+            .then(setFaqs)
+            .catch(err => toast.error('Failed to load FAQs: ' + err.message))
     }, [])
 
     // ── Site content helpers ─────────────────────────────────────────────────
@@ -132,6 +142,56 @@ export default function AdminContentPage() {
 
     const updateComboField = (id: string, field: keyof PopularCombo, value: any) =>
         setCombos(prev => prev.map(c => c.id === id ? { ...c, [field]: value } : c))
+
+    // ── FAQ helpers ──────────────────────────────────────────────────────────
+    const handleSaveFaq = async (faq: FAQ) => {
+        setSavingFaq(faq.id)
+        try {
+            const updated = await updateFAQ(faq.id, {
+                question: faq.question, answer: faq.answer,
+                question_ur: faq.question_ur, answer_ur: faq.answer_ur,
+                is_active: faq.is_active, display_order: faq.display_order,
+            })
+            setFaqs(prev => prev.map(f => f.id === faq.id ? updated : f))
+            toast.success('FAQ saved ✓')
+        } catch (err: any) { toast.error(err.message) }
+        finally { setSavingFaq(null) }
+    }
+    const handleToggleFaq = async (faq: FAQ) => {
+        setSavingFaq(faq.id)
+        try {
+            const updated = await updateFAQ(faq.id, { is_active: !faq.is_active })
+            setFaqs(prev => prev.map(f => f.id === faq.id ? updated : f))
+        } catch (err: any) { toast.error(err.message) }
+        finally { setSavingFaq(null) }
+    }
+    const handleDeleteFaq = async (id: string) => {
+        if (!confirm('Delete this FAQ?')) return
+        try {
+            await deleteFAQ(id)
+            setFaqs(prev => prev.filter(f => f.id !== id))
+            toast.success('FAQ deleted ✓')
+        } catch (err: any) { toast.error(err.message) }
+    }
+    const handleAddFaq = async () => {
+        if (!newFaq.question.trim() || !newFaq.answer.trim()) {
+            toast.error('Question and Answer are required'); return
+        }
+        setAddingFaq(true)
+        try {
+            const created = await createFAQ({
+                ...newFaq,
+                is_active: true,
+                display_order: faqs.length,
+            })
+            setFaqs(prev => [...prev, created])
+            setNewFaq({ question: '', answer: '', question_ur: '', answer_ur: '' })
+            toast.success('FAQ created ✓')
+        } catch (err: any) { toast.error(err.message) }
+        finally { setAddingFaq(false) }
+    }
+    const updateFaqField = (id: string, field: keyof FAQ, value: any) =>
+        setFaqs(prev => prev.map(f => f.id === id ? { ...f, [field]: value } : f))
 
     return (
         <AdminLayout>
@@ -351,6 +411,102 @@ export default function AdminContentPage() {
                             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-bold transition disabled:opacity-60">
                             <Plus className="w-4 h-4" />
                             {addingCombo ? 'Creating…' : 'Create Combo'}
+                        </button>
+                    </div>
+                </div>
+
+                {/* ── C) FAQ Manager ───────────────────────────────────────── */}
+                <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <HelpCircle className="w-5 h-5 text-blue-500" /> FAQs
+                            </h2>
+                            <p className="text-sm text-gray-500 mt-1">Manage frequently asked questions shown on the homepage</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-3 mb-6">
+                        {faqs.length === 0 && <p className="text-sm text-gray-500 italic">No FAQs yet.</p>}
+                        {faqs.map(faq => (
+                            <div key={faq.id}
+                                className={`rounded-2xl border p-4 space-y-3 ${faq.is_active ? 'border-blue-100 bg-blue-50/30' : 'border-gray-200 bg-gray-50'}`}>
+                                <div className="flex items-center gap-2 justify-between">
+                                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                                        <GripVertical className="w-4 h-4 text-gray-400 shrink-0" />
+                                        <input
+                                            className="flex-1 px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-semibold text-gray-900 bg-white outline-none focus:border-blue-400 min-w-0"
+                                            value={faq.question}
+                                            onChange={e => updateFaqField(faq.id, 'question', e.target.value)}
+                                            placeholder="Question (English)" />
+                                    </div>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <button onClick={() => handleToggleFaq(faq)} disabled={savingFaq === faq.id}
+                                            className={`text-xs font-bold px-2.5 py-1 rounded-lg transition ${faq.is_active ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
+                                            {faq.is_active ? 'Active' : 'Hidden'}
+                                        </button>
+                                        <button onClick={() => handleSaveFaq(faq)} disabled={savingFaq === faq.id}
+                                            className="p-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition disabled:opacity-50">
+                                            <Save className="w-3.5 h-3.5" />
+                                        </button>
+                                        <button onClick={() => handleDeleteFaq(faq.id)}
+                                            className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600 transition">
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                </div>
+                                <textarea rows={2}
+                                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 bg-white outline-none focus:border-blue-400 resize-none"
+                                    value={faq.answer}
+                                    onChange={e => updateFaqField(faq.id, 'answer', e.target.value)}
+                                    placeholder="Answer (English)" />
+                                <div className="grid grid-cols-2 gap-2">
+                                    <input className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white outline-none focus:border-blue-400 text-right"
+                                        value={faq.question_ur ?? ''}
+                                        onChange={e => updateFaqField(faq.id, 'question_ur', e.target.value)}
+                                        placeholder="سوال (اردو)" />
+                                    <input className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white outline-none focus:border-blue-400 text-right"
+                                        value={faq.answer_ur ?? ''}
+                                        onChange={e => updateFaqField(faq.id, 'answer_ur', e.target.value)}
+                                        placeholder="جواب (اردو)" />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <label className="text-xs font-semibold text-gray-600">Order</label>
+                                    <input type="number" className="w-16 px-2 py-1 rounded-lg border border-gray-200 text-sm text-gray-900 bg-white outline-none"
+                                        value={faq.display_order}
+                                        onChange={e => updateFaqField(faq.id, 'display_order', Number(e.target.value))} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Add new FAQ */}
+                    <div className="rounded-2xl border-2 border-dashed border-gray-200 p-4 space-y-3">
+                        <p className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                            <Plus className="w-4 h-4" /> Add New FAQ
+                        </p>
+                        <input className={fieldCls}
+                            value={newFaq.question}
+                            onChange={e => setNewFaq(p => ({ ...p, question: e.target.value }))}
+                            placeholder="Question (English) *" />
+                        <textarea rows={2} className={fieldCls + ' resize-none'}
+                            value={newFaq.answer}
+                            onChange={e => setNewFaq(p => ({ ...p, answer: e.target.value }))}
+                            placeholder="Answer (English) *" />
+                        <div className="grid grid-cols-2 gap-2">
+                            <input className={fieldCls + ' text-right'}
+                                value={newFaq.question_ur}
+                                onChange={e => setNewFaq(p => ({ ...p, question_ur: e.target.value }))}
+                                placeholder="سوال (اردو)" />
+                            <input className={fieldCls + ' text-right'}
+                                value={newFaq.answer_ur}
+                                onChange={e => setNewFaq(p => ({ ...p, answer_ur: e.target.value }))}
+                                placeholder="جواب (اردو)" />
+                        </div>
+                        <button onClick={handleAddFaq} disabled={addingFaq}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition disabled:opacity-60">
+                            <Plus className="w-4 h-4" />
+                            {addingFaq ? 'Creating…' : 'Create FAQ'}
                         </button>
                     </div>
                 </div>

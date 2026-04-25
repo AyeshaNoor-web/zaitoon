@@ -1,20 +1,41 @@
 'use client'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, Phone, Clock, Instagram, Facebook } from 'lucide-react'
+import { getBranches } from '@/lib/api/branches'
+import { getSiteContent } from '@/lib/api/menu'
 import { BRANCHES } from '@/lib/mock/data'
 import { useLanguageStore } from '@/store/useLanguageStore'
 import { translations } from '@/lib/translations'
+import type { Branch } from '@/types'
 
 export default function Footer() {
     const { language, isRTL } = useLanguageStore()
     const t = translations[language]
 
+    const [branches, setBranches] = useState<Branch[]>(BRANCHES as Branch[])
+    const [footerTagline, setFooterTagline] = useState(t.footerDesc)
+    const [copyright, setCopyright] = useState('© 2025 Zaitoon Restaurant.')
+
+    useEffect(() => {
+        getBranches()
+            .then(data => { if (data?.length) setBranches(data as Branch[]) })
+            .catch(() => { /* keep mock fallback */ })
+
+        getSiteContent()
+            .then(content => {
+                if (content['footer_tagline']) setFooterTagline(content['footer_tagline'])
+                if (content['restaurant_copyright']) setCopyright(content['restaurant_copyright'])
+            })
+            .catch(() => { /* keep defaults */ })
+    }, [])
+
     return (
         <footer dir={isRTL ? 'rtl' : 'ltr'}
             style={{ background: 'linear-gradient(180deg, #6A7E3F 0%, #4C5C2D 100%)' }}
         >
-            {/* Gradient top accent — orange to green */}
+            {/* Gradient top accent */}
             <div style={{ height: 3, background: 'linear-gradient(90deg, var(--orange-warm), var(--green-base), var(--orange-bright))' }} />
 
             <div className="max-w-7xl mx-auto px-6 pt-16 pb-10">
@@ -29,14 +50,15 @@ export default function Footer() {
                             className="h-12 w-auto object-contain mb-5"
                             style={{ mixBlendMode: 'screen', opacity: 0.92 }}
                         />
-                        <p className="text-sm leading-relaxed font-[400] mb-6 max-w-[280px]" style={{ color: 'rgba(251,246,246,0.86)' }}>
-                            {t.footerDesc}
+                        <p className="text-sm leading-relaxed font-[400] mb-6 max-w-[280px]"
+                            style={{ color: 'rgba(251,246,246,0.86)' }}>
+                            {footerTagline}
                         </p>
                         <div className="flex gap-2.5">
                             {[Instagram, Facebook].map((Icon, i) => (
                                 <a
                                     key={i} href="#"
-                                    className="w-10 h-10 rounded-[10px] flex items-center justify-center transition-all duration-300 group"
+                                    className="w-10 h-10 rounded-[10px] flex items-center justify-center transition-all duration-300"
                                     style={{
                                         background: 'rgba(156,175,136,0.10)',
                                         border: '1px solid rgba(156,175,136,0.24)',
@@ -88,8 +110,8 @@ export default function Footer() {
                         </ul>
                     </div>
 
-                    {/* Branches */}
-                    {BRANCHES.map(branch => (
+                    {/* Branches — from Supabase, fallback to mock */}
+                    {branches.map(branch => (
                         <div key={branch.id}>
                             <h4 className="text-[var(--cream)] font-[700] text-[12px] uppercase tracking-[0.16em] mb-6">{branch.name}</h4>
                             <ul className="space-y-4">
@@ -99,10 +121,7 @@ export default function Footer() {
                                 </li>
                                 <li className="flex gap-3">
                                     <Phone className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--green-base)' }} />
-                                    <a
-                                        href={`https://wa.me/${branch.whatsapp}`}
-                                        className="footer-link text-sm font-[500]"
-                                    >
+                                    <a href={`https://wa.me/${branch.whatsapp}`} className="footer-link text-sm font-[500]">
                                         {branch.phone}
                                     </a>
                                 </li>
@@ -121,7 +140,7 @@ export default function Footer() {
                     style={{ borderTop: '1px solid rgba(251,246,246,0.25)' }}
                 >
                     <p className="text-xs font-[400]" style={{ color: 'rgba(251,246,246,0.78)' }}>
-                        © 2025 Zaitoon Restaurant. {t.allRights}
+                        {copyright}
                     </p>
                     <p className="text-xs font-[400]" style={{ color: 'rgba(251,246,246,0.70)' }}>
                         {t.madeWith}
