@@ -1,7 +1,6 @@
 'use client'
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { motion, useScroll, useTransform, type Variants } from 'framer-motion'
 import { Clock, ChevronRight, Star, Rocket, MapPin, ShoppingBag, Truck, Phone, MessageCircle } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
@@ -18,43 +17,10 @@ import { translations } from '@/lib/translations'
 
 const supabase = createClient()
 
-/* ── Animated Counter ── */
-function AnimatedCounter({ target, suffix = '' }: { target: number; suffix?: string }) {
-  const [count, setCount] = useState(0)
-  const ref = useRef<HTMLSpanElement>(null)
-  const [started, setStarted] = useState(false)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting && !started) setStarted(true) },
-      { threshold: 0.5 }
-    )
-    if (ref.current) observer.observe(ref.current)
-    return () => observer.disconnect()
-  }, [started])
-
-  useEffect(() => {
-    if (!started || target === 0) return
-    const duration = 1800
-    const steps = 60
-    const increment = target / steps
-    let current = 0
-    const timer = setInterval(() => {
-      current += increment
-      if (current >= target) { setCount(target); clearInterval(timer) }
-      else setCount(Math.floor(current))
-    }, duration / steps)
-    return () => clearInterval(timer)
-  }, [started, target])
-
-  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>
-}
-
 export default function HomePage() {
   const [loaded, setLoaded] = useState(false)
   const [branches, setBranches] = useState<any[]>([])
   const [menuItems, setMenuItems] = useState<any[]>([])
-  const [customerCount, setCustomerCount] = useState<number>(0)
   const [branchCount, setBranchCount] = useState<number>(0)
   const { language, isRTL } = useLanguageStore()
   const { locationSet } = useLocationStore()
@@ -83,7 +49,6 @@ export default function HomePage() {
     Promise.all([getBranches(), getMenuItems()])
       .then(([b, m]) => { setBranches(b); setMenuItems(m) })
       .finally(() => setLoaded(true))
-    supabase.from('customers').select('id', { count: 'exact', head: true }).then(({ count }) => setCustomerCount(count ?? 0))
     supabase.from('branches').select('id', { count: 'exact', head: true }).eq('is_active', true).then(({ count }) => setBranchCount(count ?? 2))
   }, [])
 
@@ -170,10 +135,10 @@ export default function HomePage() {
 
           <motion.div
             style={{ y: heroY, opacity: heroOpacity }}
-            className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 w-full flex flex-col lg:flex-row items-center justify-between min-h-[100dvh] pt-[120px] pb-[80px]"
+            className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 w-full flex flex-col items-center lg:items-start min-h-[100dvh] pt-[120px] pb-[80px]"
           >
             {/* HERO LEFT CONTENT */}
-            <div className="lg:w-[50%] flex flex-col items-start pt-8 lg:pt-0">
+            <div className="w-full lg:w-[68%] flex flex-col items-start pt-8 lg:pt-0">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -270,7 +235,7 @@ export default function HomePage() {
                         className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
                       >
                         <badge.icon className="w-[19px] h-[19px] text-[var(--green-light)]" />
-                        <span className="font-[400] text-[13px]" style={{ color: 'rgba(250,243,224,0.55)' }}>
+                        <span className="font-[400] text-[13px]" style={{ color: 'rgba(250,243,224,0.82)' }}>
                           {badge.label}
                         </span>
                       </motion.div>
@@ -281,67 +246,6 @@ export default function HomePage() {
               </motion.div>
             </div>
 
-            {/* HERO RIGHT PANEL (Desktop) */}
-            <motion.div
-              initial={{ x: 60, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.7, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="hidden lg:flex w-[48%] relative justify-center"
-            >
-              <figure className="relative w-full max-w-[500px]">
-                {/* Glow behind image */}
-                <div className="absolute inset-[-20px] rounded-[20px] opacity-30 blur-3xl"
-                  style={{ background: 'radial-gradient(circle, rgba(156,175,136,0.40) 0%, rgba(204,132,95,0.20) 100%)' }} />
-
-                <Image
-                  src="https://images.unsplash.com/photo-1544025162-d76694265947?w=800&q=85"
-                  alt="Zaitoon Special Shawarma — premium meat roasted on charcoal"
-                  width={500}
-                  height={600}
-                  className="relative w-full h-[580px] object-cover rounded-[20px]"
-                  priority
-                  style={{ boxShadow: '0 32px 80px rgba(0,0,0,0.45), 0 8px 24px rgba(0,0,0,0.25)' }}
-                />
-
-                <figcaption className="text-center mt-4 text-[12px]" style={{ color: 'var(--orange-pale)', opacity: 0.7 }}>
-                  Zaitoon Special Shawarma — Rs. 790
-                </figcaption>
-
-                {/* Floating customer badge */}
-                <motion.div
-                  animate={{ y: [0, -8, 0] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                  className={`absolute top-6 ${isRTL ? 'left-[-28px]' : 'right-[-28px]'} rounded-[14px] px-5 py-4`}
-                  style={{
-                    background: 'linear-gradient(135deg, var(--orange-warm) 0%, var(--orange-deep) 100%)',
-                    color: '#fff',
-                    boxShadow: '0 12px 32px rgba(204,132,95,0.45), inset 0 1px 0 rgba(255,255,255,0.2)'
-                  }}
-                >
-                  <div className="font-display text-[34px] font-[800] leading-none mb-1">
-                    {customerCount > 0 ? <AnimatedCounter target={customerCount} suffix="+" /> : '…'}
-                  </div>
-                  <div className="text-[11px] font-[700] uppercase tracking-[0.12em]">{t.happyCustomers}</div>
-                </motion.div>
-
-                {/* Floating rating badge */}
-                <motion.div
-                  animate={{ y: [0, -6, 0] }}
-                  transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-                  className={`absolute bottom-20 ${isRTL ? 'right-[-24px]' : 'left-[-24px]'} glass-dark px-4 py-3 flex items-center gap-3`}
-                  style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.30)' }}
-                >
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-[16px]"
-                    style={{ background: 'rgba(156,175,136,0.25)', border: '1px solid rgba(156,175,136,0.40)' }}>
-                    <Star className="w-4 h-4 text-[var(--green-light)]" />
-                  </div>
-                  <div>
-                    <div className="text-white font-[700] text-[14px] leading-none">4.9 / 5</div>
-                    <div className="text-[11px] mt-0.5" style={{ color: 'rgba(250,243,224,0.5)' }}>Customer Rating</div>
-                  </div>
-                </motion.div>
-              </figure>
-            </motion.div>
           </motion.div>
 
           {/* Scroll indicator */}
@@ -351,7 +255,7 @@ export default function HomePage() {
             transition={{ delay: 1.4, duration: 0.6 }}
             className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-10"
           >
-            <span className="text-[10px] font-[600] tracking-[0.2em] uppercase" style={{ color: 'rgba(250,243,224,0.35)' }}>
+            <span className="text-[10px] font-[600] tracking-[0.2em] uppercase" style={{ color: 'rgba(250,243,224,0.74)' }}>
               Scroll
             </span>
             <motion.div
@@ -513,7 +417,7 @@ export default function HomePage() {
 
                   <div className="label mb-3" style={{ color: 'var(--orange-warm)' }}>{step.num}</div>
                   <h3 className="text-white mb-4 text-[22px]">{step.title}</h3>
-                  <p className="text-[14px] font-[300] leading-[1.75] max-w-[240px]" style={{ color: 'rgba(250,243,224,0.50)' }}>
+                  <p className="text-[14px] font-[300] leading-[1.75] max-w-[240px]" style={{ color: 'rgba(250,243,224,0.82)' }}>
                     {step.desc}
                   </p>
                 </motion.li>

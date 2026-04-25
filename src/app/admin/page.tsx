@@ -38,7 +38,7 @@ export default function AdminPage() {
             <div className="p-6 md:p-10 max-w-[1200px] mx-auto min-h-full">
                 <header className="mb-10 border-b border-[var(--linen)] pb-6">
                     <h1 className="font-display text-[32px] font-[700] text-white">Dashboard Overview</h1>
-                    <p className="text-[14px] mt-2 text-[var(--stone)] font-[400]">Monitor real-time metrics and manage restaurant operations.</p>
+                    <p className="text-[14px] mt-2 text-[rgba(251,246,246,0.82)] font-[400]">Monitor real-time metrics and manage restaurant operations.</p>
                 </header>
 
                 {/* Stat cards */}
@@ -53,9 +53,9 @@ export default function AdminPage() {
                                 transition={{ delay: i * 0.08, ease: "easeOut", duration: 0.4 }}
                                 className={`${s.bg} rounded-[8px] p-6 border-[2px] ${s.bg === 'bg-[var(--parchment)]' ? 'border-[var(--linen)]' : 'border-transparent'} shadow-md`}
                             >
-                                <Icon className={`w-8 h-8 mb-4 ${s.bg === 'bg-[var(--orange-warm)]' ? 'text-[#0D2015]' : 'text-[var(--stone)]'}`} />
+                                <Icon className={`w-8 h-8 mb-4 ${s.bg === 'bg-[var(--orange-warm)]' ? 'text-[#0D2015]' : 'text-[var(--charcoal)]'}`} />
                                 <div className={`font-display text-[36px] font-[700] leading-none mb-1 ${s.text}`}>{s.value}</div>
-                                <div className={`text-[13px] font-[600] uppercase tracking-[0.05em] ${s.bg === 'bg-[var(--parchment)]' ? 'text-[var(--stone)]' : 'text-white/70'} ${s.bg === 'bg-[var(--orange-warm)]' ? '!text-[#0D2015] opacity-70' : ''}`}>
+                                <div className={`text-[13px] font-[600] uppercase tracking-[0.05em] ${s.bg === 'bg-[var(--parchment)]' ? 'text-[var(--stone)]' : 'text-[rgba(251,246,246,0.9)]'} ${s.bg === 'bg-[var(--orange-warm)]' ? '!text-[#0D2015]' : ''}`}>
                                     {s.label}
                                 </div>
                             </motion.div>

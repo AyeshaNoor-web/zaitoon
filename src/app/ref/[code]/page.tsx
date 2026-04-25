@@ -100,7 +100,7 @@ export default function ReferralPage({ params }: { params: { code: string } }) {
                 ))}
             </div>
 
-            <p style={{ color: 'rgba(253,248,240,0.4)', fontSize: 14, margin: 0 }}>
+            <p style={{ color: 'rgba(253,248,240,0.8)', fontSize: 14, margin: 0 }}>
                 Redirecting to menu…
             </p>
 

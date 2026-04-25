@@ -39,7 +39,7 @@ type CatForm = z.infer<typeof catSchema>
 interface Variant { label: string; price: number }
 
 // ── Shared field styles ───────────────────────────────────────────────────────
-const fieldCls = 'w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 bg-white outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 placeholder-gray-400 transition'
+const fieldCls = 'w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 bg-white outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 placeholder-gray-500 transition'
 const labelCls = 'block text-sm font-semibold text-gray-700 mb-1.5'
 
 export default function AdminMenuPage() {
@@ -180,18 +180,18 @@ export default function AdminMenuPage() {
                                 <span className="text-sm font-semibold text-gray-700">{cat.label}</span>
                                 <div className="flex gap-1 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button onClick={() => openEditCat(cat)}
-                                        className="p-1 rounded-lg hover:bg-gray-200 text-gray-500 hover:text-gray-800 transition-colors">
+                                        className="p-1 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors">
                                         <Pencil className="w-3 h-3" />
                                     </button>
                                     <button onClick={() => setDelCatTarget(cat)}
-                                        className="p-1 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors">
+                                        className="p-1 rounded-lg hover:bg-red-50 text-gray-600 hover:text-red-600 transition-colors">
                                         <Trash2 className="w-3 h-3" />
                                     </button>
                                 </div>
                             </div>
                         ))}
                         {categories.length === 0 && (
-                            <p className="text-sm text-gray-400 italic">No categories yet. Create one above.</p>
+                            <p className="text-sm text-gray-600 italic">No categories yet. Create one above.</p>
                         )}
                     </div>
                 </div>
@@ -200,7 +200,7 @@ export default function AdminMenuPage() {
                 <div className="flex flex-wrap items-center gap-3">
                     <h1 className="font-display text-2xl font-bold mr-auto text-gray-900">Menu Items</h1>
                     <div className="flex items-center gap-2 bg-white rounded-xl px-3 py-2 border border-gray-200">
-                        <Search className="w-4 h-4 text-gray-400" />
+                        <Search className="w-4 h-4 text-gray-500" />
                         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search items..."
                             className="outline-none text-sm w-40 text-gray-800 bg-transparent" />
                     </div>
@@ -221,7 +221,7 @@ export default function AdminMenuPage() {
                         <thead className="bg-gray-50 border-b border-gray-200">
                             <tr>
                                 {['Image', 'Name', 'Category', 'Price', 'Available', 'Actions'].map(h => (
-                                    <th key={h} className="px-5 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{h}</th>
+                                    <th key={h} className="px-5 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">{h}</th>
                                 ))}
                             </tr>
                         </thead>
@@ -240,9 +240,9 @@ export default function AdminMenuPage() {
                                         </td>
                                         <td className="px-5 py-4">
                                             <span className="font-bold text-gray-900">{item.name}</span>
-                                            {item.description && <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{item.description}</p>}
+                                            {item.description && <p className="text-xs text-gray-600 mt-0.5 line-clamp-1">{item.description}</p>}
                                         </td>
-                                        <td className="px-5 py-4 text-gray-500 capitalize">{categories.find(c => c.id === item.category_id)?.label}</td>
+                                        <td className="px-5 py-4 text-gray-700 capitalize">{categories.find(c => c.id === item.category_id)?.label}</td>
                                         <td className="px-5 py-4 font-medium text-gray-800">
                                             {item.price !== null ? formatPrice(item.price) : '—'}
                                         </td>
@@ -252,11 +252,11 @@ export default function AdminMenuPage() {
                                         </td>
                                         <td className="px-5 py-4 flex gap-2">
                                             <button onClick={() => openEdit(item)}
-                                                className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 hover:text-green-700 transition-colors">
+                                                className="p-2 rounded-xl hover:bg-gray-100 text-gray-600 hover:text-green-700 transition-colors">
                                                 <Pencil className="w-4 h-4" />
                                             </button>
                                             <button onClick={() => setDelTarget(item)}
-                                                className="p-2 rounded-xl hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
+                                                className="p-2 rounded-xl hover:bg-red-50 text-gray-600 hover:text-red-600 transition-colors">
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
                                         </td>
@@ -339,9 +339,9 @@ export default function AdminMenuPage() {
                                         <Plus className="w-3.5 h-3.5" /> Add Variant
                                     </button>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-3">e.g. Chicken (Rs. 850), Beef (Rs. 950). Leave empty to skip.</p>
+                                <p className="text-xs text-gray-600 mb-3">e.g. Chicken (Rs. 850), Beef (Rs. 950). Leave empty to skip.</p>
                                 {variants.length === 0 && (
-                                    <p className="text-xs text-gray-400 italic text-center py-2">No variants added yet.</p>
+                                    <p className="text-xs text-gray-600 italic text-center py-2">No variants added yet.</p>
                                 )}
                                 <div className="space-y-2">
                                     {variants.map((v, i) => (
@@ -350,7 +350,7 @@ export default function AdminMenuPage() {
                                                 value={v.label}
                                                 onChange={e => updateVariant(i, 'label', e.target.value)}
                                                 placeholder="e.g. Chicken"
-                                                className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-900 bg-white outline-none focus:border-green-500 placeholder-gray-400"
+                                                className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-900 bg-white outline-none focus:border-green-500 placeholder-gray-500"
                                             />
                                             <input
                                                 type="number"
@@ -360,7 +360,7 @@ export default function AdminMenuPage() {
                                                 className="w-28 px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-900 bg-white outline-none focus:border-green-500"
                                             />
                                             <button type="button" onClick={() => removeVariant(i)}
-                                                className="p-2 rounded-xl hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
+                                                className="p-2 rounded-xl hover:bg-red-50 text-gray-600 hover:text-red-600 transition-colors">
                                                 <X className="w-4 h-4" />
                                             </button>
                                         </div>

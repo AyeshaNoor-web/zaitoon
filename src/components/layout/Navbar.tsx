@@ -270,9 +270,9 @@ export default function Navbar() {
                         aria-controls="cart-drawer"
                         className="relative rounded-[10px] px-4 py-2.5 font-[700] text-[13px] tracking-[0.06em] flex items-center gap-2 transition-all min-h-[46px] overflow-hidden"
                         style={{
-                            background: 'linear-gradient(135deg, #C44545 0%, #A83A3A 100%)',
+                            background: 'linear-gradient(135deg, #B8625E 0%, #A6524F 100%)',
                             color: '#fff',
-                            boxShadow: '0 6px 18px rgba(196,69,69,0.36)',
+                            boxShadow: '0 6px 18px rgba(184,98,94,0.36)',
                         }}
                     >
                         <ShoppingCart className="w-5 h-5" />

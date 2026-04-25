@@ -193,7 +193,7 @@ export default function AdminAnalyticsPage() {
                                             <Bar dataKey="orders" fill="#1B4332" radius={[0, 8, 8, 0]} barSize={24} />
                                         </BarChart>
                                     ) : (
-                                        <div className="flex h-full items-center justify-center text-sm text-gray-400">Not enough item data</div>
+                                        <div className="flex h-full items-center justify-center text-sm text-gray-600">Not enough item data</div>
                                     )}
                                 </ResponsiveContainer>
                             </div>

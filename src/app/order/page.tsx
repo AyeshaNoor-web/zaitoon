@@ -33,7 +33,7 @@ export default function OrderIndexPage() {
                     <h1 className="font-display text-[28px] font-[700] text-[var(--orange-pale)] mb-2">
                         Track Your Order
                     </h1>
-                    <p className="text-white/60 text-[14px] mb-8 leading-relaxed">
+                    <p className="text-white/80 text-[14px] mb-8 leading-relaxed">
                         Enter your order number to see live status updates.
                         Your order number was shown after placing the order.
                     </p>
@@ -50,7 +50,7 @@ export default function OrderIndexPage() {
                                 onChange={e => setOrderNumber(e.target.value)}
                                 placeholder="e.g. ZT-ON-1234"
                                 autoCapitalize="characters"
-                                className="w-full bg-white/10 border-[2px] border-white/20 rounded-xl px-5 py-4 text-white placeholder:text-white/30 text-[16px] font-mono tracking-wider text-center focus:outline-none focus:border-[var(--orange-warm)] transition-colors"
+                                className="w-full bg-white/10 border-[2px] border-white/20 rounded-xl px-5 py-4 text-white placeholder:text-white/60 text-[16px] font-mono tracking-wider text-center focus:outline-none focus:border-[var(--orange-warm)] transition-colors"
                             />
                         </div>
                         <button
@@ -62,14 +62,14 @@ export default function OrderIndexPage() {
                         </button>
                     </form>
 
-                    <p className="mt-6 text-white/30 text-[13px]">
-                        Your order number starts with <span className="text-white/50 font-mono">ZT-ON-</span>
+                    <p className="mt-6 text-white/70 text-[13px]">
+                        Your order number starts with <span className="text-white/80 font-mono">ZT-ON-</span>
                     </p>
 
                     <div className="mt-12 pt-6 border-t border-white/10">
                         <Link
                             href="/menu"
-                            className="text-[var(--orange-pale)]/70 hover:text-[var(--orange-pale)] text-[14px] font-[600] transition-colors"
+                            className="text-[var(--orange-pale)]/90 hover:text-[var(--orange-pale)] text-[14px] font-[600] transition-colors"
                         >
                             ← Back to Menu
                         </Link>

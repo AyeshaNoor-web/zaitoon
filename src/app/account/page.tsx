@@ -153,7 +153,7 @@ export default function AccountPage() {
                             <h1 className="font-display font-[700] text-[30px] md:text-[36px] mb-1 leading-none">
                                 {customer.name || 'Valued Customer'}
                             </h1>
-                            <p className="text-[15px] mb-5" style={{ color: 'rgba(253,248,240,0.55)' }}>
+                            <p className="text-[15px] mb-5" style={{ color: 'rgba(253,248,240,0.82)' }}>
                                 {customer.phone}
                             </p>
                             <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
@@ -175,9 +175,9 @@ export default function AccountPage() {
                         <button
                             onClick={() => { signOut(); router.push('/') }}
                             className="hidden md:flex items-center gap-2 px-4 py-2 rounded-[10px] text-[13px] font-[700] transition-all"
-                            style={{ background: 'rgba(253,248,240,0.08)', color: 'rgba(253,248,240,0.6)', border: '1px solid rgba(253,248,240,0.12)' }}
+                            style={{ background: 'rgba(253,248,240,0.08)', color: 'rgba(253,248,240,0.88)', border: '1px solid rgba(253,248,240,0.12)' }}
                             onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(253,248,240,0.16)'; el.style.color = 'white' }}
-                            onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(253,248,240,0.08)'; el.style.color = 'rgba(253,248,240,0.6)' }}
+                            onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(253,248,240,0.08)'; el.style.color = 'rgba(253,248,240,0.88)' }}
                         >
                             <LogOut className="w-4 h-4" /> Sign Out
                         </button>

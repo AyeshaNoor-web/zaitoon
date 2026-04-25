@@ -79,7 +79,7 @@ export default function StepProgress({ currentStep }: { currentStep: number }) {
                                     </>
                                 ) : (
                                     <span className="text-[13px] font-[600]"
-                                        style={{ color: 'rgba(87,83,78,0.35)' }}>
+                                        style={{ color: 'rgba(87,83,78,0.72)' }}>
                                         {i + 1}
                                     </span>
                                 )}
@@ -93,12 +93,12 @@ export default function StepProgress({ currentStep }: { currentStep: number }) {
                                             ? 'var(--orange-warm)'
                                             : isDone
                                                 ? 'var(--green-dark)'
-                                                : 'rgba(87,83,78,0.4)',
+                                                : 'rgba(87,83,78,0.78)',
                                     }}>
                                     {step.label}
                                 </p>
                                 <p className="text-[9px] mt-1 leading-none"
-                                    style={{ color: 'rgba(87,83,78,0.35)' }}>
+                                    style={{ color: 'rgba(87,83,78,0.72)' }}>
                                     {step.sub}
                                 </p>
                             </div>

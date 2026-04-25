@@ -489,7 +489,7 @@ export default function CheckoutPage() {
                                         <p style={{ color: '#FCD34D' }} className="font-display text-[16px] font-[600] m-0">
                                             Welcome back, {customer.name}!
                                         </p>
-                                        <p className="text-white/60 text-[13px] m-0 mt-0.5">
+                                        <p className="text-white/80 text-[13px] m-0 mt-0.5">
                                             ⭐ {customer.loyaltyPoints} points · {customer.tier.charAt(0).toUpperCase() + customer.tier.slice(1)} member
                                         </p>
                                     </div>
@@ -578,7 +578,7 @@ export default function CheckoutPage() {
                                     <div className="bg-[#1C2416] rounded-[10px] p-4 space-y-2">
                                         <p className="text-[var(--orange-pale)] text-[13px] font-bold uppercase tracking-wide">📍 Delivery Location</p>
                                         <p className="text-white text-[14px] leading-snug">{storedDeliveryAddress}</p>
-                                        <p className="text-white/60 text-[12px]">
+                                        <p className="text-white/80 text-[12px]">
                                             {storedDistance} km from {storedBranchName} · {storedFee === 0 ? 'Free delivery' : `Rs. ${storedFee} delivery fee`}
                                         </p>
                                         <button
@@ -713,7 +713,7 @@ export default function CheckoutPage() {
                                     <p className="text-[var(--orange-pale)] text-[13px] font-semibold">
                                         🎁 Redeem Loyalty Points ({availablePoints} available)
                                     </p>
-                                    <p className="text-white/60 text-[12px]">
+                                    <p className="text-white/80 text-[12px]">
                                         Max redeemable: {maxRedeemablePoints(cartSubtotal, availablePoints)} pts
                                         = {formatPrice(maxRedeemablePoints(cartSubtotal, availablePoints))} off
                                     </p>
@@ -724,7 +724,7 @@ export default function CheckoutPage() {
                                         className="w-full accent-[var(--orange-warm)]"
                                     />
                                     <div className="flex justify-between text-[12px]">
-                                        <span className="text-white/60">0 pts</span>
+                                        <span className="text-white/80">0 pts</span>
                                         <span className="text-[var(--orange-pale)] font-bold">
                                             {loyaltyRedeem} pts = {formatPrice(loyaltyDiscount)} off
                                         </span>
@@ -927,10 +927,10 @@ export default function CheckoutPage() {
                             {cartItems.map(item => (
                                 <li key={item.id} className="flex justify-between items-start text-[13px] text-white/70 gap-2">
                                     <div className="flex gap-2 min-w-0">
-                                        <span className="font-[700] text-white/40 shrink-0">{item.quantity}×</span>
+                                        <span className="font-[700] text-white/70 shrink-0">{item.quantity}×</span>
                                         <div className="min-w-0">
                                             <div className="font-[600] text-white/90 truncate">{item.name}</div>
-                                            {item.size && <div className="text-[11px] capitalize text-white/50">({item.size})</div>}
+                                            {item.size && <div className="text-[11px] capitalize text-white/70">({item.size})</div>}
                                         </div>
                                     </div>
                                     <span className="font-display font-[700] text-white/90 shrink-0">
@@ -941,13 +941,13 @@ export default function CheckoutPage() {
                         </ul>
 
                         <div className="border-t border-white/10 pt-4 space-y-2 text-[13px]">
-                            <div className="flex justify-between text-white/60">
+                            <div className="flex justify-between text-white/80">
                                 <span>Subtotal</span>
                                 <span>{formatPrice(cartSubtotal)}</span>
                             </div>
-                            <div className="flex justify-between text-white/60">
+                            <div className="flex justify-between text-white/80">
                                 <span>Delivery Fee</span>
-                                <span className={outOfRange ? 'text-red-400' : deliveryFee === null && orderType === 'delivery' ? 'text-white/40 italic' : ''}>
+                                <span className={outOfRange ? 'text-red-400' : deliveryFee === null && orderType === 'delivery' ? 'text-white/70 italic' : ''}>
                                     {deliveryFeeDisplay()}
                                 </span>
                             </div>
@@ -1000,7 +1000,7 @@ export default function CheckoutPage() {
                             </button>
                         )}
 
-                        <p className="text-[11px] text-white/40 text-center mt-4">
+                        <p className="text-[11px] text-white/70 text-center mt-4">
                             Confirmed via WhatsApp · {new Date().getFullYear()}
                         </p>
                     </aside>

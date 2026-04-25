@@ -56,7 +56,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             aria-current={isActive ? 'page' : undefined}
                             className={`flex items-center gap-3 px-4 py-3 rounded-[6px] text-[14px] font-[600] transition-colors border-l-[3px] ${isActive
                                 ? 'bg-[#0D2015] text-[var(--cream)] border-[var(--orange-warm)] shadow-inner'
-                                : 'border-transparent text-[rgba(253,248,240,0.6)] hover:text-[var(--cream)] hover:bg-[var(--green-dark)]'
+                                : 'border-transparent text-[rgba(253,248,240,0.88)] hover:text-[var(--cream)] hover:bg-[var(--green-dark)]'
                                 }`}
                         >
                             <Icon className="w-[18px] h-[18px]" />
@@ -82,7 +82,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <button
                     onClick={handleLogout}
                     disabled={loggingOut}
-                    className="flex items-center gap-2 text-[13px] text-red-400 hover:text-red-300 font-[600] transition-colors w-full justify-center py-2 rounded-[4px] hover:bg-red-900/20 disabled:opacity-50"
+                    className="flex items-center gap-2 text-[13px] text-red-300 hover:text-red-200 font-[600] transition-colors w-full justify-center py-2 rounded-[4px] hover:bg-red-900/20 disabled:opacity-50"
                     aria-label="Sign out of admin panel"
                 >
                     <LogOut className="w-4 h-4" />
@@ -91,7 +91,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                 <Link
                     href="/"
-                    className="flex items-center gap-2 text-[13px] text-[var(--stone)] hover:text-[var(--orange-pale)] font-[500] transition-colors border border-transparent hover:border-[var(--orange-pale)] w-full justify-center py-2 rounded-[4px]"
+                    className="flex items-center gap-2 text-[13px] text-[rgba(251,246,246,0.9)] hover:text-[var(--orange-pale)] font-[500] transition-colors border border-transparent hover:border-[var(--orange-pale)] w-full justify-center py-2 rounded-[4px]"
                 >
                     <ArrowLeft className="w-4 h-4" /> Back to Application
                 </Link>
@@ -151,7 +151,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             <button
                                 onClick={() => setOpen(false)}
                                 aria-label="Close admin menu"
-                                className="absolute top-[20px] right-[16px] text-[var(--stone)] hover:text-[var(--cream)] w-8 h-8 flex items-center justify-center bg-[#0D2015] rounded-[4px] z-10"
+                                className="absolute top-[20px] right-[16px] text-[rgba(251,246,246,0.9)] hover:text-[var(--cream)] w-8 h-8 flex items-center justify-center bg-[#0D2015] rounded-[4px] z-10"
                             >
                                 <X className="w-5 h-5" />
                             </button>

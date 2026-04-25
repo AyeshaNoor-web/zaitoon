@@ -103,8 +103,8 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                 <div className="text-center space-y-4">
                     <p className="text-5xl">🔍</p>
                     <h1 className="text-[22px] font-display font-[700] text-[var(--orange-pale)]">Order not found</h1>
-                    <p className="text-white/50 text-sm">
-                        No order found with number <span className="font-mono text-white/70">#{id}</span>
+                    <p className="text-white/75 text-sm">
+                        No order found with number <span className="font-mono text-white/85">#{id}</span>
                     </p>
                     <Link
                         href="/order"
@@ -197,7 +197,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                                     style={{ background: 'rgba(217,119,6,0.15)', color: 'var(--orange-pale)', border: '1px solid rgba(217,119,6,0.25)' }}>
                                     <span className="text-[18px] leading-none">{mins}</span>m
                                     <span>{secs}s</span>
-                                    <span className="text-[11px] font-[400] ml-0.5" style={{ color: 'rgba(253,248,240,0.5)' }}>est.</span>
+                                    <span className="text-[11px] font-[400] ml-0.5" style={{ color: 'rgba(253,248,240,0.8)' }}>est.</span>
                                 </span>
                             )}
                         </div>
@@ -299,11 +299,11 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                             {(order.order_items ?? []).map((item: any) => (
                                 <li key={item.id} className="flex justify-between items-start text-[14px]">
                                     <div className="flex gap-2">
-                                        <span className="font-[600]" style={{ color: 'rgba(253,248,240,0.4)' }}>{item.quantity}×</span>
+                                        <span className="font-[600]" style={{ color: 'rgba(253,248,240,0.8)' }}>{item.quantity}×</span>
                                         <span>
                                             <span className="font-[500] text-white">{item.name}</span>
                                             {item.size && (
-                                                <span className="text-[12px] capitalize block" style={{ color: 'rgba(253,248,240,0.4)' }}>
+                                                <span className="text-[12px] capitalize block" style={{ color: 'rgba(253,248,240,0.8)' }}>
                                                     ({item.size})
                                                 </span>
                                             )}
@@ -319,11 +319,11 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                         <div className="my-4 h-[1px]" style={{ background: 'rgba(253,248,240,0.08)' }} aria-hidden="true" />
 
                         <div className="space-y-2 mb-4">
-                            <div className="flex justify-between text-[13px]" style={{ color: 'rgba(253,248,240,0.5)' }}>
+                            <div className="flex justify-between text-[13px]" style={{ color: 'rgba(253,248,240,0.8)' }}>
                                 <span>Subtotal</span>
                                 <span className="text-white font-[600]">{formatPrice(order.subtotal)}</span>
                             </div>
-                            <div className="flex justify-between text-[13px]" style={{ color: 'rgba(253,248,240,0.5)' }}>
+                            <div className="flex justify-between text-[13px]" style={{ color: 'rgba(253,248,240,0.8)' }}>
                                 <span>Delivery Fee</span>
                                 <span className="text-white font-[600]">{(order.delivery_fee ?? 0) > 0 ? formatPrice(order.delivery_fee) : 'Free'}</span>
                             </div>
@@ -349,7 +349,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                                 <MapPin className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--orange-warm)' }} />
                                 <div className="text-[13px] leading-snug">
                                     <strong className="text-white block mb-[2px]">Delivery Address</strong>
-                                    <span style={{ color: 'rgba(253,248,240,0.5)' }}>{order.delivery_address}</span>
+                                    <span style={{ color: 'rgba(253,248,240,0.82)' }}>{order.delivery_address}</span>
                                 </div>
                             </div>
                         )}
@@ -367,7 +367,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                                 <p className="font-[700] text-[var(--orange-pale)] text-[15px] leading-snug">
                                     How was your meal? ⭐
                                 </p>
-                                <p className="text-[var(--orange-pale)]/70 text-[13px] mt-0.5">
+                                <p className="text-[var(--orange-pale)]/90 text-[13px] mt-0.5">
                                     Leave a review — earn <strong>20 pts</strong>!
                                 </p>
                             </div>
@@ -414,9 +414,9 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                         <Link
                             href="/menu"
                             className="text-[14px] font-[600] transition-colors"
-                            style={{ color: 'rgba(253,248,240,0.5)' }}
+                            style={{ color: 'rgba(253,248,240,0.82)' }}
                             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--orange-pale)' }}
-                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(253,248,240,0.5)' }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(253,248,240,0.82)' }}
                         >
                             ← Return to Menu
                         </Link>

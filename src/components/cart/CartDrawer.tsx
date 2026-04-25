@@ -62,7 +62,7 @@ export default function CartDrawer({ open, onClose }: Props) {
                                 <div>
                                     <h2 className="text-[20px] text-white font-display font-[700] leading-none">Your Order</h2>
                                     {itemCount > 0 && (
-                                        <p className="text-[11px] mt-0.5" style={{ color: 'rgba(250,243,224,0.40)' }}>
+                                        <p className="text-[11px] mt-0.5" style={{ color: 'rgba(250,243,224,0.75)' }}>
                                             {itemCount} item{itemCount > 1 ? 's' : ''}
                                         </p>
                                     )}
@@ -74,7 +74,7 @@ export default function CartDrawer({ open, onClose }: Props) {
                                 aria-label="Close cart"
                                 className="w-9 h-9 rounded-[8px] flex items-center justify-center transition-all"
                                 style={{
-                                    color: 'rgba(250,243,224,0.6)',
+                                    color: 'rgba(250,243,224,0.88)',
                                     border: '1px solid rgba(46,204,113,0.15)',
                                     background: 'rgba(46,204,113,0.05)'
                                 }}
@@ -89,7 +89,7 @@ export default function CartDrawer({ open, onClose }: Props) {
                         {items.length > 0 && subtotal() < MIN_ORDER && (
                             <div className="px-6 py-3" style={{ borderBottom: '1px solid rgba(46,204,113,0.07)' }}>
                                 <div className="flex justify-between text-[11px] mb-1.5"
-                                    style={{ color: 'rgba(250,243,224,0.45)' }}>
+                                    style={{ color: 'rgba(250,243,224,0.78)' }}>
                                     <span>Min. order: Rs. {MIN_ORDER}</span>
                                     <span style={{ color: 'var(--orange-warm)' }}>Rs. {remaining} more</span>
                                 </div>
@@ -124,7 +124,7 @@ export default function CartDrawer({ open, onClose }: Props) {
                                     </motion.div>
                                     <div>
                                         <h3 className="text-white text-[20px] mb-2">Your cart is empty</h3>
-                                        <p className="text-[14px] font-[300]" style={{ color: 'rgba(250,243,224,0.40)' }}>
+                                        <p className="text-[14px] font-[300]" style={{ color: 'rgba(250,243,224,0.78)' }}>
                                             Add some delicious items from our menu.
                                         </p>
                                     </div>
@@ -160,7 +160,7 @@ export default function CartDrawer({ open, onClose }: Props) {
                                                         )}
                                                         {/* Add-ons summary */}
                                                         {(item as any).addOns && (item as any).addOns.length > 0 && (
-                                                            <div className="text-[11px] mt-1" style={{ color: 'rgba(250,243,224,0.35)' }}>
+                                                            <div className="text-[11px] mt-1" style={{ color: 'rgba(250,243,224,0.75)' }}>
                                                                 + {(item as any).addOns.map((a: any) => a.name).join(', ')}
                                                             </div>
                                                         )}
@@ -206,7 +206,7 @@ export default function CartDrawer({ open, onClose }: Props) {
                                                         onClick={() => removeItem(item.id)}
                                                         aria-label={`Remove ${item.name} from cart`}
                                                         className="text-[12px] font-[600] px-2.5 py-1 rounded-[6px] transition-all"
-                                                        style={{ color: 'rgba(250,243,224,0.30)', border: '1px solid transparent' }}
+                                                        style={{ color: 'rgba(250,243,224,0.72)', border: '1px solid transparent' }}
                                                         onMouseEnter={e => {
                                                             const el = e.currentTarget as HTMLElement
                                                             el.style.color = '#F87171'
@@ -215,7 +215,7 @@ export default function CartDrawer({ open, onClose }: Props) {
                                                         }}
                                                         onMouseLeave={e => {
                                                             const el = e.currentTarget as HTMLElement
-                                                            el.style.color = 'rgba(250,243,224,0.30)'
+                                                            el.style.color = 'rgba(250,243,224,0.72)'
                                                             el.style.borderColor = 'transparent'
                                                             el.style.background = 'transparent'
                                                         }}
@@ -241,14 +241,14 @@ export default function CartDrawer({ open, onClose }: Props) {
                                 {/* Price rows */}
                                 <div className="space-y-2 mb-4">
                                     <div className="flex justify-between text-[13px]">
-                                        <span style={{ color: 'rgba(250,243,224,0.50)' }}>Subtotal</span>
+                                        <span style={{ color: 'rgba(250,243,224,0.8)' }}>Subtotal</span>
                                         <span className="text-white font-[600]">{formatPrice(subtotal())}</span>
                                     </div>
                                     <div className="flex justify-between text-[13px]">
-                                        <span style={{ color: 'rgba(250,243,224,0.50)' }}>Delivery</span>
+                                        <span style={{ color: 'rgba(250,243,224,0.8)' }}>Delivery</span>
                                         <span>
                                             {orderType !== 'delivery'
-                                                ? <span style={{ color: 'rgba(250,243,224,0.35)' }}>N/A</span>
+                                                ? <span style={{ color: 'rgba(250,243,224,0.75)' }}>N/A</span>
                                                 : deliveryFee > 0
                                                     ? <span className="text-white font-[600]">{formatPrice(deliveryFee)}</span>
                                                     : <span className="italic text-[12px]" style={{ color: 'var(--orange-warm)' }}>Calculated at checkout</span>

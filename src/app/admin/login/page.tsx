@@ -97,7 +97,7 @@ export default function AdminLoginPage() {
                 >
                     Admin Portal
                 </h1>
-                <p className="text-center text-sm mb-8" style={{ color: 'rgba(245,237,219,0.45)' }}>
+                <p className="text-center text-sm mb-8" style={{ color: 'rgba(245,237,219,0.82)' }}>
                     Enter credentials to access dashboard
                 </p>
 
@@ -192,7 +192,7 @@ export default function AdminLoginPage() {
                 </form>
 
                 {/* Lock icon footer */}
-                <p className="mt-6 text-center text-[11px]" style={{ color: 'rgba(245,237,219,0.25)' }}>
+                <p className="mt-6 text-center text-[11px]" style={{ color: 'rgba(245,237,219,0.72)' }}>
                     🔒 Secured • Zaitoon Admin v2
                 </p>
             </motion.div>

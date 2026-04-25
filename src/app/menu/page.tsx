@@ -134,7 +134,7 @@ export default function MenuPage() {
               `,
               backgroundSize: "cover",
               backgroundPosition: "center",
-              border: "1px solid rgba(196,69,69,0.30)",
+              border: "1px solid rgba(184,98,94,0.30)",
               boxShadow: "0 18px 40px rgba(76,92,45,0.10)",
             }}
           >
@@ -178,15 +178,15 @@ export default function MenuPage() {
                   className={`w-full rounded-[10px] text-[var(--charcoal)] text-[14px] transition-all ${isRTL ? "pr-9 pl-10" : "pl-9 pr-10"} py-2.5`}
                   style={{
                     background: "rgba(255,255,255,0.9)",
-                    border: "1px solid rgba(196,69,69,0.30)",
+                    border: "1px solid rgba(184,98,94,0.30)",
                     outline: "none",
                   }}
                   onFocus={e => {
-                    e.currentTarget.style.borderColor = "rgba(196,69,69,0.65)";
+                    e.currentTarget.style.borderColor = "rgba(184,98,94,0.65)";
                     e.currentTarget.style.background = "#fff";
                   }}
                   onBlur={e => {
-                    e.currentTarget.style.borderColor = "rgba(196,69,69,0.30)";
+                    e.currentTarget.style.borderColor = "rgba(184,98,94,0.30)";
                     e.currentTarget.style.background = "rgba(255,255,255,0.9)";
                   }}
                 />
@@ -215,11 +215,11 @@ export default function MenuPage() {
                       className="shrink-0 rounded-[20px] px-4 py-[6px] text-[12px] font-[700] tracking-wide transition-all duration-200"
                       style={{
                         background: active
-                          ? "linear-gradient(135deg, #C44545, #A83A3A)"
-                          : "rgba(196,69,69,0.12)",
+                          ? "linear-gradient(135deg, #B8625E, #A6524F)"
+                          : "rgba(184,98,94,0.14)",
                         color: active ? "#fff" : "var(--charcoal)",
-                        border: active ? "none" : "1px solid rgba(196,69,69,0.24)",
-                        boxShadow: active ? "0 6px 16px rgba(196,69,69,0.30)" : "none",
+                        border: active ? "none" : "1px solid rgba(184,98,94,0.24)",
+                        boxShadow: active ? "0 6px 16px rgba(184,98,94,0.30)" : "none",
                         transform: active ? "scale(1.02)" : "scale(1)",
                       }}
                     >
@@ -238,7 +238,7 @@ export default function MenuPage() {
                     className="rounded-[8px] text-[12px] font-[600] px-2 py-1.5 transition-colors cursor-pointer"
                     style={{
                       background: "rgba(255,255,255,0.9)",
-                      border: "1px solid rgba(196,69,69,0.28)",
+                      border: "1px solid rgba(184,98,94,0.28)",
                       color: "var(--charcoal)",
                       outline: "none",
                     }}
@@ -267,13 +267,13 @@ export default function MenuPage() {
                         className="flex items-center gap-2 whitespace-nowrap transition-all duration-250 rounded-[10px] px-4 py-2"
                         style={{
                           background: active
-                            ? "linear-gradient(135deg, #C44545, #A83A3A)"
-                            : "rgba(196,69,69,0.10)",
+                            ? "linear-gradient(135deg, #B8625E, #A6524F)"
+                            : "rgba(184,98,94,0.14)",
                           color: active ? "#fff" : "var(--charcoal)",
                           fontWeight: active ? 700 : 600,
                           fontSize: 13,
-                          boxShadow: active ? "0 6px 16px rgba(196,69,69,0.30)" : "none",
-                          border: active ? "none" : "1px solid rgba(196,69,69,0.22)",
+                          boxShadow: active ? "0 6px 16px rgba(184,98,94,0.30)" : "none",
+                          border: active ? "none" : "1px solid rgba(184,98,94,0.22)",
                           transform: active ? "scale(1.02)" : "scale(1)",
                         }}
                       >
@@ -281,7 +281,7 @@ export default function MenuPage() {
                         <span
                           className="text-[10px] px-1.5 py-0.5 rounded-full font-[700]"
                           style={{
-                            background: active ? "rgba(255,255,255,0.20)" : "rgba(196,69,69,0.16)",
+                            background: active ? "rgba(255,255,255,0.20)" : "rgba(184,98,94,0.14)",
                             color: active ? "rgba(255,255,255,0.92)" : "rgba(36,33,28,0.70)",
                           }}
                         >
@@ -312,8 +312,8 @@ export default function MenuPage() {
                     key={`combo-${item.id}`}
                     className="rounded-[14px] p-4"
                     style={{
-                      background: "linear-gradient(135deg, rgba(196,69,69,0.12), rgba(251,246,246,0.95))",
-                      border: "1px solid rgba(196,69,69,0.24)",
+                      background: "linear-gradient(135deg, rgba(184,98,94,0.14), rgba(251,246,246,0.95))",
+                      border: "1px solid rgba(184,98,94,0.24)",
                       boxShadow: "0 10px 24px rgba(76,92,45,0.08)",
                     }}
                   >
@@ -326,7 +326,7 @@ export default function MenuPage() {
                       <button
                         onClick={() => item.category_id && handleCategoryClick(item.category_id)}
                         className="px-3 py-1.5 rounded-[8px] text-[11px] font-[700] uppercase tracking-[0.07em] text-white"
-                        style={{ background: "linear-gradient(135deg, #C44545, #A83A3A)", boxShadow: "0 6px 14px rgba(196,69,69,0.28)" }}
+                        style={{ background: "linear-gradient(135deg, #B8625E, #A6524F)", boxShadow: "0 6px 14px rgba(184,98,94,0.28)" }}
                       >
                         Explore
                       </button>
@@ -455,7 +455,7 @@ export default function MenuPage() {
               className="hidden lg:block fixed right-6 bottom-6 z-40 w-[320px] rounded-[16px] p-4"
               style={{
                 background: "rgba(251,246,246,0.97)",
-                border: "1px solid rgba(196,69,69,0.22)",
+                border: "1px solid rgba(184,98,94,0.22)",
                 boxShadow: "0 14px 36px rgba(76,92,45,0.16)",
                 backdropFilter: "blur(12px)",
               }}
@@ -472,8 +472,8 @@ export default function MenuPage() {
                 onClick={() => router.push("/checkout")}
                 className="w-full rounded-[12px] px-4 py-3 text-white text-[13px] font-[700] uppercase tracking-[0.08em] inline-flex items-center justify-between"
                 style={{
-                  background: "linear-gradient(135deg, #C44545, #A83A3A)",
-                  boxShadow: "0 8px 20px rgba(196,69,69,0.34)",
+                  background: "linear-gradient(135deg, #B8625E, #A6524F)",
+                  boxShadow: "0 8px 20px rgba(184,98,94,0.34)",
                 }}
               >
                 <span>Proceed to Checkout</span>

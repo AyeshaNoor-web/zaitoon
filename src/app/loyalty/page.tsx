@@ -156,7 +156,7 @@ export default function LoyaltyPage() {
                             <AnimatedCount to={c.loyaltyPoints} />
                         </div>
                         <div className="text-[13px] font-[600] mt-2 uppercase tracking-wider"
-                            style={{ color: 'rgba(253,248,240,0.5)' }}>
+                            style={{ color: 'rgba(253,248,240,0.82)' }}>
                             Loyalty Points
                         </div>
                     </motion.div>
@@ -166,7 +166,7 @@ export default function LoyaltyPage() {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.4 }}
                         className="text-[14px]"
-                        style={{ color: 'rgba(253,248,240,0.5)' }}
+                        style={{ color: 'rgba(253,248,240,0.82)' }}
                     >
                         Worth Rs. {c.loyaltyPoints.toLocaleString()} in discounts
                     </motion.p>

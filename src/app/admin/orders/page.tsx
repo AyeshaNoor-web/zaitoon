@@ -292,11 +292,11 @@ export default function AdminOrdersPage() {
 
                 {/* ── Stats bar ────────────────────────────────────────── */}
                 <div className="flex flex-wrap items-center gap-4 p-5 rounded-3xl text-sm bg-gradient-to-br from-[#1B4332] to-[#0A1F13] text-white shadow-lg border border-[#E7E0D8]/10">
-                    <span className="font-medium text-white/80">📦 Total: <span className="text-white font-bold">{orders.length}</span></span>
+                    <span className="font-medium text-white/90">📦 Total: <span className="text-white font-bold">{orders.length}</span></span>
                     <span className="font-medium text-[#F0B429]">💰 Revenue: <span className="font-bold">{formatPrice(revenue)}</span></span>
-                    <span className="font-medium text-white/80">🔄 Active: <span className="text-white font-bold">{activeCount}</span></span>
-                    <span className="font-medium text-white/80">✅ Delivered: <span className="text-white font-bold">{delivered.length}</span></span>
-                    <span className="ml-auto text-white/40 text-xs">🔴 Live updates</span>
+                    <span className="font-medium text-white/90">🔄 Active: <span className="text-white font-bold">{activeCount}</span></span>
+                    <span className="font-medium text-white/90">✅ Delivered: <span className="text-white font-bold">{delivered.length}</span></span>
+                    <span className="ml-auto text-white/75 text-xs">🔴 Live updates</span>
                 </div>
 
                 {/* ── Error banner ─────────────────────────────────────── */}
@@ -366,7 +366,7 @@ export default function AdminOrdersPage() {
                                         <div key={col.status} className="mt-4 space-y-3">
                                             <AnimatePresence>
                                                 {byStatus(col.status).length === 0 ? (
-                                                    <p className="text-[#57534E]/50 text-sm text-center py-12">No {col.label.toLowerCase()} orders</p>
+                                                    <p className="text-[#57534E]/80 text-sm text-center py-12">No {col.label.toLowerCase()} orders</p>
                                                 ) : (
                                                     byStatus(col.status).map(order =>
                                                         renderCard(order, col.color, col.status)
@@ -405,7 +405,7 @@ export default function AdminOrdersPage() {
                                                 <div className="space-y-3 min-h-[200px]">
                                                     <AnimatePresence>
                                                         {colOrders.length === 0 && (
-                                                            <p className="text-[#57534E]/50 text-xs text-center pt-8">No orders here</p>
+                                                            <p className="text-[#57534E]/80 text-xs text-center pt-8">No orders here</p>
                                                         )}
                                                         {colOrders.map(order =>
                                                             renderCard(order, col.color, col.status)
