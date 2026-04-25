@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/client'
 
 const supabase = createClient()
 
+// ── Categories ──────────────────────────────────────────────────────────────
+
 export async function getCategories() {
     const { data, error } = await supabase
         .from('categories')
@@ -12,6 +14,8 @@ export async function getCategories() {
     if (error) throw error
     return data
 }
+
+// ── Menu Items ───────────────────────────────────────────────────────────────
 
 export async function getMenuItems(categoryId?: string) {
     let query = supabase
@@ -62,7 +66,8 @@ export async function searchMenuItems(query: string) {
     return data
 }
 
-// Admin only
+// ── Admin Menu Item CRUD ─────────────────────────────────────────────────────
+
 export async function updateMenuItemAvailability(id: string, isAvailable: boolean) {
     const { error } = await supabase
         .from('menu_items')
@@ -151,9 +156,15 @@ export async function upsertItemVariants(
     menuItemId: string,
     variants: { id?: string; label: string; price: number }[]
 ) {
-    // Delete existing, then insert fresh (simple and reliable)
-    await supabase.from('item_variants').delete().eq('menu_item_id', menuItemId)
+    // Delete existing rows for this item, then re-insert fresh
+    const { error: delErr } = await supabase
+        .from('item_variants')
+        .delete()
+        .eq('menu_item_id', menuItemId)
+    if (delErr) throw delErr
+
     if (variants.length === 0) return []
+
     const rows = variants.map((v, i) => ({
         menu_item_id: menuItemId,
         label: v.label,
@@ -163,4 +174,92 @@ export async function upsertItemVariants(
     const { data, error } = await supabase.from('item_variants').insert(rows).select()
     if (error) throw error
     return data
+}
+
+// ── Site Content (CMS) ──────────────────────────────────────────────────────
+
+/** Fetch all site content key-value pairs as a flat Record */
+export async function getSiteContent(): Promise<Record<string, string>> {
+    const { data, error } = await supabase
+        .from('site_content')
+        .select('key, value')
+    if (error) throw error
+    const map: Record<string, string> = {}
+    ;(data ?? []).forEach((row: any) => { map[row.key] = row.value })
+    return map
+}
+
+/** Upsert a single site content value */
+export async function updateSiteContent(key: string, value: string) {
+    const { error } = await supabase
+        .from('site_content')
+        .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' })
+    if (error) throw error
+}
+
+/** Upsert multiple site content values at once */
+export async function updateSiteContentBulk(entries: Record<string, string>) {
+    const rows = Object.entries(entries).map(([key, value]) => ({
+        key,
+        value,
+        updated_at: new Date().toISOString(),
+    }))
+    const { error } = await supabase
+        .from('site_content')
+        .upsert(rows, { onConflict: 'key' })
+    if (error) throw error
+}
+
+// ── Popular Combos (CMS) ─────────────────────────────────────────────────────
+
+export interface PopularCombo {
+    id: string
+    name: string
+    description: string | null
+    price: number | null
+    image_url: string | null
+    is_active: boolean
+    display_order: number
+    created_at: string
+    updated_at: string
+}
+
+export async function getPopularCombos(activeOnly = true): Promise<PopularCombo[]> {
+    let query = supabase
+        .from('popular_combos')
+        .select('*')
+        .order('display_order')
+    if (activeOnly) query = query.eq('is_active', true)
+    const { data, error } = await query
+    if (error) throw error
+    return (data ?? []) as PopularCombo[]
+}
+
+export async function createPopularCombo(payload: Omit<PopularCombo, 'id' | 'created_at' | 'updated_at'>) {
+    const { data, error } = await supabase
+        .from('popular_combos')
+        .insert({ ...payload, updated_at: new Date().toISOString() })
+        .select()
+        .single()
+    if (error) throw error
+    return data as PopularCombo
+}
+
+export async function updatePopularCombo(id: string, updates: Partial<Omit<PopularCombo, 'id' | 'created_at'>>) {
+    const { data, error } = await supabase
+        .from('popular_combos')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single()
+    if (error) throw error
+    return data as PopularCombo
+}
+
+export async function deletePopularCombo(id: string) {
+    const { error } = await supabase
+        .from('popular_combos')
+        .delete()
+        .eq('id', id)
+    if (error) throw error
 }

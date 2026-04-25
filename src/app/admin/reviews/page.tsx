@@ -78,7 +78,7 @@ export default function AdminReviewsPage() {
                             Customer Reviews
                         </h1>
                         {pending > 0 && (
-                            <p className="text-sm text-[#57534E] mt-0.5">
+                            <p className="text-sm text-[#47423D] mt-0.5">
                                 <span className="font-bold text-amber-600">{pending}</span> pending approval
                             </p>
                         )}
@@ -86,7 +86,7 @@ export default function AdminReviewsPage() {
 
                     {/* Search */}
                     <div className="flex items-center gap-2 bg-white rounded-xl px-3 py-2 border border-[#E7E0D8]">
-                        <Search className="w-4 h-4 text-[#57534E]" />
+                        <Search className="w-4 h-4 text-[#47423D]" />
                         <input
                             value={search}
                             onChange={e => setSearch(e.target.value)}
@@ -103,7 +103,7 @@ export default function AdminReviewsPage() {
                                 onClick={() => setFilter(tab)}
                                 className={`px-3 py-1.5 rounded-lg text-sm font-bold capitalize transition-colors ${filter === tab
                                     ? 'bg-white shadow-sm text-[#18181B]'
-                                    : 'text-[#57534E] hover:text-[#18181B]'
+                                    : 'text-[#47423D] hover:text-[#18181B]'
                                     }`}
                             >
                                 {tab}
@@ -118,7 +118,7 @@ export default function AdminReviewsPage() {
                         <div className="w-8 h-8 border-[3px] border-amber-500 border-t-transparent rounded-full animate-spin" />
                     </div>
                 ) : visible.length === 0 ? (
-                    <div className="text-center py-24 text-[#57534E]">
+                    <div className="text-center py-24 text-[#47423D]">
                         <div className="text-5xl mb-4">⭐</div>
                         <p className="font-bold text-lg text-[#18181B]">No reviews here</p>
                         <p className="text-sm mt-1">
@@ -131,7 +131,7 @@ export default function AdminReviewsPage() {
                             <thead className="bg-[#FAF6EF] border-b border-[#E7E0D8]">
                                 <tr>
                                     {['Customer', 'Order', 'Rating', 'Comment', 'Date', 'Status', 'Actions'].map(h => (
-                                        <th key={h} className="px-4 py-4 text-left text-xs font-bold text-[#57534E] uppercase tracking-wider">
+                                        <th key={h} className="px-4 py-4 text-left text-xs font-bold text-[#47423D] uppercase tracking-wider">
                                             {h}
                                         </th>
                                     ))}
@@ -152,18 +152,18 @@ export default function AdminReviewsPage() {
                                             {/* Customer */}
                                             <td className="px-4 py-4">
                                                 <p className="font-bold text-[#18181B]">{r.customers?.name ?? '—'}</p>
-                                                <p className="text-[11px] text-[#57534E]">{r.customers?.phone ?? ''}</p>
+                                                <p className="text-[11px] text-[#47423D]">{r.customers?.phone ?? ''}</p>
                                             </td>
 
                                             {/* Order */}
-                                            <td className="px-4 py-4 font-mono text-[12px] text-[#57534E]">
+                                            <td className="px-4 py-4 font-mono text-[12px] text-[#47423D]">
                                                 #{r.orders?.order_number ?? '—'}
                                             </td>
 
                                             {/* Rating */}
                                             <td className="px-4 py-4">
                                                 <StarRow rating={r.rating} />
-                                                <span className="text-[11px] text-[#57534E] mt-0.5 block">{r.rating}/5</span>
+                                                <span className="text-[11px] text-[#47423D] mt-0.5 block">{r.rating}/5</span>
                                             </td>
 
                                             {/* Comment */}
@@ -173,12 +173,12 @@ export default function AdminReviewsPage() {
                                                         &ldquo;{r.comment}&rdquo;
                                                     </p>
                                                 ) : (
-                                                    <span className="text-[#57534E] italic text-[12px]">No comment</span>
+                                                    <span className="text-[#47423D] italic text-[12px]">No comment</span>
                                                 )}
                                             </td>
 
                                             {/* Date */}
-                                            <td className="px-4 py-4 text-[12px] text-[#57534E] whitespace-nowrap">
+                                            <td className="px-4 py-4 text-[12px] text-[#47423D] whitespace-nowrap">
                                                 {new Date(r.created_at).toLocaleDateString('en-PK', {
                                                     day: 'numeric', month: 'short', year: 'numeric'
                                                 })}
@@ -204,7 +204,7 @@ export default function AdminReviewsPage() {
                                                         <button
                                                             onClick={() => handleApprove(r.id)}
                                                             title="Approve"
-                                                            className="p-2 rounded-xl hover:bg-green-50 text-[#57534E] hover:text-green-600 transition-colors"
+                                                            className="p-2 rounded-xl hover:bg-green-50 text-[#47423D] hover:text-green-600 transition-colors"
                                                         >
                                                             <CheckCircle2 className="w-5 h-5" />
                                                         </button>
@@ -212,7 +212,7 @@ export default function AdminReviewsPage() {
                                                     <button
                                                         onClick={() => handleReject(r.id)}
                                                         title="Delete"
-                                                        className="p-2 rounded-xl hover:bg-red-50 text-[#57534E] hover:text-red-500 transition-colors"
+                                                        className="p-2 rounded-xl hover:bg-red-50 text-[#47423D] hover:text-red-500 transition-colors"
                                                     >
                                                         <XCircle className="w-5 h-5" />
                                                     </button>
@@ -229,3 +229,4 @@ export default function AdminReviewsPage() {
         </AdminLayout>
     )
 }
+

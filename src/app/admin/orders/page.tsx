@@ -194,14 +194,14 @@ export default function AdminOrdersPage() {
                     </span>
                 </div>
                 <p className="font-bold text-[#18181B] text-sm">{order.customer_name}</p>
-                <p className="text-[#57534E] font-medium">{order.customer_phone}</p>
+                <p className="text-[#47423D] font-medium">{order.customer_phone}</p>
                 {order.order_items?.length > 0 && (
-                    <p className="text-[#57534E] truncate">
+                    <p className="text-[#47423D] truncate">
                         {order.order_items.map((i: any) => `${i.name}×${i.quantity}`).join(', ')}
                     </p>
                 )}
                 {order.delivery_address && (
-                    <p className="text-[#57534E]/70 text-[11px] truncate">
+                    <p className="text-[#47423D]/70 text-[11px] truncate">
                         📍 {order.delivery_address}
                     </p>
                 )}
@@ -335,7 +335,7 @@ export default function AdminOrdersPage() {
                                                     padding: '12px 16px',
                                                     fontSize: 13,
                                                     fontWeight: 600,
-                                                    color: active ? '#18181B' : '#57534E',
+                                                    color: active ? '#18181B' : '#47423D',
                                                     borderBottom: active ? `2px solid #D97706` : '2px solid transparent',
                                                     marginBottom: -2,
                                                     background: 'none',
@@ -366,7 +366,7 @@ export default function AdminOrdersPage() {
                                         <div key={col.status} className="mt-4 space-y-3">
                                             <AnimatePresence>
                                                 {byStatus(col.status).length === 0 ? (
-                                                    <p className="text-[#57534E]/80 text-sm text-center py-12">No {col.label.toLowerCase()} orders</p>
+                                                    <p className="text-[#47423D]/80 text-sm text-center py-12">No {col.label.toLowerCase()} orders</p>
                                                 ) : (
                                                     byStatus(col.status).map(order =>
                                                         renderCard(order, col.color, col.status)
@@ -405,7 +405,7 @@ export default function AdminOrdersPage() {
                                                 <div className="space-y-3 min-h-[200px]">
                                                     <AnimatePresence>
                                                         {colOrders.length === 0 && (
-                                                            <p className="text-[#57534E]/80 text-xs text-center pt-8">No orders here</p>
+                                                            <p className="text-[#47423D]/80 text-xs text-center pt-8">No orders here</p>
                                                         )}
                                                         {colOrders.map(order =>
                                                             renderCard(order, col.color, col.status)
@@ -430,7 +430,7 @@ export default function AdminOrdersPage() {
                                                     <div key={order.id} className="bg-white rounded-2xl p-4 text-xs space-y-1 shadow-sm border border-red-100 opacity-60">
                                                         <span className="font-bold text-sm text-red-600">#{order.order_number}</span>
                                                         <p className="font-bold text-[#18181B]">{order.customer_name}</p>
-                                                        <p className="text-[#57534E]">{formatPrice(order.total ?? 0)}</p>
+                                                        <p className="text-[#47423D]">{formatPrice(order.total ?? 0)}</p>
                                                     </div>
                                                 ))}
                                             </div>
@@ -443,7 +443,7 @@ export default function AdminOrdersPage() {
                         {/* ── Load more ────────────────────────────────────── */}
                         {orders.length < totalOrders && (
                             <div className="flex flex-col items-center gap-2 pt-2">
-                                <p className="text-sm text-[#57534E]">
+                                <p className="text-sm text-[#47423D]">
                                     Showing <strong>{orders.length}</strong> of <strong>{totalOrders}</strong> orders
                                 </p>
                                 <button
@@ -466,3 +466,4 @@ export default function AdminOrdersPage() {
         </AdminLayout>
     )
 }
+

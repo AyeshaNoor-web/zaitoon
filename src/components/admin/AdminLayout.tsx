@@ -1,18 +1,19 @@
-﻿'use client'
+'use client'
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ClipboardList, UtensilsCrossed, BarChart3, Settings, ArrowLeft, Menu, X, LogOut, Star } from 'lucide-react'
+import { ClipboardList, UtensilsCrossed, BarChart3, Settings, ArrowLeft, Menu, X, LogOut, Star, FileText } from 'lucide-react'
 import { useAdminRole } from '@/hooks/useAdminRole'
 
 const NAV = [
-    { label: 'Live Orders', href: '/admin/orders', icon: ClipboardList, roles: ['owner', 'employee'] },
-    { label: 'Menu Manager', href: '/admin/menu', icon: UtensilsCrossed, roles: ['owner', 'employee'] },
-    { label: 'Reviews', href: '/admin/reviews', icon: Star, roles: ['owner'] },
-    { label: 'Analytics', href: '/admin/analytics', icon: BarChart3, roles: ['owner'] },
-    { label: 'Settings', href: '/admin/settings', icon: Settings, roles: ['owner'] },
+    { label: 'Live Orders',   href: '/admin/orders',   icon: ClipboardList,   roles: ['owner', 'employee'] },
+    { label: 'Menu Manager',  href: '/admin/menu',     icon: UtensilsCrossed, roles: ['owner', 'employee'] },
+    { label: 'Content / CMS', href: '/admin/content',  icon: FileText,        roles: ['owner'] },
+    { label: 'Reviews',       href: '/admin/reviews',  icon: Star,            roles: ['owner'] },
+    { label: 'Analytics',     href: '/admin/analytics',icon: BarChart3,       roles: ['owner'] },
+    { label: 'Settings',      href: '/admin/settings', icon: Settings,        roles: ['owner'] },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

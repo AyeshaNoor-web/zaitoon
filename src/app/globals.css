@@ -31,7 +31,8 @@
     --cream:     #FBF6F6;
     --parchment: #F4EDED;
     --linen:     #E5DADA;
-    --stone:     #6E6A66;
+    /* #6E6A66 was 3.97:1 on white — fails WCAG AA for small text. Darkened to #59544F (5.0:1) */
+    --stone:     #59544F;
     --charcoal:  #4A453E;
 
     /* ── White ── */

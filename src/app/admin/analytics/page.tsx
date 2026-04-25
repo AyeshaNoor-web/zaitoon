@@ -112,7 +112,7 @@ export default function AdminAnalyticsPage() {
             <AdminLayout>
                 <div className="flex h-[80vh] items-center justify-center flex-col gap-4">
                     <Loader2 className="w-10 h-10 text-[#1B4332] animate-spin" />
-                    <p className="text-[#57534E] font-medium animate-pulse">Loading Live Analytics...</p>
+                    <p className="text-[#47423D] font-medium animate-pulse">Loading Live Analytics...</p>
                 </div>
             </AdminLayout>
         )
@@ -137,7 +137,7 @@ export default function AdminAnalyticsPage() {
                     <div className="flex gap-1 p-1.5 rounded-2xl bg-white border border-[#E7E0D8]">
                         {RANGES.map(r => (
                             <button key={r} onClick={() => setRange(r)} disabled={loading}
-                                className={`px-5 py-2 rounded-xl text-sm font-bold transition-all disabled:opacity-50 ${range === r ? 'bg-[#1B4332] text-white shadow-md' : 'text-[#57534E] hover:bg-[#FAF6EF]'
+                                className={`px-5 py-2 rounded-xl text-sm font-bold transition-all disabled:opacity-50 ${range === r ? 'bg-[#1B4332] text-white shadow-md' : 'text-[#47423D] hover:bg-[#FAF6EF]'
                                     }`}>
                                 {r}
                             </button>
@@ -151,7 +151,7 @@ export default function AdminAnalyticsPage() {
                         <div key={s.label} className="bg-white rounded-3xl p-6 card-md border border-[#E7E0D8]">
                             <div className="text-3xl mb-3">{s.emoji}</div>
                             <p className="font-display text-2xl font-bold text-[#18181B]">{s.value}</p>
-                            <p className="text-xs mt-1 font-semibold text-[#57534E]">{s.label}</p>
+                            <p className="text-xs mt-1 font-semibold text-[#47423D]">{s.label}</p>
                         </div>
                     ))}
                 </div>
@@ -160,7 +160,7 @@ export default function AdminAnalyticsPage() {
                     <div className="bg-white rounded-3xl p-16 card-lg border border-[#E7E0D8] text-center">
                         <div className="text-5xl mb-4 opacity-50">📊</div>
                         <h2 className="font-display text-2xl font-bold text-[#18181B] mb-2">No orders yet</h2>
-                        <p className="text-[#57534E]">There is no order data to display for "{range}".</p>
+                        <p className="text-[#47423D]">There is no order data to display for "{range}".</p>
                     </div>
                 ) : (
                     <>
@@ -169,8 +169,8 @@ export default function AdminAnalyticsPage() {
                             <h2 className="font-display text-xl font-bold text-[#18181B] mb-6">Revenue Over Time</h2>
                             <ResponsiveContainer width="100%" height={240}>
                                 <LineChart data={chartData.revenueData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                                    <XAxis dataKey="day" tick={{ fontSize: 12, fill: '#57534E' }} axisLine={false} tickLine={false} />
-                                    <YAxis tick={{ fontSize: 12, fill: '#57534E' }} tickFormatter={v => `${Math.round((v as number) / 1000)}k`} axisLine={false} tickLine={false} />
+                                    <XAxis dataKey="day" tick={{ fontSize: 12, fill: '#47423D' }} axisLine={false} tickLine={false} />
+                                    <YAxis tick={{ fontSize: 12, fill: '#47423D' }} tickFormatter={v => `${Math.round((v as number) / 1000)}k`} axisLine={false} tickLine={false} />
                                     <Tooltip formatter={(v: any) => `Rs. ${Number(v).toLocaleString()}`} contentStyle={{ borderRadius: '16px', border: '1px solid #E7E0D8', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }} />
                                     <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px' }} />
                                     {branchNames.map((name, i) => (
@@ -217,3 +217,4 @@ export default function AdminAnalyticsPage() {
         </AdminLayout>
     )
 }
+

@@ -53,6 +53,9 @@ export interface MenuItem {
     isAvailable?: boolean
     hasSizes?: boolean
     priceOnRequest?: boolean
+    // CMS fields (from DB)
+    badge?: string | null
+    accompaniments?: string | null
 }
 
 export interface Order {

@@ -8,7 +8,7 @@ import Footer from "@/components/layout/Footer";
 import MobileCartBar from "@/components/layout/MobileCartBar";
 import MenuItemCard from "@/components/menu/MenuItemCard";
 import { MenuCardSkeleton } from "@/components/menu/LoadingSkeleton";
-import { getMenuItems, getCategories } from "@/lib/api/menu";
+import { getMenuItems, getCategories, getPopularCombos, type PopularCombo } from "@/lib/api/menu";
 import { BBQ_ACCOMPANIMENTS } from "@/lib/mock/data";
 import { useLanguageStore } from "@/store/useLanguageStore";
 import { translations } from "@/lib/translations";
@@ -41,13 +41,15 @@ export default function MenuPage() {
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [allItems, setAllItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dbCombos, setDbCombos] = useState<PopularCombo[]>([]);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
   useEffect(() => {
-    Promise.all([getCategories(), getMenuItems()])
-      .then(([cats, items]) => {
+    Promise.all([getCategories(), getMenuItems(), getPopularCombos(true)])
+      .then(([cats, items, combos]) => {
         setCategories(cats);
         setAllItems(items);
+        setDbCombos(combos);
         if (cats.length > 0) setActiveCategory(cats[0].id);
       })
       .finally(() => setLoading(false));
@@ -88,11 +90,13 @@ export default function MenuPage() {
     });
     return grouped;
   }, [filteredItems, categories]);
+  // Fallback combo items from bestsellers if no DB combos configured
   const comboItems = useMemo(() => {
+    if (dbCombos.length > 0) return []; // using dbCombos instead
     return allItems
       .filter((i) => (i.tags ?? []).includes("bestseller") && (i.price ?? 0) > 0)
       .slice(0, 3);
-  }, [allItems]);
+  }, [allItems, dbCombos]);
 
   useEffect(() => {
     if (categories.length === 0) return;
@@ -298,36 +302,41 @@ export default function MenuPage() {
 
         {/* ── POPULAR COMBOS SECTION ── */}
         <section aria-label="Menu items" className="w-full max-w-7xl mx-auto px-4 lg:px-8 py-8 min-h-screen">
-          {!search && comboItems.length > 0 && (
+          {!search && (dbCombos.length > 0 || comboItems.length > 0) && (
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-[var(--charcoal)]" style={{ fontFamily: "var(--font-body)", fontWeight: 700 }}>Popular Combo Picks</h3>
-                <span className="text-[12px] font-[700] uppercase tracking-[0.08em]" style={{ color: "var(--green-dark)" }}>
-                  Best Value
-                </span>
+                <span className="text-[12px] font-[700] uppercase tracking-[0.08em]" style={{ color: "var(--green-dark)" }}>Best Value</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {comboItems.map((item) => (
-                  <div
-                    key={`combo-${item.id}`}
-                    className="rounded-[14px] p-4"
-                    style={{
-                      background: "linear-gradient(135deg, rgba(184,98,94,0.14), rgba(251,246,246,0.95))",
-                      border: "1px solid rgba(184,98,94,0.24)",
-                      boxShadow: "0 10px 24px rgba(76,92,45,0.08)",
-                    }}
-                  >
+                {/* DB combos take priority */}
+                {dbCombos.length > 0 ? dbCombos.map((combo) => (
+                  <div key={combo.id} className="rounded-[14px] p-4"
+                    style={{ background: "linear-gradient(135deg, rgba(184,98,94,0.14), rgba(251,246,246,0.95))", border: "1px solid rgba(184,98,94,0.24)", boxShadow: "0 10px 24px rgba(76,92,45,0.08)" }}>
+                    {combo.image_url && (
+                      <img src={combo.image_url} alt={combo.name}
+                        className="w-full h-32 object-cover rounded-[10px] mb-3" />
+                    )}
+                    <p className="text-[14px] font-[700] text-[var(--charcoal)] mb-1">{combo.name}</p>
+                    {combo.description && <p className="text-[12px] text-[var(--stone)] mb-3">{combo.description}</p>}
+                    {combo.price != null && (
+                      <span className="text-[14px] font-[700] block mb-3" style={{ color: "var(--orange-rich)" }}>
+                        Rs. {combo.price.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                )) : /* fallback bestseller combos */ comboItems.map((item) => (
+                  <div key={`combo-${item.id}`} className="rounded-[14px] p-4"
+                    style={{ background: "linear-gradient(135deg, rgba(184,98,94,0.14), rgba(251,246,246,0.95))", border: "1px solid rgba(184,98,94,0.24)", boxShadow: "0 10px 24px rgba(76,92,45,0.08)" }}>
                     <p className="text-[14px] font-[700] text-[var(--charcoal)] mb-1">{item.name}</p>
                     <p className="text-[12px] text-[var(--stone)] mb-3">Pair with dip + drink for a complete meal.</p>
                     <div className="flex items-center justify-between">
                       <span className="text-[14px] font-[700]" style={{ color: "var(--orange-rich)" }}>
                         {formatPrice(item.price ?? 0)}
                       </span>
-                      <button
-                        onClick={() => item.category_id && handleCategoryClick(item.category_id)}
+                      <button onClick={() => item.category_id && handleCategoryClick(item.category_id)}
                         className="px-3 py-1.5 rounded-[8px] text-[11px] font-[700] uppercase tracking-[0.07em] text-white"
-                        style={{ background: "linear-gradient(135deg, #B8625E, #A6524F)", boxShadow: "0 6px 14px rgba(184,98,94,0.28)" }}
-                      >
+                        style={{ background: "linear-gradient(135deg, #B8625E, #A6524F)", boxShadow: "0 6px 14px rgba(184,98,94,0.28)" }}>
                         Explore
                       </button>
                     </div>
@@ -403,20 +412,29 @@ export default function MenuPage() {
                         />
                       </div>
 
-                      {isBBQSection && !search && (
-                        <div
-                          className="flex items-start gap-3 mb-5 p-4 rounded-[12px]"
-                          style={{ background: "white", border: "1.5px solid var(--linen)" }}
-                        >
-                          <Info className="w-4 h-4 mt-0.5 text-[var(--orange-rich)]" />
-                          <p className="text-[13px] text-[var(--stone)] leading-relaxed">
-                            <strong className="text-[var(--charcoal)] font-[700] uppercase tracking-wider text-[11px] block mb-1">
-                              {t.accompaniments}
-                            </strong>
-                            {BBQ_ACCOMPANIMENTS}
-                          </p>
-                        </div>
-                      )}
+                      {/* Accompaniments — shown per-item from DB, fallback to global BBQ_ACCOMPANIMENTS */}
+                      {isBBQSection && !search && (() => {
+                        // Collect unique non-empty accompaniments from items in this section
+                        const perItemAccompaniments = items
+                          .filter(i => (i as any).accompaniments)
+                          .map(i => (i as any).accompaniments as string)
+                        // Show first non-empty accompaniments found, or the global fallback
+                        const accompanimentText = perItemAccompaniments[0] ?? BBQ_ACCOMPANIMENTS
+                        return (
+                          <div
+                            className="flex items-start gap-3 mb-5 p-4 rounded-[12px]"
+                            style={{ background: "white", border: "1.5px solid var(--linen)" }}
+                          >
+                            <Info className="w-4 h-4 mt-0.5 text-[var(--orange-rich)]" />
+                            <p className="text-[13px] text-[var(--stone)] leading-relaxed">
+                              <strong className="text-[var(--charcoal)] font-[700] uppercase tracking-wider text-[11px] block mb-1">
+                                {t.accompaniments}
+                              </strong>
+                              {accompanimentText}
+                            </p>
+                          </div>
+                        )
+                      })()}
 
                       <motion.ul
                         role="list"

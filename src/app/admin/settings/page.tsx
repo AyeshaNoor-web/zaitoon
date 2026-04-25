@@ -25,7 +25,7 @@ function Field({ label, value, onChange, type = 'text', prefix, suffix, hint }: 
         <div>
             <label className="block text-sm font-bold text-[#18181B] mb-1.5">{label}</label>
             <div className="relative">
-                {prefix && <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#57534E] font-medium text-sm">{prefix}</span>}
+                {prefix && <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#47423D] font-medium text-sm">{prefix}</span>}
                 <input
                     type={type}
                     value={value}
@@ -33,9 +33,9 @@ function Field({ label, value, onChange, type = 'text', prefix, suffix, hint }: 
                     className="w-full bg-[#FAF6EF] border border-[#E7E0D8] rounded-xl py-3 text-sm focus:outline-none focus:border-[#C9920A] focus:ring-1 focus:ring-[#C9920A] transition-all"
                     style={{ paddingLeft: prefix ? 48 : 16, paddingRight: suffix ? 48 : 16 }}
                 />
-                {suffix && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#57534E] font-medium text-sm">{suffix}</span>}
+                {suffix && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#47423D] font-medium text-sm">{suffix}</span>}
             </div>
-            {hint && <p className="text-xs text-[#57534E] mt-1">{hint}</p>}
+            {hint && <p className="text-xs text-[#47423D] mt-1">{hint}</p>}
         </div>
     )
 }
@@ -168,7 +168,7 @@ export default function AdminSettingsPage() {
                 <div className="flex items-center justify-between flex-wrap gap-4">
                     <div>
                         <h1 className="font-display text-3xl font-bold text-[#18181B]">Settings</h1>
-                        <p className="text-sm mt-1 text-[#57534E]">Manage restaurant details, delivery config, and site settings</p>
+                        <p className="text-sm mt-1 text-[#47423D]">Manage restaurant details, delivery config, and site settings</p>
                     </div>
                     <button
                         onClick={handleSave}
@@ -197,7 +197,7 @@ export default function AdminSettingsPage() {
                                     <h3 className="font-bold text-[#18181B] text-base flex items-center gap-2">
                                         🏪 {b.name}
                                     </h3>
-                                    <p className="text-xs text-[#57534E]">{b.address}</p>
+                                    <p className="text-xs text-[#47423D]">{b.address}</p>
 
                                     <div>
                                         <label className="block text-xs font-bold text-[#18181B] mb-1 flex items-center gap-1.5">
@@ -276,11 +276,11 @@ export default function AdminSettingsPage() {
 
                 {/* ── D) Loyalty Tiers (read-only) ─────────────────────── */}
                 <Section icon={<Award className="w-5 h-5 text-[#9333EA]" />} title="Loyalty Tiers">
-                    <p className="text-sm text-[#57534E] mb-4">Tier thresholds and perks — automatically applied at checkout.</p>
+                    <p className="text-sm text-[#47423D] mb-4">Tier thresholds and perks — automatically applied at checkout.</p>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="text-left text-xs font-bold text-[#57534E] uppercase tracking-wider border-b border-[#E7E0D8]">
+                                <tr className="text-left text-xs font-bold text-[#47423D] uppercase tracking-wider border-b border-[#E7E0D8]">
                                     <th className="pb-3 pr-4">Tier</th>
                                     <th className="pb-3 pr-4">Points Range</th>
                                     <th className="pb-3 pr-4">Subtotal Discount</th>
@@ -293,7 +293,7 @@ export default function AdminSettingsPage() {
                                         <td className="py-3 pr-4 font-bold">
                                             {t.badge} {t.name}
                                         </td>
-                                        <td className="py-3 pr-4 text-[#57534E]">
+                                        <td className="py-3 pr-4 text-[#47423D]">
                                             {t.max ? `${t.min} – ${t.max}` : `${t.min}+`}
                                         </td>
                                         <td className="py-3 pr-4">
@@ -302,7 +302,7 @@ export default function AdminSettingsPage() {
                                             </span>
                                         </td>
                                         <td className="py-3">
-                                            <span className={`text-xs font-semibold ${t.delivery.includes('Free') ? 'text-green-600' : 'text-[#57534E]'}`}>
+                                            <span className={`text-xs font-semibold ${t.delivery.includes('Free') ? 'text-green-600' : 'text-[#47423D]'}`}>
                                                 {t.delivery}
                                             </span>
                                         </td>
@@ -311,7 +311,7 @@ export default function AdminSettingsPage() {
                             </tbody>
                         </table>
                     </div>
-                    <p className="text-xs text-[#57534E] mt-4 border-t border-[#E7E0D8] pt-3">
+                    <p className="text-xs text-[#47423D] mt-4 border-t border-[#E7E0D8] pt-3">
                         📌 1 point earned per Rs. 100 spent. Points redeemable at Rs. 1 per point (max 20% of order).
                     </p>
                 </Section>
@@ -333,3 +333,4 @@ export default function AdminSettingsPage() {
         </AdminLayout>
     )
 }
+

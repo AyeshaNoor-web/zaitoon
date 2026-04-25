@@ -26,7 +26,8 @@ const itemSchema = z.object({
     price: z.number().min(0),
     priceL: z.number().min(0).nullable().optional(),
     description: z.string().optional(),
-    hasSizes: z.boolean().optional(),
+    badge: z.string().optional(),
+    accompaniments: z.string().optional(),
 })
 type ItemForm = z.infer<typeof itemSchema>
 
@@ -76,40 +77,62 @@ export default function AdminMenuPage() {
     // ── Item form ─────────────────────────────────────────────────────────────
     const { register, handleSubmit, reset, formState: { errors } } = useForm<ItemForm>({
         resolver: zodResolver(itemSchema),
-        defaultValues: { name: '', category: '', price: 0, priceL: null, description: '', hasSizes: false }
+        defaultValues: { name: '', category: '', price: 0, priceL: null, description: '', badge: '', accompaniments: '' }
     })
 
     const openEdit = async (item: any) => {
         setEditing({ ...item }); setIsNew(false)
-        reset({ name: item.name, category: item.category_id, price: item.price, priceL: item.price_large, description: item.description ?? '', hasSizes: item.has_sizes })
+        reset({
+            name: item.name,
+            category: item.category_id,
+            price: item.price,
+            priceL: item.price_large,
+            description: item.description ?? '',
+            badge: item.badge ?? '',
+            accompaniments: item.accompaniments ?? '',
+        })
         const v = await getItemVariants(item.id).catch(() => [])
         setVariants(v.map((r: any) => ({ label: r.label, price: r.price })))
     }
     const openAdd = () => {
         setEditing({ id: `item_${Date.now()}`, name: '', category_id: categories[0]?.id || '', price: 0, rating: 4.5, is_available: true, image_url: null })
         setIsNew(true)
-        reset({ name: '', category: categories[0]?.id || '', price: 0, description: '', hasSizes: false })
+        reset({ name: '', category: categories[0]?.id || '', price: 0, description: '', badge: '', accompaniments: '' })
         setVariants([])
     }
 
     const onSave = async (data: ItemForm) => {
+        // Auto-derive has_sizes: true whenever a large price is set
+        const hasSizes = !!(data.priceL && data.priceL > 0)
         const payload = {
-            name: data.name, category_id: data.category, price: data.price,
-            price_large: data.priceL, description: data.description,
-            has_sizes: data.hasSizes, image_url: editing?.image_url || null,
+            name: data.name,
+            category_id: data.category,
+            price: data.price,
+            price_large: data.priceL ?? null,
+            description: data.description ?? '',
+            has_sizes: hasSizes,
+            badge: data.badge?.trim() || null,
+            accompaniments: data.accompaniments?.trim() || null,
+            image_url: editing?.image_url || null,
         }
-        if (isNew) {
-            const created = await createMenuItem({ ...payload, is_available: true, rating: 4.5 })
-            await upsertItemVariants(created.id, variants).catch(console.error)
-            setItems(prev => [...prev, created])
-            toast.success('Item added ✓')
-        } else if (editing) {
-            setItems(prev => prev.map(i => i.id === editing.id ? { ...i, ...payload } : i))
-            await updateMenuItem(editing.id, payload)
-            await upsertItemVariants(editing.id, variants).catch(console.error)
-            toast.success('Item saved ✓')
+        try {
+            if (isNew) {
+                const created = await createMenuItem({ ...payload, is_available: true, rating: 4.5 })
+                // Save variants — errors are surfaced, not swallowed
+                await upsertItemVariants(created.id, variants)
+                toast.success('Item added ✓')
+            } else if (editing) {
+                await updateMenuItem(editing.id, payload)
+                await upsertItemVariants(editing.id, variants)
+                toast.success('Item saved ✓')
+            }
+            setEditing(null)
+            // Reload from DB so UI reflects latest saved data
+            reload()
+        } catch (err: any) {
+            console.error('Save failed:', err)
+            toast.error('Save failed: ' + (err?.message ?? 'Unknown error'))
         }
-        setEditing(null)
     }
 
     const confirmDelete = async () => {
@@ -310,13 +333,13 @@ export default function AdminMenuPage() {
                             {/* Prices */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className={labelCls}>Price (Rs.) *</label>
+                                    <label className={labelCls}>Price / Small (Rs.) *</label>
                                     <input {...register('price', { setValueAs: v => (v === '' || isNaN(Number(v))) ? 0 : Number(v) })}
                                         type="number" className={fieldCls} placeholder="850" />
                                     {errors.price && <p className="text-red-500 text-xs mt-1">{errors.price.message}</p>}
                                 </div>
                                 <div>
-                                    <label className={labelCls}>Large Price (Rs.)</label>
+                                    <label className={labelCls}>Large Price (Rs.) <span className="font-normal text-gray-500 text-xs">— enables size toggle</span></label>
                                     <input {...register('priceL', { setValueAs: v => (v === '' || isNaN(Number(v))) ? null : Number(v) })}
                                         type="number" className={fieldCls} placeholder="Optional" />
                                 </div>
@@ -328,6 +351,19 @@ export default function AdminMenuPage() {
                                 <textarea {...register('description')} rows={3}
                                     className={fieldCls + ' resize-none'}
                                     placeholder="Short description shown on the menu card…" />
+                            </div>
+
+                            {/* Badge Label */}
+                            <div>
+                                <label className={labelCls}>Badge Label <span className="font-normal text-gray-500 text-xs">— e.g. Bestseller, New, Chef's Pick (leave blank for none)</span></label>
+                                <input {...register('badge')} className={fieldCls} placeholder="e.g. Bestseller" />
+                            </div>
+
+                            {/* Accompaniments — shown in the BBQ section info box */}
+                            <div>
+                                <label className={labelCls}>Accompaniments / Included Items <span className="font-normal text-gray-500 text-xs">— shown below category heading</span></label>
+                                <input {...register('accompaniments')} className={fieldCls}
+                                    placeholder="e.g. 1 Puri | 2 Chapati | 1 Spicy Chutni | 2 Garlic Sauce" />
                             </div>
 
                             {/* Variants */}

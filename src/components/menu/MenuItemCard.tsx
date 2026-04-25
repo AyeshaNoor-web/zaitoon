@@ -27,10 +27,13 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
 
     const hasSizes = item.hasSizes ?? (item as any).has_sizes ?? false
     const isAvailableRaw = item.isAvailable ?? (item as any).is_available
-    const priceL = item.priceL ?? (item as any).price_large ?? null
+    // Read large price from either camelCase (mock data) or snake_case (DB)
+    const priceL = item.priceL ?? item.price_large ?? (item as any).price_large ?? null
     const prepTime = item.prepTime ?? (item as any).prep_time ?? null
     const priceOnRequest = item.priceOnRequest ?? (item as any).price_on_request ?? false
-    const tags: string[] = (item.tags ?? [item as any].flatMap(() => [])) as string[]
+    const tags: string[] = (item.tags ?? []) as string[]
+    // Badge: prefer explicit badge field from DB, fall back to first tag match
+    const dbBadge: string | null = (item as any).badge ?? null
 
     const sizeKey = hasSizes ? selectedSize : 'default'
     const cartKey = `${item.id}-${sizeKey}`
@@ -118,13 +121,22 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
                     </div>
                 )}
 
-                {/* Tags overlay */}
+                {/* Tags / badge overlay */}
                 <div className={`absolute top-2.5 ${isRTL ? 'right-2.5' : 'left-2.5'} z-20 flex flex-col gap-1.5 items-start`}>
-                    {tags.slice(0, 2).map(tag => {
-                        const cfg = TAG_CONFIG[tag]
-                        if (!cfg) return null
-                        return <span key={tag} className={cfg.bgClass}>{cfg.label}</span>
-                    })}
+                    {/* If item has an explicit badge from DB, show it with a dynamic style */}
+                    {dbBadge ? (
+                        <span className="font-body text-[10px] font-[700] uppercase tracking-[0.05em] px-2 py-[3px] rounded-[5px] text-white"
+                            style={{ background: 'linear-gradient(135deg, var(--orange-warm), #D08B05)' }}>
+                            {dbBadge}
+                        </span>
+                    ) : (
+                        // Fall back to tag-based badges if no explicit badge
+                        tags.slice(0, 2).map(tag => {
+                            const cfg = TAG_CONFIG[tag]
+                            if (!cfg) return null
+                            return <span key={tag} className={cfg.bgClass}>{cfg.label}</span>
+                        })
+                    )}
                 </div>
             </div>
 
