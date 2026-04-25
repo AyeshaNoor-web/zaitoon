@@ -219,8 +219,8 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                         <div className={`pointer-events-auto relative w-full ${mode === 'manual' ? 'max-w-lg' : 'max-w-sm'} max-h-[90vh] overflow-y-auto rounded-[20px]`}
                             style={{
                                 background: 'var(--cream)',
-                                border: '1.5px solid var(--linen)',
-                                boxShadow: '0 24px 80px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.15)'
+                                border: '1.5px solid #6A7E3F',
+                                boxShadow: '0 24px 80px rgba(76,92,45,0.25), 0 8px 24px rgba(76,92,45,0.16)'
                             }}
                         >
 
@@ -241,7 +241,7 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                             <div className="p-7">
                                 {/* Icon */}
                                 <div className="w-14 h-14 rounded-[14px] flex items-center justify-center mx-auto mb-5"
-                                    style={{ background: 'rgba(46,204,113,0.10)', border: '1.5px solid rgba(46,204,113,0.20)' }}>
+                                    style={{ background: 'rgba(106,126,63,0.12)', border: '1.5px solid rgba(106,126,63,0.26)' }}>
                                     <MapPin className="w-7 h-7" style={{ color: 'var(--green-dark)' }} />
                                 </div>
 
@@ -257,7 +257,7 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                         >
                                             <CheckCircle2 className="w-7 h-7" style={{ color: '#16A34A' }} />
                                         </motion.div>
-                                        <h3 className="font-display text-[20px] font-[700]" style={{ color: 'var(--charcoal)' }}>Location Set! 📍</h3>
+                                        <h3 className="font-display text-[20px] font-[700]" style={{ color: 'var(--charcoal)' }}>Location Set</h3>
                                         <p className="text-[13px] leading-snug" style={{ color: 'var(--stone)' }}>
                                             {confirmed.address}
                                         </p>
@@ -266,7 +266,7 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                         </p>
                                         {confirmed.deliveryFee !== null ? (
                                             confirmed.deliveryFee === 0
-                                                ? <p className="text-[13px] font-[700]" style={{ color: '#16A34A' }}>🎉 Free delivery!</p>
+                                                ? <p className="text-[13px] font-[700]" style={{ color: '#16A34A' }}>Free delivery available</p>
                                                 : <p className="text-[13px] font-[700]" style={{ color: 'var(--orange-warm)' }}>Delivery fee: Rs. {confirmed.deliveryFee}</p>
                                         ) : (
                                             <div className="flex items-center gap-2 justify-center text-[13px] font-[700]" style={{ color: '#DC2626' }}>
@@ -349,8 +349,8 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                             {manualFee && (
                                                 <p className="mt-2 text-[12px] font-[600]" style={{ color: manualFee.outOfRange ? '#DC2626' : 'var(--green-dark)' }}>
                                                     {manualFee.outOfRange
-                                                        ? `⚠ Outside delivery range (${manualFee.distanceKm} km). Takeaway only.`
-                                                        : `📍 ${manualFee.distanceKm} km · Fee: ${manualFee.fee === 0 ? 'Free' : `Rs. ${manualFee.fee}`}`}
+                                                        ? `Outside delivery range (${manualFee.distanceKm} km). Takeaway only.`
+                                                        : `${manualFee.distanceKm} km · Fee: ${manualFee.fee === 0 ? 'Free' : `Rs. ${manualFee.fee}`}`}
                                                 </p>
                                             )}
                                         </div>
@@ -377,8 +377,8 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                                 disabled={confirming || !manualAddress.trim() || !manualCoords}
                                                 className="flex-1 py-3 rounded-[12px] text-[13px] font-[700] text-white transition-all disabled:opacity-40"
                                                 style={{
-                                                    background: 'linear-gradient(135deg, var(--green-dark), var(--green-darkest))',
-                                                    boxShadow: '0 4px 14px rgba(46,204,113,0.35)'
+                                                    background: 'linear-gradient(135deg, #6A7E3F, #4C5C2D)',
+                                                    boxShadow: '0 4px 14px rgba(76,92,45,0.30)'
                                                 }}
                                             >
                                                 {confirming ? 'Saving…' : 'Confirm Location'}
@@ -399,7 +399,7 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                         {!canDismiss && (
                                             <p className="text-[12px] text-center rounded-[10px] px-3 py-2.5 font-[600]"
                                                 style={{ color: '#92400E', background: 'rgba(217,119,6,0.08)', border: '1px solid rgba(217,119,6,0.2)' }}>
-                                                📍 Location is required to proceed with delivery.
+                                                Location is required to proceed with delivery.
                                             </p>
                                         )}
 
@@ -417,8 +417,8 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                             disabled={detecting}
                                             className="w-full text-white py-4 rounded-[14px] font-[700] text-[14px] flex items-center justify-center gap-2.5 disabled:opacity-60 transition-all"
                                             style={{
-                                                background: 'linear-gradient(135deg, var(--green-dark), var(--green-darkest))',
-                                                boxShadow: '0 6px 20px rgba(46,204,113,0.35)'
+                                                background: 'linear-gradient(135deg, #6A7E3F, #4C5C2D)',
+                                                boxShadow: '0 6px 20px rgba(76,92,45,0.30)'
                                             }}
                                         >
                                             <Navigation className="w-4 h-4" />

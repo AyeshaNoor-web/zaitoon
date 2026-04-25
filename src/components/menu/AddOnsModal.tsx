@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, Plus, Minus, ShoppingBag } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { X, Plus, Minus, ShoppingBag, CupSoda, UtensilsCrossed } from 'lucide-react'
 import { formatPrice } from '@/lib/payment'
 import { useCartStore } from '@/store/useCartStore'
 import { createClient } from '@/lib/supabase/client'
@@ -162,11 +162,6 @@ export default function AddOnsModal({ mainItem, onClose }: Props) {
         return acc
     }, {})
 
-    const categoryEmoji: Record<string, string> = {
-        'Beverages': '🥤',
-        'Dips & Sauces': '🫙',
-    }
-
     return (
         <>
             {/* Backdrop */}
@@ -191,22 +186,22 @@ export default function AddOnsModal({ mainItem, onClose }: Props) {
                 exit={{ opacity: 0, y: 48, scale: 0.96 }}
                 transition={{ type: 'spring', damping: 26, stiffness: 280 }}
                 onClick={e => e.stopPropagation()}
-                className="fixed inset-x-4 bottom-4 sm:inset-auto sm:left-1/2 sm:-translate-x-1/2 sm:bottom-auto sm:top-[50%] sm:-translate-y-1/2 z-[901] w-full sm:w-[480px] max-h-[88dvh] flex flex-col bg-[var(--parchment)] rounded-[16px] border border-[var(--linen)] shadow-[0_32px_80px_rgba(0,0,0,0.3)] overflow-hidden"
+                className="fixed inset-x-4 bottom-4 sm:inset-auto sm:left-1/2 sm:-translate-x-1/2 sm:bottom-auto sm:top-[50%] sm:-translate-y-1/2 z-[901] w-full sm:w-[480px] max-h-[88dvh] flex flex-col bg-[var(--green-mid)] rounded-[16px] border border-[var(--green-darkest)] shadow-[0_32px_80px_rgba(76,92,45,0.45)] overflow-hidden"
             >
                 {/* Header */}
-                <header className="flex items-start justify-between px-5 py-4 border-b border-[var(--linen)] shrink-0 bg-white">
+                <header className="flex items-start justify-between px-5 py-4 border-b border-[rgba(251,246,246,0.24)] shrink-0 bg-[rgba(251,246,246,0.14)]">
                     <div>
-                        <h2 className="text-[17px] font-display font-[700] text-[var(--charcoal)] leading-tight">
+                        <h2 className="text-[17px] font-display font-[700] text-[var(--cream)] leading-tight">
                             Want to add anything extra?
                         </h2>
-                        <p className="text-[12px] text-[var(--stone)] mt-0.5">
-                            Adding: <span className="font-[600] text-[var(--green-dark)]">{mainItem.name}</span>
+                        <p className="text-[12px] text-[rgba(251,246,246,0.85)] mt-0.5">
+                            Adding: <span className="font-[600] text-[var(--cream)]">{mainItem.name}</span>
                         </p>
                     </div>
                     <button
                         onClick={onClose}
                         aria-label="Close add-ons"
-                        className="w-8 h-8 shrink-0 ml-3 flex items-center justify-center rounded-full border border-[var(--linen)] text-[var(--stone)] hover:bg-[var(--linen)] transition-colors"
+                        className="w-8 h-8 shrink-0 ml-3 flex items-center justify-center rounded-full border border-[rgba(251,246,246,0.35)] text-[var(--cream)] hover:bg-[rgba(251,246,246,0.18)] transition-colors"
                     >
                         <X className="w-4 h-4" />
                     </button>
@@ -229,8 +224,8 @@ export default function AddOnsModal({ mainItem, onClose }: Props) {
                             if (items.length === 0) return null
                             return (
                                 <div key={label}>
-                                    <p className="text-[11px] font-[700] uppercase tracking-[0.1em] text-[var(--stone)] mb-3 flex items-center gap-1.5">
-                                        <span>{categoryEmoji[label]}</span>
+                                    <p className="text-[11px] font-[700] uppercase tracking-[0.1em] text-[var(--cream)] mb-3 flex items-center gap-1.5">
+                                        {label === 'Beverages' ? <CupSoda className="w-3.5 h-3.5" /> : <UtensilsCrossed className="w-3.5 h-3.5" />}
                                         {label}
                                     </p>
                                     <ul className="space-y-2">
@@ -241,7 +236,7 @@ export default function AddOnsModal({ mainItem, onClose }: Props) {
                                                     key={addon.id}
                                                     className={`flex items-center justify-between px-3.5 py-3 rounded-[10px] border-[1.5px] transition-all duration-200 ${qty > 0
                                                         ? 'border-[var(--green-base)] bg-[var(--cream)] shadow-sm'
-                                                        : 'border-[var(--linen)] bg-white hover:border-[var(--green-pale)]'
+                                                        : 'border-[var(--linen)] bg-[var(--parchment)] hover:border-[var(--green-pale)]'
                                                         }`}
                                                 >
                                                     <div className="flex-1 min-w-0">
@@ -259,7 +254,7 @@ export default function AddOnsModal({ mainItem, onClose }: Props) {
                                                                 onClick={() => setQty(addon.id, 1)}
                                                                 aria-label={`Add ${addon.name}`}
                                                                 className="w-8 h-8 rounded-full text-white flex items-center justify-center transition-colors shadow-sm"
-                                                                style={{ background: 'linear-gradient(135deg, var(--orange-warm), #D08B05)', boxShadow: '0 2px 8px rgba(243,156,18,0.35)' }}
+                                                                style={{ background: 'linear-gradient(135deg, var(--orange-rich), var(--orange-warm))', boxShadow: '0 2px 8px rgba(168,35,35,0.30)' }}
                                                             >
                                                                 <Plus className="w-4 h-4" />
                                                             </button>
@@ -300,7 +295,7 @@ export default function AddOnsModal({ mainItem, onClose }: Props) {
                 </div>
 
                 {/* Footer */}
-                <footer className="px-5 py-4 border-t border-[var(--linen)] shrink-0 space-y-2.5 bg-white">
+                <footer className="px-5 py-4 border-t border-[rgba(251,246,246,0.24)] shrink-0 space-y-2.5 bg-[rgba(251,246,246,0.14)]">
                     {selectedCount > 0 && (
                         <p className="text-[12px] text-center text-[var(--stone)]">
                              {selectedCount} extra{selectedCount !== 1 ? 's' : ''} selected

@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Minus, Star } from 'lucide-react'
+import { Plus, Minus, Star, UtensilsCrossed, Clock3 } from 'lucide-react'
 import { useCartStore } from '@/store/useCartStore'
 import { formatPrice } from '@/lib/payment'
 import { useLanguageStore } from '@/store/useLanguageStore'
@@ -20,13 +20,8 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
         new: { label: t.newLabel, bgClass: 'badge-new' },
     }
 
-    const FOOD_EMOJI: Record<string, string> = {
-        shawarma: '🌯', bbq: '🥩', burger: '🍔', sides: '🍟',
-        drinks: '🥤', dips: '🫙', default: '🍽️',
-    }
-
     const [selectedSize, setSelectedSize] = useState<'small' | 'large'>('small')
-    const { items, addItem, updateQuantity } = useCartStore()
+    const { items, updateQuantity } = useCartStore()
     const [showAddOns, setShowAddOns] = useState(false)
     const [isHovered, setIsHovered] = useState(false)
 
@@ -46,8 +41,6 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
         ? (selectedSize === 'large' && priceL ? priceL : item.price)
         : item.price
     const isUnavailable = isAvailableRaw === false
-    const emoji = FOOD_EMOJI[item.category ?? 'default'] ?? '🍽️'
-
     return (
         <article
             aria-label={`${item.name}, Rs. ${displayPrice}`}
@@ -55,15 +48,15 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             style={{
-                background: 'white',
+                background: 'var(--parchment)',
                 borderRadius: 16,
                 border: '1.5px solid var(--linen)',
                 transition: 'transform 0.35s cubic-bezier(0.16,1,0.3,1), box-shadow 0.35s cubic-bezier(0.16,1,0.3,1), border-color 0.3s ease',
                 transform: isHovered && !isUnavailable ? 'translateY(-6px)' : 'translateY(0)',
                 boxShadow: isHovered && !isUnavailable
-                    ? '0 18px 52px rgba(26,21,18,0.12), 0 4px 16px rgba(26,21,18,0.06), 0 0 0 1.5px rgba(46,204,113,0.25)'
-                    : '0 1px 4px rgba(26,21,18,0.05)',
-                borderColor: isHovered && !isUnavailable ? 'rgba(46,204,113,0.30)' : 'var(--linen)',
+                    ? '0 18px 52px rgba(91,70,58,0.14), 0 4px 16px rgba(91,70,58,0.08), 0 0 0 1.5px rgba(109,158,81,0.28)'
+                    : '0 1px 4px rgba(91,70,58,0.08)',
+                borderColor: isHovered && !isUnavailable ? 'rgba(109,158,81,0.35)' : 'var(--linen)',
             }}
         >
             {/* IMAGE AREA */}
@@ -88,23 +81,23 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
                     />
                 ) : null}
 
-                {/* Fallback emoji */}
+                {/* Fallback illustration */}
                 <div className={`absolute inset-0 flex items-center justify-center ${item.image_url ? 'hidden' : ''}`}
                     style={{ background: 'linear-gradient(135deg, var(--cream), var(--parchment))' }}>
-                    <span className="text-6xl drop-shadow-sm select-none"
-                        style={{ transition: 'transform 0.5s ease', transform: isHovered ? 'scale(1.12)' : 'scale(1)' }}>
-                        {emoji}
-                    </span>
+                    <UtensilsCrossed
+                        className="w-14 h-14 text-[var(--green-dark)]"
+                        style={{ transition: 'transform 0.5s ease', transform: isHovered ? 'scale(1.12)' : 'scale(1)' }}
+                    />
                 </div>
 
                 {/* Gradient overlay */}
                 <div className="absolute inset-0 pointer-events-none"
-                    style={{ background: 'linear-gradient(180deg, transparent 50%, rgba(26,21,18,0.22) 100%)' }} />
+                    style={{ background: 'linear-gradient(180deg, transparent 50%, rgba(91,70,58,0.24) 100%)' }} />
 
                 {/* Sold Out Overlay */}
                 {isUnavailable && (
                     <div className="absolute inset-0 flex items-center justify-center z-30"
-                        style={{ background: 'rgba(26,21,18,0.75)', backdropFilter: 'blur(3px)' }}>
+                        style={{ background: 'rgba(91,70,58,0.72)', backdropFilter: 'blur(3px)' }}>
                         <span className="text-white font-[700] text-[11px] tracking-[0.12em] uppercase px-3 py-1.5 rounded-[6px]"
                             style={{ border: '1px solid rgba(255,255,255,0.18)' }}>
                             {t.soldOut}
@@ -116,12 +109,12 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
                 {prepTime && (
                     <div className={`absolute top-2.5 ${isRTL ? 'left-2.5' : 'right-2.5'} z-20 flex items-center gap-1 text-[11px] font-[600] px-2 py-1 rounded-[6px]`}
                         style={{
-                            background: 'rgba(26,21,18,0.70)',
+                            background: 'rgba(109,84,70,0.80)',
                             backdropFilter: 'blur(8px)',
-                            color: 'rgba(250,243,224,0.88)',
+                            color: 'rgba(255,244,233,0.94)',
                             border: '1px solid rgba(255,255,255,0.10)'
                         }}>
-                        🕐 {prepTime}m
+                        <Clock3 className="w-3 h-3" /> {prepTime}m
                     </div>
                 )}
 
@@ -188,7 +181,7 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
                                         border: selected
                                             ? '1.5px solid transparent'
                                             : '1.5px solid var(--linen)',
-                                        boxShadow: selected ? '0 2px 8px rgba(46,204,113,0.30)' : 'none',
+                                        boxShadow: selected ? '0 2px 8px rgba(109,158,81,0.30)' : 'none',
                                     }}
                                 >
                                     {s === 'small' ? t.smallSize : t.largeSize}
@@ -224,9 +217,9 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
                                     aria-label={`${t.add} ${item.name} ${t.addToCart}`}
                                     className="flex items-center gap-1.5 px-3.5 py-[7px] rounded-[8px] text-[12px] font-[700] tracking-wide transition-shadow"
                                     style={{
-                                        background: 'linear-gradient(135deg, var(--orange-warm) 0%, #D08B05 100%)',
+                                        background: 'linear-gradient(135deg, var(--orange-rich) 0%, var(--orange-warm) 100%)',
                                         color: '#fff',
-                                        boxShadow: '0 3px 10px rgba(243,156,18,0.38)',
+                                        boxShadow: '0 3px 10px rgba(168,35,35,0.30)',
                                     }}
                                 >
                                     {t.add} <Plus className="w-3.5 h-3.5" />
@@ -240,7 +233,7 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
                                     className="flex items-center gap-1.5 rounded-[10px] p-[3px]"
                                     style={{
                                         background: 'linear-gradient(135deg, var(--green-dark), var(--green-mid))',
-                                        border: '1.5px solid rgba(46,204,113,0.40)',
+                                        border: '1.5px solid rgba(109,158,81,0.45)',
                                     }}
                                 >
                                     <button

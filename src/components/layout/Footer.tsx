@@ -12,7 +12,7 @@ export default function Footer() {
 
     return (
         <footer dir={isRTL ? 'rtl' : 'ltr'}
-            style={{ background: 'linear-gradient(180deg, #080F09 0%, #050C06 100%)' }}
+            style={{ background: 'linear-gradient(180deg, #6A7E3F 0%, #4C5C2D 100%)' }}
         >
             {/* Gradient top accent — orange to green */}
             <div style={{ height: 3, background: 'linear-gradient(90deg, var(--orange-warm), var(--green-base), var(--orange-bright))' }} />
@@ -29,7 +29,7 @@ export default function Footer() {
                             className="h-12 w-auto object-contain mb-5"
                             style={{ mixBlendMode: 'screen', opacity: 0.92 }}
                         />
-                        <p className="text-sm leading-relaxed font-[400] mb-6" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                        <p className="text-sm leading-relaxed font-[400] mb-6 max-w-[280px]" style={{ color: 'rgba(251,246,246,0.86)' }}>
                             {t.footerDesc}
                         </p>
                         <div className="flex gap-2.5">
@@ -38,22 +38,22 @@ export default function Footer() {
                                     key={i} href="#"
                                     className="w-10 h-10 rounded-[10px] flex items-center justify-center transition-all duration-300 group"
                                     style={{
-                                        background: 'rgba(46,204,113,0.05)',
-                                        border: '1px solid rgba(46,204,113,0.12)',
-                                        color: 'rgba(255,255,255,0.30)'
+                                        background: 'rgba(156,175,136,0.10)',
+                                        border: '1px solid rgba(156,175,136,0.24)',
+                                        color: 'rgba(251,246,246,0.78)'
                                     }}
                                     onMouseEnter={e => {
                                         const el = e.currentTarget as HTMLElement
                                         el.style.borderColor = 'var(--green-base)'
-                                        el.style.background = 'rgba(46,204,113,0.15)'
-                                        el.style.color = 'var(--green-light)'
+                                        el.style.background = 'rgba(156,175,136,0.22)'
+                                        el.style.color = 'white'
                                         el.style.transform = 'translateY(-2px)'
                                     }}
                                     onMouseLeave={e => {
                                         const el = e.currentTarget as HTMLElement
-                                        el.style.borderColor = 'rgba(46,204,113,0.12)'
-                                        el.style.background = 'rgba(46,204,113,0.05)'
-                                        el.style.color = 'rgba(255,255,255,0.30)'
+                                        el.style.borderColor = 'rgba(156,175,136,0.24)'
+                                        el.style.background = 'rgba(156,175,136,0.10)'
+                                        el.style.color = 'rgba(251,246,246,0.78)'
                                         el.style.transform = 'translateY(0)'
                                     }}
                                 >
@@ -65,7 +65,7 @@ export default function Footer() {
 
                     {/* Quick Links */}
                     <div>
-                        <h4 className="text-white font-[700] text-[12px] uppercase tracking-[0.16em] mb-6">{t.quickLinks}</h4>
+                        <h4 className="text-[var(--cream)] font-[700] text-[12px] uppercase tracking-[0.16em] mb-6">{t.quickLinks}</h4>
                         <ul className="space-y-3.5">
                             {[
                                 `${t.fullMenu}:/menu`,
@@ -77,13 +77,7 @@ export default function Footer() {
                                 const [label, href] = item.split(':')
                                 return (
                                     <li key={label}>
-                                        <Link
-                                            href={href}
-                                            className="flex items-center gap-2.5 text-sm font-[500] transition-all duration-200 group"
-                                            style={{ color: 'rgba(255,255,255,0.45)' }}
-                                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--green-light)' }}
-                                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.45)' }}
-                                        >
+                                        <Link href={href} className="footer-link flex items-center gap-2.5 text-sm font-[500] group">
                                             <span className="w-1.5 h-1.5 rounded-full shrink-0 transition-transform group-hover:scale-125"
                                                 style={{ background: 'var(--green-base)', opacity: 0.6 }} />
                                             {label}
@@ -97,9 +91,9 @@ export default function Footer() {
                     {/* Branches */}
                     {BRANCHES.map(branch => (
                         <div key={branch.id}>
-                            <h4 className="text-white font-[700] text-[12px] uppercase tracking-[0.16em] mb-6">{branch.name}</h4>
+                            <h4 className="text-[var(--cream)] font-[700] text-[12px] uppercase tracking-[0.16em] mb-6">{branch.name}</h4>
                             <ul className="space-y-4">
-                                <li className="flex gap-3 text-sm leading-snug" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                                <li className="flex gap-3 text-sm leading-snug" style={{ color: 'rgba(251,246,246,0.85)' }}>
                                     <MapPin className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--green-base)' }} />
                                     <span>{branch.address}</span>
                                 </li>
@@ -107,15 +101,12 @@ export default function Footer() {
                                     <Phone className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--green-base)' }} />
                                     <a
                                         href={`https://wa.me/${branch.whatsapp}`}
-                                        className="text-sm font-[500] transition-colors"
-                                        style={{ color: 'rgba(255,255,255,0.45)' }}
-                                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--green-light)' }}
-                                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.45)' }}
+                                        className="footer-link text-sm font-[500]"
                                     >
                                         {branch.phone}
                                     </a>
                                 </li>
-                                <li className="flex gap-3 text-sm" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                                <li className="flex gap-3 text-sm" style={{ color: 'rgba(251,246,246,0.74)' }}>
                                     <Clock className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--green-base)', opacity: 0.7 }} />
                                     <span>{branch.hours}</span>
                                 </li>
@@ -127,12 +118,12 @@ export default function Footer() {
                 {/* Bottom bar */}
                 <div
                     className={`pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 ${isRTL ? 'sm:flex-row-reverse text-right' : ''}`}
-                    style={{ borderTop: '1px solid rgba(46,204,113,0.08)' }}
+                    style={{ borderTop: '1px solid rgba(251,246,246,0.25)' }}
                 >
-                    <p className="text-xs font-[400]" style={{ color: 'rgba(255,255,255,0.20)' }}>
+                    <p className="text-xs font-[400]" style={{ color: 'rgba(251,246,246,0.78)' }}>
                         © 2025 Zaitoon Restaurant. {t.allRights}
                     </p>
-                    <p className="text-xs font-[400]" style={{ color: 'rgba(255,255,255,0.14)' }}>
+                    <p className="text-xs font-[400]" style={{ color: 'rgba(251,246,246,0.70)' }}>
                         {t.madeWith}
                     </p>
                 </div>
