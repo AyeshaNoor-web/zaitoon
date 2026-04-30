@@ -24,6 +24,7 @@ interface MainItem {
     imageUrl: string | null
     /** The category label string from the joined categories table e.g. "Shawarma", "BBQ Rolls" */
     categoryLabel?: string
+    variantId?: string
 }
 
 interface Props {

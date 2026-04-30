@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { Plus, Search, Pencil, Trash2, X, Tags, FolderPlus, MoreVertical } from 'lucide-react'
+import { Plus, Search, Pencil, Trash2, X, Tags, FolderPlus, MoreVertical, ChevronLeft, ChevronRight } from 'lucide-react'
 import AdminLayout from '@/components/admin/AdminLayout'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Switch } from '@/components/ui/switch'
@@ -184,6 +184,30 @@ export default function AdminMenuPage() {
         reload()
     }
 
+    const moveCategory = async (cat: any, index: number, direction: number) => {
+        const newIndex = index + direction;
+        if (newIndex < 0 || newIndex >= categories.length) return;
+
+        const otherCat = categories[newIndex];
+        const catOrder = cat.display_order ?? index;
+        const otherOrder = otherCat.display_order ?? newIndex;
+        
+        const newCategories = [...categories];
+        newCategories[index] = { ...otherCat, display_order: catOrder };
+        newCategories[newIndex] = { ...cat, display_order: otherOrder };
+        setCategories(newCategories);
+
+        try {
+            await Promise.all([
+                updateCategory(cat.id, { display_order: otherOrder }),
+                updateCategory(otherCat.id, { display_order: catOrder })
+            ]);
+        } catch (err) {
+            toast.error('Failed to update order');
+            reload();
+        }
+    }
+
     return (
         <AdminLayout>
             <div className="p-6 max-w-6xl mx-auto space-y-8">
@@ -200,11 +224,19 @@ export default function AdminMenuPage() {
                         </button>
                     </div>
                     <div className="flex flex-wrap gap-3">
-                        {categories.map(cat => (
+                        {categories.map((cat, index) => (
                             <div key={cat.id} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 group">
                                 {cat.icon && <span className="text-lg">{cat.icon}</span>}
                                 <span className="text-sm font-semibold text-gray-700">{cat.label}</span>
                                 <div className="flex gap-1 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onClick={() => moveCategory(cat, index, -1)} disabled={index === 0}
+                                        className="p-1 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-30">
+                                        <ChevronLeft className="w-3 h-3" />
+                                    </button>
+                                    <button onClick={() => moveCategory(cat, index, 1)} disabled={index === categories.length - 1}
+                                        className="p-1 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-30">
+                                        <ChevronRight className="w-3 h-3" />
+                                    </button>
                                     <button onClick={() => openEditCat(cat)}
                                         className="p-1 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors">
                                         <Pencil className="w-3 h-3" />

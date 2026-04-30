@@ -121,7 +121,7 @@ export async function createCategory(payload: { label: string; icon?: string; di
     return data
 }
 
-export async function updateCategory(id: string, updates: { label?: string; icon?: string }) {
+export async function updateCategory(id: string, updates: { label?: string; icon?: string; display_order?: number }) {
     const { data, error } = await supabase
         .from('categories')
         .update(updates)

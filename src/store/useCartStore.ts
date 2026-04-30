@@ -10,6 +10,7 @@ export interface CartItem {
     quantity: number
     subtotal: number    // unitPrice × quantity — always recalculated, never stored separately
     imageUrl: string | null
+    variantId?: string  // For items with variants
 }
 
 interface CartStore {
@@ -51,7 +52,7 @@ export const useCartStore = create<CartStore>()(
             total: () => get().subtotal() + get().deliveryFee - get().loyaltyPointsToRedeem,
 
             addItem: (newItem) => {
-                const id = `${newItem.menuItemId}-${newItem.size ?? 'default'}`
+                const id = `${newItem.menuItemId}-${newItem.size ?? 'default'}${newItem.variantId ? `-${newItem.variantId}` : ''}`
                 set(state => {
                     const existing = state.items.find(i => i.id === id)
                     if (existing) {

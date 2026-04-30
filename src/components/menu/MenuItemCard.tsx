@@ -20,6 +20,12 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
         new: { label: t.newLabel, bgClass: 'badge-new' },
     }
 
+    const hasVariants = item.item_variants && item.item_variants.length > 0;
+    const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
+        hasVariants ? item.item_variants![0].id : null
+    )
+    const selectedVariant = hasVariants ? item.item_variants!.find(v => v.id === selectedVariantId) : null;
+
     const [selectedSize, setSelectedSize] = useState<'small' | 'large'>('small')
     const { items, updateQuantity } = useCartStore()
     const [showAddOns, setShowAddOns] = useState(false)
@@ -36,13 +42,16 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
     const dbBadge: string | null = (item as any).badge ?? null
 
     const sizeKey = hasSizes ? selectedSize : 'default'
-    const cartKey = `${item.id}-${sizeKey}`
+    const variantKey = selectedVariantId ? `-${selectedVariantId}` : ''
+    const cartKey = `${item.id}-${sizeKey}${variantKey}`
     const cartItem = items.find(i => i.id === cartKey)
     const qty = cartItem?.quantity ?? 0
 
-    const displayPrice = hasSizes
-        ? (selectedSize === 'large' && priceL ? priceL : item.price)
-        : item.price
+    const displayPrice = selectedVariant
+        ? selectedVariant.price
+        : hasSizes
+            ? (selectedSize === 'large' && priceL ? priceL : item.price)
+            : item.price
     const isUnavailable = isAvailableRaw === false
     return (
         <article
@@ -158,15 +167,35 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
                 )}
 
                 {/* Variants / Options */}
-                {item.item_variants && item.item_variants.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                        {item.item_variants.map(v => (
-                            <span key={v.id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[5px] text-[10px] font-[600]"
-                                style={{ background: 'var(--parchment)', color: 'var(--stone)', border: '1px solid var(--linen)' }}>
-                                {v.label}
-                                <span style={{ color: 'var(--green-dark)', fontWeight: 700 }}>Rs.{v.price}</span>
-                            </span>
-                        ))}
+                {hasVariants && (
+                    <div role="radiogroup" aria-label="Select variant" className="mt-2 flex flex-wrap gap-1.5">
+                        {item.item_variants!.map(v => {
+                            const isSelected = selectedVariantId === v.id;
+                            return (
+                                <button
+                                    key={v.id}
+                                    role="radio"
+                                    aria-checked={isSelected}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setSelectedVariantId(v.id);
+                                    }}
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[5px] text-[11px] font-[600] transition-colors"
+                                    style={{
+                                        background: isSelected ? 'var(--green-dark)' : 'var(--parchment)',
+                                        color: isSelected ? 'white' : 'var(--stone)',
+                                        border: isSelected ? '1px solid var(--green-dark)' : '1px solid var(--linen)',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {v.label}
+                                    <span style={{ color: isSelected ? 'var(--cream)' : 'var(--green-dark)', fontWeight: 700 }}>
+                                        Rs.{v.price}
+                                    </span>
+                                </button>
+                            );
+                        })}
                     </div>
                 )}
 
@@ -282,8 +311,9 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
                     <AddOnsModal
                         mainItem={{
                             menuItemId: item.id,
-                            name: item.name,
+                            name: selectedVariant ? `${item.name} (${selectedVariant.label})` : item.name,
                             size: hasSizes ? selectedSize : null,
+                            variantId: selectedVariantId ?? undefined,
                             unitPrice: displayPrice ?? 0,
                             quantity: 1,
                             imageUrl: item.image_url ?? null,
