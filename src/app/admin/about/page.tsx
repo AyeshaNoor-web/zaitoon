@@ -2,6 +2,8 @@ import { getAboutPageContent, getAboutValues, getChefs, getBlogPosts } from '@/l
 import AdminLayout from '@/components/admin/AdminLayout'
 import { AboutAdminClient } from './about-admin-client'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'About Page CMS | Zaitoon Admin',
 }

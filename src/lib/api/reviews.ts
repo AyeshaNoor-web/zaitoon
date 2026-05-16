@@ -11,7 +11,10 @@ export async function getPublishedReviews(): Promise<Review[]> {
         .eq('is_published', true)
         .order('display_order', { ascending: true })
 
-    if (error) throw new Error(error.message)
+    if (error) {
+        console.warn('Failed to fetch reviews:', error.message)
+        return []
+    }
     return (data as Review[]) ?? []
 }
 

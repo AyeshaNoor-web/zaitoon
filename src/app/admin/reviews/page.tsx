@@ -2,6 +2,8 @@ import { getAllReviews } from '@/lib/api/reviews'
 import AdminLayout from '@/components/admin/AdminLayout'
 import { ReviewsAdminClient } from './reviews-admin-client'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'Manage Reviews | Zaitoon Admin',
 }

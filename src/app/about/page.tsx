@@ -7,6 +7,8 @@ import { ChefsSection } from '@/components/about/chefs-section'
 import { BlogSection } from '@/components/about/blog-section'
 import { StatsBar } from '@/components/about/stats-bar'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Our Story | Zaitoon',
   description: 'Learn about Zaitoon\'s journey, our master chefs, and our commitment to authentic Pakistani flavors in Lahore.',

@@ -3,6 +3,8 @@ import { getMenuItems } from '@/lib/api/menu'
 import AdminLayout from '@/components/admin/AdminLayout'
 import { OrdersClient } from './orders-client'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'Order Management | Zaitoon Admin',
 }

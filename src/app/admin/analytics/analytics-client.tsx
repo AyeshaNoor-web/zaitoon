@@ -163,7 +163,7 @@ export function AnalyticsClient({
                   />
                   <Tooltip 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                    formatter={(val: number) => [`PKR ${val.toLocaleString()}`, 'Revenue']}
+                    formatter={(val: any) => [`PKR ${val?.toLocaleString()}`, 'Revenue']}
                   />
                   <Area 
                     type="monotone" 
@@ -271,7 +271,7 @@ export function AnalyticsClient({
                     width={80}
                   />
                   <Tooltip 
-                    formatter={(val: number) => [`PKR ${val.toLocaleString()}`, 'Revenue']}
+                    formatter={(val: any) => [`PKR ${val?.toLocaleString()}`, 'Revenue']}
                   />
                   <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                     {initialPaymentBreakdown.map((entry, index) => (
