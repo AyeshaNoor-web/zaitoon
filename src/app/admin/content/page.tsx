@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
-import { Save, Plus, Trash2, Globe, Star, ToggleLeft, ToggleRight, GripVertical, HelpCircle, ChevronUp, ChevronDown } from 'lucide-react'
+import { Save, Plus, Trash2, Star, ToggleLeft, ToggleRight, GripVertical, HelpCircle } from 'lucide-react'
 import AdminLayout from '@/components/admin/AdminLayout'
 import {
     getSiteContent, updateSiteContentBulk,
@@ -73,8 +73,9 @@ export default function AdminContentPage() {
         try {
             await updateSiteContentBulk(content)
             toast.success('Content saved ✓')
-        } catch (err: any) {
-            toast.error('Save failed: ' + err.message)
+        } catch (err) {
+            const error = err as Error
+            toast.error('Save failed: ' + error.message)
         } finally {
             setSavingContent(false)
         }
@@ -87,8 +88,9 @@ export default function AdminContentPage() {
             const updated = await updatePopularCombo(combo.id, { is_active: !combo.is_active })
             setCombos(prev => prev.map(c => c.id === combo.id ? updated : c))
             toast.success(`Combo ${updated.is_active ? 'activated' : 'deactivated'} ✓`)
-        } catch (err: any) {
-            toast.error(err.message)
+        } catch (err) {
+            const error = err as Error
+            toast.error(error.message)
         } finally {
             setSavingCombo(null)
         }
@@ -100,8 +102,9 @@ export default function AdminContentPage() {
             await deletePopularCombo(id)
             setCombos(prev => prev.filter(c => c.id !== id))
             toast.success('Combo deleted ✓')
-        } catch (err: any) {
-            toast.error(err.message)
+        } catch (err) {
+            const error = err as Error
+            toast.error(error.message)
         }
     }
 
@@ -118,8 +121,9 @@ export default function AdminContentPage() {
             })
             setCombos(prev => prev.map(c => c.id === combo.id ? updated : c))
             toast.success('Combo saved ✓')
-        } catch (err: any) {
-            toast.error(err.message)
+        } catch (err) {
+            const error = err as Error
+            toast.error(error.message)
         } finally {
             setSavingCombo(null)
         }
@@ -133,14 +137,15 @@ export default function AdminContentPage() {
             setCombos(prev => [...prev, created])
             setNewCombo(emptyCombo())
             toast.success('Combo created ✓')
-        } catch (err: any) {
-            toast.error(err.message)
+        } catch (err) {
+            const error = err as Error
+            toast.error(error.message)
         } finally {
             setAddingCombo(false)
         }
     }
 
-    const updateComboField = (id: string, field: keyof PopularCombo, value: any) =>
+    const updateComboField = (id: string, field: keyof PopularCombo, value: string | number | boolean | null) =>
         setCombos(prev => prev.map(c => c.id === id ? { ...c, [field]: value } : c))
 
     // ── FAQ helpers ──────────────────────────────────────────────────────────
@@ -154,7 +159,10 @@ export default function AdminContentPage() {
             })
             setFaqs(prev => prev.map(f => f.id === faq.id ? updated : f))
             toast.success('FAQ saved ✓')
-        } catch (err: any) { toast.error(err.message) }
+        } catch (err) {
+            const error = err as Error
+            toast.error(error.message)
+        }
         finally { setSavingFaq(null) }
     }
     const handleToggleFaq = async (faq: FAQ) => {
@@ -162,7 +170,10 @@ export default function AdminContentPage() {
         try {
             const updated = await updateFAQ(faq.id, { is_active: !faq.is_active })
             setFaqs(prev => prev.map(f => f.id === faq.id ? updated : f))
-        } catch (err: any) { toast.error(err.message) }
+        } catch (err) {
+            const error = err as Error
+            toast.error(error.message)
+        }
         finally { setSavingFaq(null) }
     }
     const handleDeleteFaq = async (id: string) => {
@@ -171,7 +182,10 @@ export default function AdminContentPage() {
             await deleteFAQ(id)
             setFaqs(prev => prev.filter(f => f.id !== id))
             toast.success('FAQ deleted ✓')
-        } catch (err: any) { toast.error(err.message) }
+        } catch (err) {
+            const error = err as Error
+            toast.error(error.message)
+        }
     }
     const handleAddFaq = async () => {
         if (!newFaq.question.trim() || !newFaq.answer.trim()) {
@@ -187,10 +201,13 @@ export default function AdminContentPage() {
             setFaqs(prev => [...prev, created])
             setNewFaq({ question: '', answer: '', question_ur: '', answer_ur: '' })
             toast.success('FAQ created ✓')
-        } catch (err: any) { toast.error(err.message) }
+        } catch (err) {
+            const error = err as Error
+            toast.error(error.message)
+        }
         finally { setAddingFaq(false) }
     }
-    const updateFaqField = (id: string, field: keyof FAQ, value: any) =>
+    const updateFaqField = (id: string, field: keyof FAQ, value: string | number | boolean | null) =>
         setFaqs(prev => prev.map(f => f.id === id ? { ...f, [field]: value } : f))
 
     return (
@@ -306,7 +323,7 @@ export default function AdminContentPage() {
                             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                                 <Star className="w-5 h-5 text-orange-500" /> Popular Combos
                             </h2>
-                            <p className="text-sm text-gray-500 mt-1">Manage the "Popular Combo Picks" section shown on the menu page</p>
+                            <p className="text-sm text-gray-500 mt-1">Manage the &quot;Popular Combo Picks&quot; section shown on the menu page</p>
                         </div>
                     </div>
 

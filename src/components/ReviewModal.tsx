@@ -34,8 +34,9 @@ export default function ReviewModal({
             await submitReview({ customerId, orderId, rating, comment })
             setSuccess(true)
             setTimeout(() => { onClose(); resetState() }, 2200)
-        } catch (e: any) {
-            setError(e.message ?? 'Something went wrong. Please try again.')
+        } catch (e) {
+            const error = e as Error
+            setError(error.message ?? 'Something went wrong. Please try again.')
         } finally {
             setSubmitting(false)
         }
@@ -67,7 +68,7 @@ export default function ReviewModal({
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.88, y: 20 }}
                         transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-                        className="relative w-full max-w-sm bg-[#FFFDF9] rounded-3xl p-7 shadow-2xl z-10 overflow-hidden"
+                        className="relative w-full max-w-sm bg-[#FFFDF9] dark:bg-zinc-900 rounded-3xl p-7 shadow-2xl z-10 overflow-hidden"
                     >
                         {/* Close */}
                         {!success && (
@@ -119,7 +120,7 @@ export default function ReviewModal({
                                             How was your meal?
                                         </h2>
                                         <p className="text-[var(--stone)] text-[13px] mt-1">
-                                            Leave a review — earn <span className="font-bold text-[var(--green-base)]">20 pts</span> ⭐
+                                            Leave a review &mdash; earn <span className="font-bold text-[var(--green-base)]">20 pts</span> ⭐
                                         </p>
                                     </div>
 
@@ -156,10 +157,10 @@ export default function ReviewModal({
                                         <textarea
                                             rows={3}
                                             maxLength={300}
-                                            placeholder="Tell us about your experience (optional)…"
+                                            placeholder="Tell us about your experience (optional)&hellip;"
                                             value={comment}
                                             onChange={e => setComment(e.target.value)}
-                                            className="w-full px-4 py-3 bg-white border-[2px] border-[var(--linen)] rounded-2xl text-[14px] text-[var(--charcoal)] placeholder:text-[var(--stone)] focus:outline-none focus:border-[var(--green-base)] transition-colors resize-none"
+                                            className="w-full px-4 py-3 bg-white dark:bg-zinc-950 border-[2px] border-[var(--linen)] rounded-2xl text-[14px] text-[var(--charcoal)] placeholder:text-[var(--stone)] focus:outline-none focus:border-[var(--green-base)] transition-colors resize-none"
                                         />
                                         <span className="absolute bottom-3 right-3 text-[11px] text-[var(--stone)]">
                                             {comment.length}/300

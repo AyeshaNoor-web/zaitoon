@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ customer: newCustomer, isNew: true })
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Customer lookup error:', err)
     return NextResponse.json(
       { error: 'Something went wrong' },

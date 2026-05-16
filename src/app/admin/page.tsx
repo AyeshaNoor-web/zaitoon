@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
@@ -12,7 +12,9 @@ import { useAdminRole } from '@/hooks/useAdminRole'
 export default function AdminPage() {
     const router = useRouter()
     const { role } = useAdminRole()
-    const [orders, setOrders] = useState<any[]>([])
+    interface DashboardOrder { total: number; status: string }
+    const [orders, setOrders] = useState<DashboardOrder[]>([])
+
 
     useEffect(() => {
         if (role === 'employee') {

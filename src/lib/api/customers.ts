@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/client'
+import type { Customer, LoyaltyTransaction } from '@/types'
 
 const supabase = createClient()
 
-export async function getOrCreateCustomer(phone: string, name: string) {
+export async function getOrCreateCustomer(phone: string, name: string): Promise<Customer> {
     // Try to find existing customer
     const { data: existing, error: existingError } = await supabase
         .from('customers')
@@ -18,22 +19,22 @@ export async function getOrCreateCustomer(phone: string, name: string) {
         if (name && existing.name !== name) {
             await supabase.from('customers').update({ name }).eq('id', existing.id)
         }
-        return existing
+        return existing as Customer
     }
 
     // Create new customer
     const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase()
     const { data: newCustomer, error } = await supabase
         .from('customers')
-        .insert({ phone, name, referral_code: referralCode } as any)
+        .insert({ phone, name, referral_code: referralCode })
         .select()
         .maybeSingle()
 
     if (error) throw error
-    return newCustomer
+    return newCustomer as Customer
 }
 
-export async function getCustomerByPhone(phone: string) {
+export async function getCustomerByPhone(phone: string): Promise<Customer | null> {
     const { data, error } = await supabase
         .from('customers')
         .select('*')
@@ -42,10 +43,10 @@ export async function getCustomerByPhone(phone: string) {
         .maybeSingle()
 
     if (error) throw error
-    return data
+    return data as Customer | null
 }
 
-export async function getLoyaltyHistory(customerId: string) {
+export async function getLoyaltyHistory(customerId: string): Promise<LoyaltyTransaction[]> {
     const { data, error } = await supabase
         .from('loyalty_transactions')
         .select('*')
@@ -54,7 +55,7 @@ export async function getLoyaltyHistory(customerId: string) {
         .limit(20)
 
     if (error) throw error
-    return data
+    return (data || []) as LoyaltyTransaction[]
 }
 
 /**
@@ -63,12 +64,7 @@ export async function getLoyaltyHistory(customerId: string) {
  * Cancellations also auto-deduct via the same trigger.
  * This function is kept as a no-op to avoid import errors during migration.
  */
-export async function addLoyaltyPoints(
-    _customerId: string,
-    _orderId: string,
-    _points: number,
-    _total: number
-): Promise<void> {
+export async function addLoyaltyPoints(): Promise<void> {
     // No-op: handled by DB trigger fn_loyalty_on_order_status_change()
     return
 }
@@ -96,12 +92,7 @@ export async function redeemLoyaltyPoints(customerId: string, orderId: string | 
 }
 
 
-function calculateTier(points: number): string {
-    if (points >= 5000) return 'platinum'
-    if (points >= 1500) return 'gold'
-    if (points >= 500) return 'silver'
-    return 'bronze'
-}
+
 
 // ── Referral processing ────────────────────────────────────────
 export async function processReferral(

@@ -20,8 +20,12 @@ export default function MobileCartBar() {
     const [mounted, setMounted] = useState(false)
     const [minOrderError, setMinOrderError] = useState(false)
 
-    useEffect(() => { setMounted(true) }, [])
-    useEffect(() => { if (subtotal >= MIN_ORDER) setMinOrderError(false) }, [subtotal])
+    useEffect(() => { requestAnimationFrame(() => setMounted(true)) }, [])
+    useEffect(() => { 
+        if (subtotal >= MIN_ORDER) {
+            requestAnimationFrame(() => setMinOrderError(false))
+        }
+    }, [subtotal])
 
     const handleCheckout = () => {
         if (subtotal < MIN_ORDER) { setMinOrderError(true); return }

@@ -58,7 +58,7 @@ export default function LeafletCheckoutMap({ customerCoords, branches, onCustome
 
             // Click to drop / move pin (not readOnly)
             if (!readOnly) {
-                map.on('click', (e: any) => {
+                map.on('click', (e: { latlng: { lat: number; lng: number } }) => {
                     const { lat, lng } = e.latlng
                     if (markerRef.current) {
                         markerRef.current.setLatLng([lat, lng])

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-    Ticket, History, User, CheckCircle2, PackageX,
+    History, User, CheckCircle2,
     ChevronRight, LogOut, Loader2, Star, ShoppingBag, Award
 } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
@@ -13,6 +13,7 @@ import { useAuthStore } from '@/store/useAuthStore'
 import { formatPrice } from '@/lib/payment'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import type { Order, OrderItem } from '@/types'
 
 const supabase = createClient()
 
@@ -39,7 +40,7 @@ export default function AccountPage() {
     const router = useRouter()
     const { customer, isAuthenticated, updateName, refreshCustomer, signOut } = useAuthStore()
     const [activeTab, setActiveTab] = useState<Tab>('orders')
-    const [orders, setOrders] = useState<any[]>([])
+    const [orders, setOrders] = useState<Order[]>([])
     const [loadingOrders, setLoadingOrders] = useState(true)
     const [editName, setEditName] = useState('')
     const [savingProfile, setSavingProfile] = useState(false)
@@ -49,7 +50,7 @@ export default function AccountPage() {
         if (!isAuthenticated || !customer) { router.replace('/menu'); return }
         refreshCustomer(customer.phone)
         setEditName(customer.name)
-    }, [isAuthenticated, router, customer?.phone])
+    }, [isAuthenticated, router, customer, refreshCustomer])
 
     useEffect(() => {
         if (customer?.id) fetchOrders(customer.id)
@@ -63,7 +64,7 @@ export default function AccountPage() {
                 .select(`id, order_number, status, total, order_type, created_at, order_items ( name, quantity )`)
                 .eq('customer_id', customerId)
                 .order('created_at', { ascending: false })
-            if (!error && data) setOrders(data)
+            if (!error && data) setOrders(data as unknown as Order[])
         } finally { setLoadingOrders(false) }
     }
 
@@ -282,7 +283,7 @@ export default function AccountPage() {
                                                         style={{ borderTop: '1px solid var(--linen)' }}>
                                                         <p className="text-[13px] line-clamp-1 flex-1"
                                                             style={{ color: 'var(--stone)' }}>
-                                                            {order.order_items.map((i: any) => `${i.quantity}× ${i.name}`).join(', ')}
+                                                            {order.order_items?.map((i: OrderItem) => `${i.quantity}× ${i.name}`).join(', ')}
                                                         </p>
                                                         <div className="w-8 h-8 rounded-full flex items-center justify-center ml-3 transition-all"
                                                             style={{ background: 'var(--cream)', color: 'var(--green-base)' }}

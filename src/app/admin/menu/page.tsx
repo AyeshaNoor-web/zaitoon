@@ -5,12 +5,12 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { Plus, Search, Pencil, Trash2, X, Tags, FolderPlus, MoreVertical, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, Search, Pencil, Trash2, X, Tags, FolderPlus, ChevronLeft, ChevronRight } from 'lucide-react'
 import AdminLayout from '@/components/admin/AdminLayout'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Switch } from '@/components/ui/switch'
 import {
-    getMenuItems, updateMenuItemAvailability, updateMenuItem, createMenuItem,
+    updateMenuItemAvailability, updateMenuItem, createMenuItem,
     deleteMenuItem, getCategories, getAllMenuItemsAdmin,
     createCategory, updateCategory, deleteCategory,
     getItemVariants, upsertItemVariants,
@@ -18,6 +18,7 @@ import {
 import { formatPrice } from '@/lib/payment'
 import MenuImageUpload from '@/components/admin/MenuImageUpload'
 import Image from 'next/image'
+import type { MenuItem, Category } from '@/types'
 
 // ── Schemas ──────────────────────────────────────────────────────────────────
 const itemSchema = z.object({
@@ -45,8 +46,8 @@ const fieldCls = 'w-full px-4 py-3 rounded-xl border border-gray-200 text-sm tex
 const labelCls = 'block text-sm font-semibold text-gray-700 mb-1.5'
 
 export default function AdminMenuPage() {
-    const [items, setItems] = useState<any[]>([])
-    const [categories, setCategories] = useState<any[]>([])
+    const [items, setItems] = useState<MenuItem[]>([])
+    const [categories, setCategories] = useState<Category[]>([])
 
     const reload = () =>
         Promise.all([getAllMenuItemsAdmin(), getCategories()]).then(([itm, cat]) => {
@@ -57,16 +58,15 @@ export default function AdminMenuPage() {
 
     const [search, setSearch] = useState('')
     const [catFilter, setCatFilter] = useState('all')
-    const [editing, setEditing] = useState<any>(null)
+    const [editing, setEditing] = useState<MenuItem | null>(null)
     const [isNew, setIsNew] = useState(false)
-    const [delTarget, setDelTarget] = useState<any>(null)
+    const [delTarget, setDelTarget] = useState<MenuItem | null>(null)
     const [variants, setVariants] = useState<Variant[]>([])
 
     // Category management state
     const [showCatDialog, setShowCatDialog] = useState(false)
-    const [editingCat, setEditingCat] = useState<any>(null)
-    const [delCatTarget, setDelCatTarget] = useState<any>(null)
-    const [catMenuId, setCatMenuId] = useState<string | null>(null)
+    const [editingCat, setEditingCat] = useState<Category | null>(null)
+    const [delCatTarget, setDelCatTarget] = useState<Category | null>(null)
 
     const visible = useMemo(() => {
         let list = items
@@ -81,23 +81,23 @@ export default function AdminMenuPage() {
         defaultValues: { name: '', category: '', price: 0, priceL: null, description: '', badge: '', accompaniments: '', priceOnRequest: false }
     })
 
-    const openEdit = async (item: any) => {
+    const openEdit = async (item: MenuItem) => {
         setEditing({ ...item }); setIsNew(false)
         reset({
             name: item.name,
             category: item.category_id,
-            price: item.price,
-            priceL: item.price_large,
+            price: item.price ?? 0,
+            priceL: item.price_large ?? undefined,
             description: item.description ?? '',
             badge: item.badge ?? '',
             accompaniments: item.accompaniments ?? '',
             priceOnRequest: item.price_on_request ?? false,
         })
         const v = await getItemVariants(item.id).catch(() => [])
-        setVariants(v.map((r: any) => ({ label: r.label, price: r.price })))
+        setVariants(v.map((r) => ({ label: r.label, price: r.price })))
     }
     const openAdd = () => {
-        setEditing({ id: `item_${Date.now()}`, name: '', category_id: categories[0]?.id || '', price: 0, rating: 4.5, is_available: true, image_url: null })
+        setEditing({ id: `item_${Date.now()}`, name: '', category_id: categories[0]?.id || '', price: 0, rating: 4.5, is_available: true, image_url: null, tags: [] })
         setIsNew(true)
         reset({ name: '', category: categories[0]?.id || '', price: 0, description: '', badge: '', accompaniments: '', priceOnRequest: false })
         setVariants([])
@@ -132,9 +132,10 @@ export default function AdminMenuPage() {
             setEditing(null)
             // Reload from DB so UI reflects latest saved data
             reload()
-        } catch (err: any) {
-            console.error('Save failed:', err)
-            toast.error('Save failed: ' + (err?.message ?? 'Unknown error'))
+        } catch (err) {
+            const error = err as Error
+            console.error('Save failed:', error)
+            toast.error('Save failed: ' + (error?.message ?? 'Unknown error'))
         }
     }
 
@@ -164,7 +165,7 @@ export default function AdminMenuPage() {
         defaultValues: { label: '', icon: '' }
     })
     const openNewCat = () => { setEditingCat(null); resetCat({ label: '', icon: '' }); setShowCatDialog(true) }
-    const openEditCat = (cat: any) => { setEditingCat(cat); resetCat({ label: cat.label, icon: cat.icon ?? '' }); setShowCatDialog(true) }
+    const openEditCat = (cat: Category) => { setEditingCat(cat); resetCat({ label: cat.label, icon: cat.icon ?? '' }); setShowCatDialog(true) }
     const onSaveCat = async (data: CatForm) => {
         if (editingCat) {
             await updateCategory(editingCat.id, { label: data.label, icon: data.icon })
@@ -184,7 +185,7 @@ export default function AdminMenuPage() {
         reload()
     }
 
-    const moveCategory = async (cat: any, index: number, direction: number) => {
+    const moveCategory = async (cat: Category, index: number, direction: number) => {
         const newIndex = index + direction;
         if (newIndex < 0 || newIndex >= categories.length) return;
 
@@ -202,7 +203,7 @@ export default function AdminMenuPage() {
                 updateCategory(cat.id, { display_order: otherOrder }),
                 updateCategory(otherCat.id, { display_order: catOrder })
             ]);
-        } catch (err) {
+        } catch {
             toast.error('Failed to update order');
             reload();
         }
@@ -285,9 +286,9 @@ export default function AdminMenuPage() {
                         </thead>
                         <tbody>
                             <AnimatePresence>
-                                {visible.map((item, i) => (
-                                    <motion.tr key={item.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                        className="border-b last:border-0 border-gray-100 hover:bg-gray-50 transition-colors" transition={{ delay: i * 0.02 }}>
+                                {visible.map((item) => (
+                                     <motion.tr key={item.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                        className="border-b last:border-0 border-gray-100 hover:bg-gray-50 transition-colors">
                                         <td className="px-5 py-4" style={{ width: 64 }}>
                                             {item.image_url ? (
                                                 <Image src={item.image_url} alt={item.name} width={56} height={42}
@@ -306,7 +307,7 @@ export default function AdminMenuPage() {
                                         </td>
                                         <td className="px-5 py-4">
                                             <Switch className="data-[state=checked]:bg-green-600" checked={item.is_available}
-                                                onCheckedChange={() => toggleAvailability(item.id, item.is_available)} />
+                                                onCheckedChange={() => toggleAvailability(item.id, item.is_available ?? false)} />
                                         </td>
                                         <td className="px-5 py-4 flex gap-2">
                                             <button onClick={() => openEdit(item)}
@@ -344,7 +345,7 @@ export default function AdminMenuPage() {
                                         itemName={editing.name || 'New Item'}
                                         onImageUpdated={(newUrl) => {
                                             if (!isNew) setItems(prev => prev.map(item => item.id === editing.id ? { ...item, image_url: newUrl } : item))
-                                            setEditing((prev: any) => prev ? { ...prev, image_url: newUrl } : null)
+                                            setEditing((prev) => prev ? { ...prev, image_url: newUrl } : null)
                                         }}
                                     />
                                 )}
@@ -381,7 +382,7 @@ export default function AdminMenuPage() {
                             </div>
                             <div className="flex items-center gap-2 mt-2">
                                 <input type="checkbox" {...register('priceOnRequest')} id="priceOnRequest" className="w-4 h-4 text-green-600 rounded bg-white border-gray-300 focus:ring-green-500" />
-                                <label htmlFor="priceOnRequest" className="text-sm font-semibold text-gray-700 cursor-pointer">Show "Ask for price" instead of amount</label>
+                                <label htmlFor="priceOnRequest" className="text-sm font-semibold text-gray-700 cursor-pointer">Show &quot;Ask for price&quot; instead of amount</label>
                             </div>
 
                             {/* Description */}
@@ -389,12 +390,12 @@ export default function AdminMenuPage() {
                                 <label className={labelCls}>Description</label>
                                 <textarea {...register('description')} rows={3}
                                     className={fieldCls + ' resize-none'}
-                                    placeholder="Short description shown on the menu card…" />
+                                    placeholder="Short description shown on the menu card&hellip;" />
                             </div>
 
                             {/* Badge Label */}
                             <div>
-                                <label className={labelCls}>Badge Label <span className="font-normal text-gray-500 text-xs">— e.g. Bestseller, New, Chef's Pick (leave blank for none)</span></label>
+                                <label className={labelCls}>Badge Label <span className="font-normal text-gray-500 text-xs">— e.g. Bestseller, New, Chef&apos;s Pick (leave blank for none)</span></label>
                                 <input {...register('badge')} className={fieldCls} placeholder="e.g. Bestseller" />
                             </div>
 
@@ -469,7 +470,7 @@ export default function AdminMenuPage() {
                         <form onSubmit={handleCatSubmit(onSaveCat)} className="px-7 py-6 space-y-4">
                             <div>
                                 <label className={labelCls}>Category Name *</label>
-                                <input {...regCat('label')} className={fieldCls} placeholder="e.g. Starters, BBQ, Desserts…" />
+                                <input {...regCat('label')} className={fieldCls} placeholder="e.g. Starters, BBQ, Desserts&hellip;" />
                                 {catErrors.label && <p className="text-red-500 text-xs mt-1">{catErrors.label.message}</p>}
                             </div>
                             <div>
@@ -498,7 +499,7 @@ export default function AdminMenuPage() {
                         </div>
                         <div className="px-7 py-6">
                             <p className="text-sm text-gray-600 mb-6">
-                                Are you sure you want to delete <strong className="text-gray-900">"{delTarget?.name}"</strong>? This cannot be undone.
+                                Are you sure you want to delete <strong className="text-gray-900">&quot;{delTarget?.name}&quot;</strong>? This cannot be undone.
                             </p>
                             <div className="flex gap-3">
                                 <button onClick={() => setDelTarget(null)}
@@ -522,7 +523,7 @@ export default function AdminMenuPage() {
                         </div>
                         <div className="px-7 py-6">
                             <p className="text-sm text-gray-600 mb-6">
-                                Remove <strong className="text-gray-900">"{delCatTarget?.label}"</strong>? Items in this category won't be deleted, but the category tab will be hidden from the menu.
+                                Remove <strong className="text-gray-900">&quot;{delCatTarget?.label}&quot;</strong>? Items in this category won&apos;t be deleted, but the category tab will be hidden from the menu.
                             </p>
                             <div className="flex gap-3">
                                 <button onClick={() => setDelCatTarget(null)}

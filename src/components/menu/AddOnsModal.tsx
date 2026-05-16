@@ -15,6 +15,13 @@ interface AddOn {
     categoryLabel: string
 }
 
+interface SupabaseAddOnRow {
+    id: string
+    name: string
+    price: number
+    categories: { label: string } | null
+}
+
 interface MainItem {
     menuItemId: string
     name: string
@@ -81,15 +88,15 @@ async function fetchAddOns(): Promise<AddOn[]> {
     if (error) throw error
 
     // Filter client-side because .in() on a joined column doesn't work in all PostgREST versions
-    return (data ?? [])
-        .filter((row: any) => {
+    return (data as unknown as SupabaseAddOnRow[] ?? [])
+        .filter((row) => {
             const label: string = row.categories?.label ?? ''
             return label === 'Beverages' || label === 'Dips & Sauces'
         })
-        .map((row: any) => ({
+        .map((row) => ({
             id: row.id,
             name: row.name,
-            price: row.price as number,
+            price: row.price,
             categoryLabel: row.categories?.label ?? '',
         }))
 }
@@ -213,7 +220,7 @@ export default function AddOnsModal({ mainItem, onClose }: Props) {
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-12 gap-3">
                             <div className="w-7 h-7 border-[3px] border-[var(--linen)] border-t-[var(--green-base)] rounded-full animate-spin" />
-                            <p className="text-[12px] text-[var(--stone)]">Loading extras…</p>
+                            <p className="text-[12px] text-[var(--stone)]">Loading extras&hellip;</p>
                         </div>
                     ) : error || addOns.length === 0 ? (
                         <p className="text-center text-[13px] text-[var(--stone)] py-8">

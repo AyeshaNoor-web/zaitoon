@@ -1,9 +1,8 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Truck, Store, Utensils, Check, MapPin } from 'lucide-react'
+import { Truck, Store, Utensils, Check } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import { useCartStore } from '@/store/useCartStore'
 import { useLocationStore } from '@/store/useLocationStore'
@@ -12,7 +11,6 @@ import { createOrder } from '@/lib/api/orders'
 import {
     getOrCreateCustomer,
     redeemLoyaltyPoints,
-    getCustomerByPhone,
     processReferral,
 } from '@/lib/api/customers'
 import { formatPrice } from '@/lib/payment'
@@ -28,16 +26,14 @@ import {
     maxRedeemablePoints,
     tierBadge,
 } from '@/lib/utils/loyalty'
-import { useAuthStore } from '@/store/useAuthStore'
 import LocationModal from '@/components/LocationModal'
 import { toast } from 'sonner'
+import { useAuthStore } from '@/store/useAuthStore'
 import { useLanguageStore } from '@/store/useLanguageStore'
 import { translations } from '@/lib/translations'
+import type { Branch, LoyaltyTier } from '@/types'
 
-const LeafletCheckoutMap = dynamic(
-    () => import('@/components/map/LeafletCheckoutMap'),
-    { ssr: false }
-)
+
 
 // ── LOYALTY CONSTANTS ─────────────────────────────────────────
 const POINT_VALUE_IN_RS = 1
@@ -102,13 +98,12 @@ export default function CheckoutPage() {
     }, [mounted, cartItems.length, step, router])
 
     const { customer, isAuthenticated } = useAuthStore()
-    const [authModalOpen, setAuthModalOpen] = useState(false)
 
     // ── Step 0 – Contact ──────────────────────────────────────
     const [customerName, setCustomerName] = useState('')
     const [customerPhone, setCustomerPhone] = useState('')
     const [availablePoints, setAvailablePoints] = useState(0)
-    const [customerTier, setCustomerTier] = useState('bronze')
+    const [customerTier, setCustomerTier] = useState<LoyaltyTier>('bronze')
     const [isReturning, setIsReturning] = useState(false)
     const [lookingUp, setLookingUp] = useState(false)
     const { lookupOrCreateCustomer, refreshCustomer } = useAuthStore()
@@ -125,16 +120,14 @@ export default function CheckoutPage() {
     }, [customer])
 
     // ── Step 1 – Delivery ─────────────────────────────────────
-    const [branches, setBranches] = useState<any[]>([])
+    const [branches, setBranches] = useState<Branch[]>([])
     const [selectedBranchId, setSelectedBranchId] = useState('')
     const [orderType, setOrderType] = useState<'delivery' | 'takeaway' | 'dine-in'>('delivery')
-    const [deliveryAddress, setDeliveryAddress] = useState('')
     const [manualAddress, setManualAddress] = useState('')  // user-typed house/street detail
     const [mapCoords, setMapCoords] = useState<{ lat: number; lng: number } | null>(null)
     const [distanceKm, setDistanceKm] = useState<number | null>(null)
     const [deliveryFee, setDeliveryFee] = useState<number | null>(null)
     const [outOfRange, setOutOfRange] = useState(false)
-    const [locLoading, setLocLoading] = useState(false)
 
     // Read pre-detected location from store
     const {
@@ -157,7 +150,7 @@ export default function CheckoutPage() {
             if (!data?.length) return
             setBranches(data)
 
-            if (locationSet && storedBranchId && data.find((b: any) => b.id === storedBranchId)) {
+            if (locationSet && storedBranchId && data.find((b) => b.id === storedBranchId)) {
                 setSelectedBranchId(storedBranchId)
                 if (storedCoords) {
                     setMapCoords(storedCoords)
@@ -177,7 +170,7 @@ export default function CheckoutPage() {
     // Recalculate distance & fee whenever map pin or branch changes
     useEffect(() => {
         if (orderType !== 'delivery' || !mapCoords || !selectedBranchId || branches.length === 0) return
-        const branch = branches.find((b: any) => b.id === selectedBranchId)
+        const branch = branches.find((b) => b.id === selectedBranchId)
         if (!branch?.lat || !branch?.lng) return
 
         const km = haversineDistance(mapCoords.lat, mapCoords.lng, branch.lat, branch.lng)
@@ -202,25 +195,7 @@ export default function CheckoutPage() {
         }
     }, [orderType])
 
-    const handleUseLocation = () => {
-        if (!navigator.geolocation) {
-            toast.error('Geolocation is not supported by your browser.')
-            return
-        }
-        setLocLoading(true)
-        navigator.geolocation.getCurrentPosition(
-            pos => {
-                setMapCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude })
-                if (!deliveryAddress) setDeliveryAddress('Current location')
-                setLocLoading(false)
-            },
-            () => {
-                toast.error('Could not detect location. Please pin it on the map.')
-                setLocLoading(false)
-            },
-            { timeout: 8000 }
-        )
-    }
+
 
     // Phone blur → look up returning customer
     const handlePhoneBlur = async () => {
@@ -267,7 +242,7 @@ export default function CheckoutPage() {
         setPlacing(true)
 
         try {
-            const branch = branches.find((b: any) => b.id === selectedBranchId) ?? branches[0]
+            const branch = branches.find((b) => b.id === selectedBranchId) ?? branches[0]
             if (!branch) throw new Error('No branch selected. Please go back and choose a branch.')
 
             // Minimum order check
@@ -382,9 +357,10 @@ export default function CheckoutPage() {
                 }, 1800)
             }, 800)
 
-        } catch (err: any) {
+        } catch (err) {
+            const error = err as Error
             console.error('Order failed:', err)
-            toast.error(err?.message || 'Something went wrong. Please try again.')
+            toast.error(error.message || 'Something went wrong. Please try again.')
             setPlacing(false)
         }
     }
@@ -410,7 +386,7 @@ export default function CheckoutPage() {
         if (orderType !== 'delivery') return 'N/A'
         if (!mapCoords) return 'Pin location to calculate'
         if (outOfRange) return `Out of range (>${MAX_DELIVERY_KM}km)`
-        if (deliveryFee === null) return 'Calculating…'
+        if (deliveryFee === null) return 'Calculating&hellip;'
         if (deliveryFee === 0) return 'Free'
         return formatPrice(deliveryFee)
     }
@@ -459,7 +435,7 @@ export default function CheckoutPage() {
                                 {lookingUp && (
                                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                                         <div className="w-4 h-4 border-2 border-[var(--green-base)] border-t-transparent rounded-full animate-spin" />
-                                        <span className="text-[11px] text-[var(--stone)]">Looking up...</span>
+                                        <span className="text-[11px] text-[var(--stone)]">Looking up&hellip;</span>
                                     </div>
                                 )}
                             </div>
@@ -643,7 +619,7 @@ export default function CheckoutPage() {
                             <div className="space-y-3">
                                 <p className="text-[13px] font-[600] text-[var(--charcoal)]">Select Branch</p>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {branches.map((b: any) => (
+                                    {branches.map((b) => (
                                         <button
                                             key={b.id} type="button"
                                             onClick={() => setSelectedBranchId(b.id)}
@@ -789,7 +765,7 @@ export default function CheckoutPage() {
                         </div>
                         <h2 className="text-[26px] font-display font-[700] text-[var(--charcoal)]">Order Placed!</h2>
                         <p className="text-[15px] text-[var(--stone)] max-w-sm leading-relaxed">
-                            Your order has been saved. Opening WhatsApp to confirm with the branch…
+                            Your order has been saved. Opening WhatsApp to confirm with the branch&hellip;
                         </p>
                         <div className="pt-4">
                             <div className="w-6 h-6 border-[3px] border-[var(--linen)] border-t-[var(--green-base)] rounded-full animate-spin mx-auto" />
@@ -907,7 +883,7 @@ export default function CheckoutPage() {
                                             className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
                                         >
                                             {placing
-                                                ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Processing…</>
+                                                ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Processing&hellip;</>
                                                 : 'Place Order →'
                                             }
                                         </button>
@@ -992,7 +968,7 @@ export default function CheckoutPage() {
                                 className="w-full btn-primary !py-4 text-[14px] disabled:opacity-40 flex items-center justify-center gap-2"
                             >
                                 {placing
-                                    ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Placing…</>
+                                    ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Placing&hellip;</>
                                     : 'Place Order →'
                                 }
                             </button>

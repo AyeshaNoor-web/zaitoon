@@ -1,15 +1,15 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
-import { motion, useMotionValue, useTransform, animate, AnimatePresence } from 'framer-motion'
+import { useState, useEffect } from 'react'
+import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { Copy, Share2, Star, ShoppingCart, Users, ChevronRight } from 'lucide-react'
+import { Copy, Share2, Star, ShoppingCart, Users } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { getCustomerByPhone, getLoyaltyHistory } from '@/lib/api/customers'
 import { useAuthStore } from '@/store/useAuthStore'
 import { TIERS, getTier } from '@/lib/loyalty'
-import type { LoyaltyTier } from '@/types'
+import type { LoyaltyTier, Customer, LoyaltyTransaction } from '@/types'
 
 const TIER_PERKS: Record<LoyaltyTier, string> = {
     bronze: '1 pt per Rs.100 spent',
@@ -34,8 +34,8 @@ function AnimatedCount({ to }: { to: number }) {
 
 export default function LoyaltyPage() {
     const { customer } = useAuthStore()
-    const [loyaltyData, setLoyaltyData] = useState<any>(null)
-    const [history, setHistory] = useState<any[]>([])
+    const [loyaltyData, setLoyaltyData] = useState<Customer | null>(null)
+    const [history, setHistory] = useState<LoyaltyTransaction[]>([])
 
     useEffect(() => {
         if (!customer?.phone) return
@@ -43,8 +43,8 @@ export default function LoyaltyPage() {
             getCustomerByPhone(customer.phone),
             getLoyaltyHistory(customer.id),
         ]).then(([cust, hist]) => {
-            setLoyaltyData(cust)
-            setHistory(hist)
+            setLoyaltyData(cust as Customer)
+            setHistory(hist as LoyaltyTransaction[])
         })
     }, [customer])
 
@@ -236,7 +236,7 @@ export default function LoyaltyPage() {
                     )}
                     {!nextCfg && (
                         <p className="text-[13px] text-center mt-8 font-[600]" style={{ color: 'var(--orange-warm)' }}>
-                            💎 You've reached the highest tier — Platinum!
+                            💎 You&apos;ve reached the highest tier &mdash; Platinum!
                         </p>
                     )}
                 </motion.div>
@@ -372,7 +372,7 @@ export default function LoyaltyPage() {
                                     <Copy className="w-4 h-4" /> Copy Link
                                 </button>
                                 <a
-                                    href={`https://wa.me/?text=${encodeURIComponent(`🌿 Try Zaitoon — Lahore's best shawarma!\nUse my referral link and we BOTH get 50 loyalty points:\n${referralUrl}`)}`}
+                                    href={`https://wa.me/?text=${encodeURIComponent(`🌿 Try Zaitoon &mdash; Lahore's best shawarma!\nUse my referral link and we BOTH get 50 loyalty points:\n${referralUrl}`)}`}
                                     target="_blank" rel="noopener noreferrer"
                                     className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[10px] text-[13px] font-[700] text-white transition-all hover:-translate-y-0.5"
                                     style={{
@@ -418,7 +418,7 @@ export default function LoyaltyPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {history.map((row: any, i: number) => (
+                                {history.map((row, i) => (
                                     <motion.tr
                                         key={row.id}
                                         initial={{ opacity: 0, x: -12 }}

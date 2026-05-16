@@ -8,7 +8,7 @@ export function ClientLocalizationWrapper({ children }: { children: React.ReactN
     const [mounted, setMounted] = useState(false)
 
     useEffect(() => {
-        setMounted(true)
+        requestAnimationFrame(() => setMounted(true))
         // Set HTML attributes
         document.documentElement.lang = language
         document.documentElement.dir = isRTL ? 'rtl' : 'ltr'

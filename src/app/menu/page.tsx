@@ -12,13 +12,13 @@ import { getMenuItems, getCategories } from "@/lib/api/menu";
 import { BBQ_ACCOMPANIMENTS } from "@/lib/mock/data";
 import { useLanguageStore } from "@/store/useLanguageStore";
 import { translations } from "@/lib/translations";
-import type { ItemTag, MenuItem } from "@/types";
+import type { ItemTag, MenuItem, Category } from "@/types";
 import { useCartStore } from "@/store/useCartStore";
 import { formatPrice } from "@/lib/payment";
 
 type SortOption = "default" | "price-asc" | "price-desc" | "rating";
 type FilterTag = "all" | ItemTag;
-type MenuCategory = { id: string; label: string; icon?: string };
+
 
 export default function MenuPage() {
   const router = useRouter();
@@ -38,7 +38,7 @@ export default function MenuPage() {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterTag>("all");
   const [sort, setSort] = useState<SortOption>("default");
-  const [categories, setCategories] = useState<MenuCategory[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [allItems, setAllItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -365,8 +365,8 @@ export default function MenuPage() {
                       {isBBQSection && !search && (() => {
                         // Collect unique non-empty accompaniments from items in this section
                         const perItemAccompaniments = items
-                          .filter(i => (i as any).accompaniments)
-                          .map(i => (i as any).accompaniments as string)
+                          .filter(i => i.accompaniments)
+                          .map(i => i.accompaniments as string)
                         // Show first non-empty accompaniments found, or the global fallback
                         const accompanimentText = perItemAccompaniments[0] ?? BBQ_ACCOMPANIMENTS
                         return (

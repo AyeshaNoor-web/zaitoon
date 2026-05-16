@@ -14,6 +14,7 @@ import { translations } from '@/lib/translations'
 import { MessageCircle } from 'lucide-react'
 import LocationModal from '@/components/LocationModal'
 import { User, Star, Languages, ChevronRight } from 'lucide-react'
+import { DarkModeToggle } from '@/components/dark-mode-toggle'
 export default function Navbar() {
     const [drawerOpen, setDrawerOpen] = useState(false)
     const [cartOpen, setCartOpen] = useState(false)
@@ -33,6 +34,7 @@ export default function Navbar() {
 
     const NAV_LINKS = [
         { label: t.menu, href: '/menu' },
+        { label: t.ourStory, href: '/about' },
         { label: t.branches, href: '/#branches' },
         { label: t.trackOrder, href: '/order' },
         { label: t.loyalty, href: '/loyalty' },
@@ -53,7 +55,7 @@ export default function Navbar() {
     }, [isAuthenticated, mounted, refreshCustomer, customer?.phone])
 
     useEffect(() => {
-        setMounted(true)
+        requestAnimationFrame(() => setMounted(true))
     }, [])
 
     useEffect(() => {
@@ -64,7 +66,7 @@ export default function Navbar() {
 
     useEffect(() => {
         if (itemCount > prevCount.current) {
-            setBadgeBounce(true)
+            requestAnimationFrame(() => setBadgeBounce(true))
             setTimeout(() => setBadgeBounce(false), 550)
         }
         prevCount.current = itemCount
@@ -95,7 +97,7 @@ export default function Navbar() {
             <nav aria-label="Main navigation" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
 
                 {/* Logo */}
-                <Link href="/" aria-label="Zaitoon — go to homepage" className="shrink-0 flex items-center h-full">
+                <Link href="/" aria-label="Zaitoon &mdash; go to homepage" className="shrink-0 flex items-center h-full">
                     <Image src="/logo-en.png" alt="Zaitoon logo" width={164} height={46} priority style={{ mixBlendMode: 'screen', height: '42px', width: 'auto' }} />
                 </Link>
 
@@ -164,6 +166,8 @@ export default function Navbar() {
                     >
                         {language === 'en' ? 'اردو' : 'EN'}
                     </button>
+                    <DarkModeToggle className="w-[38px] h-[38px] border border-[rgba(251,246,246,0.35)] text-[var(--cream)] hover:bg-[rgba(251,246,246,0.18)]" />
+
 
                     {mounted && isAuthenticated && customer && (
                         <div className="relative" ref={dropdownRef}>

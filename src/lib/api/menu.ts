@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabase/client'
+import type { MenuItem, Category, MenuItemVariant } from '@/types'
 
 const supabase = createClient()
 
 // ── Categories ──────────────────────────────────────────────────────────────
 
-export async function getCategories() {
+export async function getCategories(): Promise<Category[]> {
     const { data, error } = await supabase
         .from('categories')
         .select('*')
@@ -12,12 +13,12 @@ export async function getCategories() {
         .order('display_order')
 
     if (error) throw error
-    return data
+    return (data || []) as Category[]
 }
 
 // ── Menu Items ───────────────────────────────────────────────────────────────
 
-export async function getMenuItems(categoryId?: string) {
+export async function getMenuItems(categoryId?: string): Promise<MenuItem[]> {
     let query = supabase
         .from('menu_items')
         .select(`*, categories(label, icon), item_variants(id, label, price, display_order)`)
@@ -30,21 +31,21 @@ export async function getMenuItems(categoryId?: string) {
 
     const { data, error } = await query
     if (error) throw error
-    return data
+    return (data || []) as MenuItem[]
 }
 
 // Admin-facing — all items including unavailable ones
-export async function getAllMenuItemsAdmin() {
+export async function getAllMenuItemsAdmin(): Promise<MenuItem[]> {
     const { data, error } = await supabase
         .from('menu_items')
         .select(`*, categories(label, icon), item_variants(id, label, price, display_order)`)
         .order('display_order')
 
     if (error) throw error
-    return data
+    return (data || []) as MenuItem[]
 }
 
-export async function getMenuItemById(id: string) {
+export async function getMenuItemById(id: string): Promise<MenuItem | null> {
     const { data, error } = await supabase
         .from('menu_items')
         .select('*')
@@ -52,7 +53,7 @@ export async function getMenuItemById(id: string) {
         .single()
 
     if (error) throw error
-    return data
+    return data as MenuItem | null
 }
 
 export async function searchMenuItems(query: string) {
@@ -142,14 +143,14 @@ export async function deleteCategory(id: string) {
 
 // ── Item Variants ───────────────────────────────────────────────────────────
 
-export async function getItemVariants(menuItemId: string) {
+export async function getItemVariants(menuItemId: string): Promise<MenuItemVariant[]> {
     const { data, error } = await supabase
         .from('item_variants')
         .select('*')
         .eq('menu_item_id', menuItemId)
         .order('display_order')
     if (error) throw error
-    return data ?? []
+    return (data || []) as MenuItemVariant[]
 }
 
 export async function upsertItemVariants(
@@ -185,7 +186,7 @@ export async function getSiteContent(): Promise<Record<string, string>> {
         .select('key, value')
     if (error) throw error
     const map: Record<string, string> = {}
-    ;(data ?? []).forEach((row: any) => { map[row.key] = row.value })
+    ;(data ?? []).forEach((row: { key: string, value: string }) => { map[row.key] = row.value })
     return map
 }
 

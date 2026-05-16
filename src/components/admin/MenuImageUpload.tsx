@@ -49,8 +49,9 @@ export default function MenuImageUpload({
 
       setPreview(data.imageUrl)
       onImageUpdated(data.imageUrl)
-    } catch (err: any) {
-      setError(err.message || 'Upload failed')
+    } catch (err) {
+      const error = err as Error
+      setError(error.message || 'Upload failed')
       setPreview(currentImageUrl)  // revert preview
     } finally {
       setUploading(false)
@@ -72,8 +73,9 @@ export default function MenuImageUpload({
       if (!res.ok) throw new Error(data.error)
       setPreview(null)
       onImageUpdated(null)
-    } catch (err: any) {
-      setError(err.message || 'Delete failed')
+    } catch (err) {
+      const error = err as Error
+      setError(error.message || 'Delete failed')
     } finally {
       setDeleting(false)
     }

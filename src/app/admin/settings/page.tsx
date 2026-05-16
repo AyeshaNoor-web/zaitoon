@@ -67,7 +67,8 @@ export default function AdminSettingsPage() {
     const [loadError, setLoadError] = useState<string | null>(null)
 
     // ── Branch state ──────────────────────────────────────────
-    const [branches, setBranches] = useState<any[]>([])
+    interface Branch { id: string; name: string; address: string; phone: string | null; whatsapp: string | null; hours: string | null }
+    const [branches, setBranches] = useState<Branch[]>([])
     const [branchEdits, setBranchEdits] = useState<Record<string, { phone: string; whatsapp: string; hours: string }>>({})
 
     // ── Delivery settings ─────────────────────────────────────
@@ -86,9 +87,9 @@ export default function AdminSettingsPage() {
                 // Branches
                 const { data: bData } = await supabase.from('branches').select('*').order('name')
                 if (bData) {
-                    setBranches(bData)
+                    setBranches(bData as Branch[])
                     const edits: typeof branchEdits = {}
-                    bData.forEach((b: any) => {
+                    bData.forEach((b) => {
                         edits[b.id] = {
                             phone: b.phone ?? '',
                             whatsapp: b.whatsapp ?? '',
@@ -102,7 +103,7 @@ export default function AdminSettingsPage() {
                 const { data: sData } = await supabase.from('settings').select('key,value')
                 if (sData) {
                     const map: Record<string, string> = {}
-                    sData.forEach((row: any) => { map[row.key] = row.value })
+                    sData.forEach((row) => { map[row.key] = row.value })
                     if (map.delivery_fee_per_km) setFeePerKm(map.delivery_fee_per_km)
                     if (map.min_delivery_fee) setMinFee(map.min_delivery_fee)
                     if (map.max_delivery_km) setMaxKm(map.max_delivery_km)
@@ -144,9 +145,10 @@ export default function AdminSettingsPage() {
 
             setSaved(true)
             setTimeout(() => setSaved(false), 3000)
-        } catch (err: any) {
-            console.error(err)
-            alert('Save failed: ' + (err?.message ?? 'Unknown error'))
+        } catch (err) {
+            const error = err as Error
+            console.error(error)
+            alert('Save failed: ' + error.message)
         } finally {
             setSaving(false)
         }
@@ -177,7 +179,7 @@ export default function AdminSettingsPage() {
                         style={{ backgroundColor: saved ? '#15803D' : '#1B4332', color: '#fff' }}
                     >
                         <Save className="w-4 h-4" />
-                        {saving ? 'Saving…' : saved ? '✓ Saved!' : 'Save All'}
+                        {saving ? 'Saving...' : saved ? '✓ Saved!' : 'Save All'}
                     </button>
                 </div>
 
@@ -190,7 +192,7 @@ export default function AdminSettingsPage() {
                 {/* ── A) Branch Info ───────────────────────────────────── */}
                 <Section icon={<Store className="w-5 h-5 text-[#C9920A]" />} title="Branch Info">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {branches.map((b: any) => {
+                        {branches.map((b) => {
                             const edit = branchEdits[b.id] ?? { phone: '', whatsapp: '', hours: '' }
                             return (
                                 <div key={b.id} className="p-5 rounded-2xl bg-[#FAF6EF] border border-[#E7E0D8] space-y-4">
@@ -268,7 +270,7 @@ export default function AdminSettingsPage() {
                             <span className="text-xl shrink-0">⚠️</span>
                             <div>
                                 <p className="font-bold mb-1">Going live?</p>
-                                <p>Change <code className="bg-amber-100 px-1 rounded">http://localhost:3000</code> to <code className="bg-amber-100 px-1 rounded">https://zaitoon.pk</code> before deploying to production. Referral links won't work correctly until you do.</p>
+                                <p>Change <code className="bg-amber-100 px-1 rounded">http://localhost:3000</code> to <code className="bg-amber-100 px-1 rounded">https://zaitoon.pk</code> before deploying to production. Referral links won&apos;t work correctly until you do.</p>
                             </div>
                         </div>
                     </div>
@@ -325,7 +327,7 @@ export default function AdminSettingsPage() {
                         style={{ backgroundColor: saved ? '#15803D' : '#1B4332', color: '#fff' }}
                     >
                         <Save className="w-4 h-4" />
-                        {saving ? 'Saving…' : saved ? '✓ All changes saved!' : 'Save All Changes'}
+                        {saving ? 'Saving...' : saved ? '✓ All changes saved!' : 'Save All Changes'}
                     </button>
                 </div>
 

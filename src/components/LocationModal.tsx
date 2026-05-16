@@ -6,6 +6,7 @@ import { MapPin, Navigation, X, Pencil, CheckCircle2, AlertTriangle, Search, Loa
 import { getBranches } from '@/lib/api/branches'
 import { haversineDistance, calculateDeliveryFee, MAX_DELIVERY_KM } from '@/lib/distance'
 import { useLocationStore } from '@/store/useLocationStore'
+import { Branch } from '@/types'
 
 const LeafletCheckoutMap = dynamic(
     () => import('@/components/map/LeafletCheckoutMap'),
@@ -65,7 +66,7 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
     // Manual entry state
     const [manualAddress, setManualAddress] = useState('')
     const [manualCoords, setManualCoords] = useState<{ lat: number; lng: number } | null>(null)
-    const [manualBranches, setManualBranches] = useState<any[]>([])
+    const [manualBranches, setManualBranches] = useState<Branch[]>([])
     const [manualFee, setManualFee] = useState<{ distanceKm: number; fee: number | null; outOfRange: boolean } | null>(null)
     const [confirming, setConfirming] = useState(false)
 
@@ -143,9 +144,10 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                 address: result.address,
             })
             setTimeout(() => dismiss(), 2400)
-        } catch (err: any) {
-            if (err?.code === 1) setError('Location access denied. Use "Enter Address Manually" instead.')
-            else if (err?.code === 3) setError('Location timed out. Try again or enter address manually.')
+        } catch (err) {
+            const geoErr = err as GeolocationPositionError
+            if (geoErr.code === 1) setError('Location access denied. Use "Enter Address Manually" instead.')
+            else if (geoErr.code === 3) setError('Location timed out. Try again or enter address manually.')
             else setError('Could not detect location. Please enter address manually.')
             setMode('pick')
         } finally {
@@ -188,11 +190,10 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
     // Recalc fee when pin moves in manual mode
     useEffect(() => {
         if (!manualCoords || manualBranches.length === 0) return
-        let nearest = manualBranches[0]
         let minDist = haversineDistance(manualCoords.lat, manualCoords.lng, manualBranches[0].lat, manualBranches[0].lng)
         manualBranches.forEach(b => {
             const d = haversineDistance(manualCoords.lat, manualCoords.lng, b.lat, b.lng)
-            if (d < minDist) { minDist = d; nearest = b }
+            if (d < minDist) { minDist = d }
         })
         const distKm = Math.round(minDist * 10) / 10
         const feeResult = calculateDeliveryFee(minDist)
@@ -319,18 +320,18 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                                 <span>Outside delivery range ({confirmed.distanceKm} km). Takeaway only.</span>
                                             </div>
                                         )}
-                                        <p className="text-[11px] pt-1" style={{ color: 'var(--stone)', opacity: 0.5 }}>Closing automatically…</p>
+                                        <p className="text-[11px] pt-1" style={{ color: 'var(--stone)', opacity: 0.5 }}>Closing automatically&hellip;</p>
                                     </div>
 
                                 ) : mode === 'gps' ? (
                                     /* ── GPS DETECTING ── */
                                     <div className="text-center space-y-4">
-                                        <h2 className="font-display text-[20px] font-[700]" style={{ color: 'var(--charcoal)' }}>Detecting Location…</h2>
+                                        <h2 className="font-display text-[20px] font-[700]" style={{ color: 'var(--charcoal)' }}>Detecting Location&hellip;</h2>
                                         {detecting ? (
                                             <div className="flex flex-col items-center gap-4">
                                                 <div className="w-12 h-12 rounded-full border-[3px] border-t-transparent animate-spin"
                                                     style={{ borderColor: 'var(--green-base)', borderTopColor: 'transparent' }} />
-                                                <p className="text-[14px]" style={{ color: 'var(--stone)' }}>Waiting for GPS signal…</p>
+                                                <p className="text-[14px]" style={{ color: 'var(--stone)' }}>Waiting for GPS signal&hellip;</p>
                                             </div>
                                         ) : error ? (
                                             <div className="space-y-3">
@@ -465,7 +466,7 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                                     boxShadow: '0 4px 14px rgba(76,92,45,0.30)'
                                                 }}
                                             >
-                                                {confirming ? 'Saving…' : 'Confirm Location'}
+                                                {confirming ? 'Saving&hellip;' : 'Confirm Location'}
                                             </button>
                                         </div>
                                     </div>

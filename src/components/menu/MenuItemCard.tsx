@@ -30,16 +30,15 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
     const { items, updateQuantity } = useCartStore()
     const [showAddOns, setShowAddOns] = useState(false)
     const [isHovered, setIsHovered] = useState(false)
-
-    const hasSizes = item.hasSizes ?? (item as any).has_sizes ?? false
-    const isAvailableRaw = item.isAvailable ?? (item as any).is_available
-    // Read large price from either camelCase (mock data) or snake_case (DB)
-    const priceL = item.priceL ?? item.price_large ?? (item as any).price_large ?? null
-    const prepTime = item.prepTime ?? (item as any).prep_time ?? null
-    const priceOnRequest = item.priceOnRequest ?? (item as any).price_on_request ?? false
+    
+    const hasSizes = item.hasSizes ?? item.has_sizes ?? false
+    const isAvailableRaw = item.isAvailable ?? item.is_available
+    const priceL = item.priceL ?? item.price_large ?? null
+    const prepTime = item.prepTime ?? item.prep_time ?? null
+    const priceOnRequest = item.priceOnRequest ?? item.price_on_request ?? false
     const tags: string[] = (item.tags ?? []) as string[]
-    // Badge: prefer explicit badge field from DB, fall back to first tag match
-    const dbBadge: string | null = (item as any).badge ?? null
+
+    const dbBadge: string | null = item.badge ?? null
 
     const sizeKey = hasSizes ? selectedSize : 'default'
     const variantKey = selectedVariantId ? `-${selectedVariantId}` : ''
@@ -317,7 +316,7 @@ export default function MenuItemCard({ item }: { item: MenuItem }) {
                             unitPrice: displayPrice ?? 0,
                             quantity: 1,
                             imageUrl: item.image_url ?? null,
-                            categoryLabel: (item as any).categories?.label ?? item.category ?? '',
+                            categoryLabel: item.categories?.label ?? item.category ?? '',
                         }}
                         onClose={() => setShowAddOns(false)}
                     />

@@ -16,12 +16,20 @@ export interface Branch {
     is_active?: boolean
 }
 
-export interface ItemVariant {
+export interface MenuItemVariant {
     id: string
     menu_item_id: string
     label: string
     price: number
     display_order: number
+}
+
+export interface Category {
+    id: string
+    label: string
+    icon: string | null
+    display_order: number
+    is_active?: boolean
 }
 
 export interface MenuItem {
@@ -48,7 +56,7 @@ export interface MenuItem {
     display_order?: number
     categories?: { label: string; icon: string }
     // Variants / Options (e.g. Chicken Rs.850, Beef Rs.950)
-    item_variants?: ItemVariant[]
+    item_variants?: MenuItemVariant[]
     // Legacy camelCase used by MenuItemCard
     isAvailable?: boolean
     hasSizes?: boolean
@@ -77,7 +85,7 @@ export interface Order {
     payment_method: PaymentMethod
     created_at: string
     updated_at: string
-    branches?: Branch
+    branches?: Branch // Joined branch details
     order_items?: OrderItem[]
 }
 
@@ -123,8 +131,8 @@ export interface CustomerLocation {
 
 export interface LoyaltyTransaction {
     id: string
-    date: Date
+    created_at: string
     description: string
     points: number
-    type: 'earned' | 'redeemed'
+    type: 'earned' | 'redeemed' | 'bonus'
 }

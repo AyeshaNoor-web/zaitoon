@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/client'
-import type { CartItem } from '@/types'
+import type { CartItem, Order } from '@/types'
 
 const supabase = createClient()
 
@@ -23,7 +23,7 @@ export interface CreateOrderPayload {
     notes?: string
 }
 
-export async function createOrder(payload: CreateOrderPayload) {
+export async function createOrder(payload: CreateOrderPayload): Promise<Order> {
     // 1. Create the order record
     const { data: order, error: orderError } = await supabase
         .from('orders')
@@ -69,10 +69,10 @@ export async function createOrder(payload: CreateOrderPayload) {
 
     if (itemsError) throw itemsError
 
-    return order
+    return order as Order
 }
 
-export async function getOrderById(orderId: string) {
+export async function getOrderById(orderId: string): Promise<Order | null> {
     const { data, error } = await supabase
         .from('orders')
         .select(`
@@ -84,10 +84,10 @@ export async function getOrderById(orderId: string) {
         .single()
 
     if (error) throw error
-    return data
+    return data as Order | null
 }
 
-export async function getOrderByNumber(orderNumber: string) {
+export async function getOrderByNumber(orderNumber: string): Promise<Order | null> {
     const { data, error } = await supabase
         .from('orders')
         .select(`
@@ -99,7 +99,7 @@ export async function getOrderByNumber(orderNumber: string) {
         .single()
 
     if (error) throw error
-    return data
+    return data as Order | null
 }
 
 export async function updateOrderStatus(orderId: string, status: string) {
@@ -117,7 +117,7 @@ export async function updateOrderStatus(orderId: string, status: string) {
 }
 
 // Admin — get all orders with pagination
-export async function getAllOrders(page = 1, limit = 30) {
+export async function getAllOrders(page = 1, limit = 30): Promise<{ orders: Order[]; total: number }> {
     const from = (page - 1) * limit
     const { data, error, count } = await supabase
         .from('orders')
@@ -130,34 +130,34 @@ export async function getAllOrders(page = 1, limit = 30) {
         .range(from, from + limit - 1)
 
     if (error) throw error
-    return { orders: data ?? [], total: count ?? 0 }
+    return { orders: (data as Order[]) ?? [], total: count ?? 0 }
 }
 
 // Realtime subscription for order status
-export function subscribeToOrder(orderId: string, callback: (order: any) => void) {
+export function subscribeToOrder(orderId: string, callback: (order: Order) => void) {
     return supabase
         .channel(`order-${orderId}`)
         .on(
             'postgres_changes',
             { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${orderId}` },
-            payload => callback(payload.new)
+            payload => callback(payload.new as Order)
         )
         .subscribe()
 }
 
 // Realtime subscription for admin (new orders + status updates)
-export function subscribeToAllOrders(callback: (order: any) => void) {
+export function subscribeToAllOrders(callback: (order: Order) => void) {
     return supabase
         .channel('all-orders')
         .on(
             'postgres_changes',
             { event: 'INSERT', schema: 'public', table: 'orders' },
-            payload => callback(payload.new)
+            payload => callback(payload.new as Order)
         )
         .on(
             'postgres_changes',
             { event: 'UPDATE', schema: 'public', table: 'orders' },
-            payload => callback(payload.new)
+            payload => callback(payload.new as Order)
         )
         .subscribe()
 }

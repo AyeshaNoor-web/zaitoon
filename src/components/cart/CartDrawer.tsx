@@ -159,9 +159,9 @@ export default function CartDrawer({ open, onClose }: Props) {
                                                             </div>
                                                         )}
                                                         {/* Add-ons summary */}
-                                                        {(item as any).addOns && (item as any).addOns.length > 0 && (
+                                                        {item.addOns && item.addOns.length > 0 && (
                                                             <div className="text-[11px] mt-1" style={{ color: 'rgba(250,243,224,0.75)' }}>
-                                                                + {(item as any).addOns.map((a: any) => a.name).join(', ')}
+                                                                + {item.addOns.map((a) => a.name).join(', ')}
                                                             </div>
                                                         )}
                                                     </div>

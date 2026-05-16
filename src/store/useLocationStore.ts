@@ -57,7 +57,7 @@ export const useLocationStore = create<LocationState>()(
       name:    'zaitoon-location',        // localStorage key
       storage: createJSONStorage(() => localStorage),
       // Only persist these fields — not the functions
-      partialize: (state) => ({
+      partialize: (state: LocationState) => ({
         coords:            state.coords,
         nearestBranchId:   state.nearestBranchId,
         nearestBranchName: state.nearestBranchName,

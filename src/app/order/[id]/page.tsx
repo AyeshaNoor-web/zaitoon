@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -11,11 +11,12 @@ import { hasCustomerReviewed } from '@/lib/api/reviews'
 import { buildWhatsAppURL } from '@/lib/whatsapp'
 import { formatPrice } from '@/lib/payment'
 import { useAuthStore } from '@/store/useAuthStore'
+import type { Order, OrderItem } from '@/types'
 
 const STATUSES = ['pending', 'confirmed', 'preparing', 'out_for_delivery', 'delivered'] as const
 
 const STATUS_LABELS: Record<string, { label: string; desc: string }> = {
-    pending: { label: 'Order Placed', desc: 'We received your order — thank you!' },
+    pending: { label: 'Order Placed', desc: 'We received your order &mdash; thank you!' },
     confirmed: { label: 'Confirmed', desc: 'Restaurant confirmed your order ✅' },
     preparing: { label: 'Preparing', desc: 'Chef is preparing your food 🔥' },
     out_for_delivery: { label: 'Out for Delivery', desc: 'Rider is on the way! 🛵' },
@@ -27,7 +28,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
     const { id } = use(params)
     const { customer, isAuthenticated } = useAuthStore()
 
-    const [order, setOrder] = useState<any>(null)
+    const [order, setOrder] = useState<Order | null>(null)
     const [loading, setLoading] = useState(true)
     const [notFound, setNotFound] = useState(false)
     const [statusIdx, setStatusIdx] = useState(0)
@@ -41,8 +42,9 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
         const fetchOrder = async () => {
             try {
                 const data = await getOrderByNumber(id)
+                if (!data) return
                 setOrder(data)
-                setStatusIdx(Math.max(0, STATUSES.indexOf(data.status as any)))
+                setStatusIdx(Math.max(0, STATUSES.indexOf(data.status as typeof STATUSES[number])))
 
                 // Subscribe to realtime status changes
                 // IMPORTANT: callback re-fetches the full order (with joins) instead of
@@ -50,8 +52,9 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                 channel = subscribeToOrder(data.id, async () => {
                     try {
                         const refreshed = await getOrderByNumber(id)
+                        if (!refreshed) return
                         setOrder(refreshed)
-                        setStatusIdx(Math.max(0, STATUSES.indexOf(refreshed.status as any)))
+                        setStatusIdx(Math.max(0, STATUSES.indexOf(refreshed.status as typeof STATUSES[number])))
                     } catch { /* ignore */ }
                 })
             } catch {
@@ -88,7 +91,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
             <main role="main" className="min-h-screen bg-[#0D2015] pt-[120px] pb-16 px-4 flex items-center justify-center">
                 <div role="status" aria-busy="true" className="flex flex-col items-center gap-4">
                     <div className="w-10 h-10 border-[3px] border-[var(--orange-warm)] border-t-transparent rounded-full animate-spin" />
-                    <p className="font-[600] text-[var(--orange-pale)]">Loading order details…</p>
+                    <p className="font-[600] text-[var(--orange-pale)]">Loading order details&hellip;</p>
                 </div>
             </main>
             <Footer />
@@ -119,7 +122,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
     )
 
     // ── Data ──────────────────────────────────────────────────
-    const branch = order.branches ?? {}
+    const branch = order.branches
     const progressPct = STATUSES.length <= 1 ? 0 : (statusIdx / (STATUSES.length - 1)) * 100
 
     // Build WhatsApp URL only if branch has a whatsapp number
@@ -131,7 +134,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
             orderType: order.order_type,
             deliveryAddress: order.delivery_address ?? undefined,
             branchName: branch.name ?? 'Zaitoon',
-            items: (order.order_items ?? []).map((i: any) => ({
+            items: (order.order_items ?? []).map((i: OrderItem) => ({
                 name: i.name,
                 size: i.size ?? null,
                 quantity: i.quantity,
@@ -296,7 +299,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                         </h2>
 
                         <ul role="list" aria-label="Items ordered" className="space-y-3 mb-4">
-                            {(order.order_items ?? []).map((item: any) => (
+                            {(order.order_items ?? []).map((item: OrderItem) => (
                                 <li key={item.id} className="flex justify-between items-start text-[14px]">
                                     <div className="flex gap-2">
                                         <span className="font-[600]" style={{ color: 'rgba(253,248,240,0.8)' }}>{item.quantity}×</span>
@@ -368,7 +371,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                                     How was your meal? ⭐
                                 </p>
                                 <p className="text-[var(--orange-pale)]/90 text-[13px] mt-0.5">
-                                    Leave a review — earn <strong>20 pts</strong>!
+                                    Leave a review &mdash; earn <strong>20 pts</strong>!
                                 </p>
                             </div>
                             <button

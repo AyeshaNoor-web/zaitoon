@@ -13,6 +13,7 @@ export const translations = {
     orderNow: 'Order Now',
     whatsappUs: 'WhatsApp Us',
     itemsInCart: 'items in cart',
+    ourStory: 'Our Story',
 
     // Hero
     est: 'EST. 2018 · LAHORE, PAKISTAN',
@@ -118,6 +119,7 @@ export const translations = {
     orderNow: 'ابھی آرڈر کریں',
     whatsappUs: 'واٹس ایپ کریں',
     itemsInCart: 'اشیاء کارٹ میں',
+    ourStory: 'ہماری کہانی',
 
     // Hero
     est: 'قائم شدہ 2018 · لاہور، پاکستان',

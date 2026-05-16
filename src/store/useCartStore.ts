@@ -11,6 +11,7 @@ export interface CartItem {
     subtotal: number    // unitPrice × quantity — always recalculated, never stored separately
     imageUrl: string | null
     variantId?: string  // For items with variants
+    addOns?: { name: string; price: number }[]
 }
 
 interface CartStore {
@@ -103,7 +104,7 @@ export const useCartStore = create<CartStore>()(
         {
             name: 'zaitoon-cart',
             // Only persist items and branchId — not computed functions
-            partialize: (state) => ({
+            partialize: (state: CartStore) => ({
                 items: state.items,
                 branchId: state.branchId,
                 orderType: state.orderType,
