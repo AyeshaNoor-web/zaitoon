@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 import { motion, useScroll, useTransform, AnimatePresence, type Variants } from 'framer-motion'
-import { Clock, ChevronRight, Star, Rocket, MapPin, ShoppingBag, Truck, Phone, MessageCircle } from 'lucide-react'
+import { Clock, ChevronRight, Star, Rocket, MapPin, ShoppingBag, Truck, Phone, MessageCircle, Trophy, Users, Utensils, Leaf } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import MobileCartBar from '@/components/layout/MobileCartBar'
@@ -675,10 +675,10 @@ export default function HomePage() {
                 className="grid grid-cols-2 gap-4"
               >
                 {[
-                  { emoji: aboutContent['about_stat1_emoji'] || '🏆', value: aboutContent['about_stat1_value'] || '7+', label: aboutContent['about_stat1_label'] || 'Years of Excellence' },
-                  { emoji: aboutContent['about_stat2_emoji'] || '😊', value: aboutContent['about_stat2_value'] || '50,000+', label: aboutContent['about_stat2_label'] || 'Happy Customers' },
-                  { emoji: aboutContent['about_stat3_emoji'] || '🍽️', value: aboutContent['about_stat3_value'] || '80+', label: aboutContent['about_stat3_label'] || 'Menu Items' },
-                  { emoji: '🌿', value: '100%', label: 'Fresh Ingredients' },
+                  { icon: <Trophy className="w-8 h-8" />, value: aboutContent['about_stat1_value'] || '7+', label: aboutContent['about_stat1_label'] || 'Years of Excellence', color: '#F59E0B' },
+                  { icon: <Users className="w-8 h-8" />, value: aboutContent['about_stat2_value'] || '50,000+', label: aboutContent['about_stat2_label'] || 'Happy Customers', color: '#10B981' },
+                  { icon: <Utensils className="w-8 h-8" />, value: aboutContent['about_stat3_value'] || '80+', label: aboutContent['about_stat3_label'] || 'Menu Items', color: '#F43F5E' },
+                  { icon: <Leaf className="w-8 h-8" />, value: '100%', label: 'Fresh Ingredients', color: '#84CC16' },
                 ].map((s, i) => (
                   <motion.div
                     key={s.label}
@@ -686,14 +686,14 @@ export default function HomePage() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }}
-                    className="rounded-2xl p-6 text-center"
+                    className="rounded-2xl p-6 text-center flex flex-col items-center justify-center"
                     style={{
                       background: 'rgba(156,175,136,0.10)',
                       border: '1px solid rgba(156,175,136,0.22)',
                       backdropFilter: 'blur(12px)',
                     }}
                   >
-                    <div className="text-3xl mb-2">{s.emoji}</div>
+                    <div className="mb-3" style={{ color: s.color }}>{s.icon}</div>
                     <p className="text-2xl font-[800] text-white mb-1">{s.value}</p>
                     <p className="text-[11px] font-[600] uppercase tracking-wider" style={{ color: 'rgba(250,243,224,0.55)' }}>{s.label}</p>
                   </motion.div>

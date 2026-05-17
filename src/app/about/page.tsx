@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { MapPin, Phone, Mail, Clock, ChevronRight, Leaf, Heart, Star } from 'lucide-react'
+import { MapPin, Phone, Mail, Clock, ChevronRight, Leaf, Heart, Star, Trophy, Users, Utensils } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { getSiteContent } from '@/lib/api/menu'
@@ -29,19 +29,32 @@ export default async function AboutPage() {
 
     const stats = [
         {
-            emoji: cms['about_stat1_emoji'] || '🏆',
+            icon: <Trophy className="w-8 h-8" />,
             value: cms['about_stat1_value'] || `${new Date().getFullYear() - parseInt(founded) + 1}+`,
             label: cms['about_stat1_label'] || 'Years of Excellence',
+            color: '#B45309',
+            bg: 'rgba(180,83,9,0.1)'
         },
         {
-            emoji: cms['about_stat2_emoji'] || '😊',
+            icon: <Users className="w-8 h-8" />,
             value: cms['about_stat2_value'] || '50,000+',
             label: cms['about_stat2_label'] || 'Happy Customers',
+            color: '#2D6A4F',
+            bg: 'rgba(45,106,79,0.1)'
         },
         {
-            emoji: cms['about_stat3_emoji'] || '🍽️',
+            icon: <Utensils className="w-8 h-8" />,
             value: cms['about_stat3_value'] || '80+',
             label: cms['about_stat3_label'] || 'Menu Items',
+            color: '#9B2335',
+            bg: 'rgba(155,35,53,0.1)'
+        },
+        {
+            icon: <Leaf className="w-8 h-8" />,
+            value: '100%',
+            label: 'Fresh Ingredients',
+            color: '#1B4332',
+            bg: 'rgba(27,67,50,0.1)'
         },
     ]
 
@@ -86,15 +99,17 @@ export default async function AboutPage() {
 
                 {/* ── Stats ───────────────────────────────────────────────────── */}
                 <section className="max-w-5xl mx-auto px-6 -mt-8 z-20 relative">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         {stats.map((s) => (
                             <div
                                 key={s.label}
-                                className="bg-white rounded-3xl shadow-md p-8 text-center border border-[#E7E0D8]"
+                                className="bg-white rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] p-8 flex flex-col items-center text-center border border-[#E7E0D8] transition-transform hover:-translate-y-1 duration-300"
                             >
-                                <div className="text-4xl mb-3">{s.emoji}</div>
+                                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: s.bg, color: s.color }}>
+                                    {s.icon}
+                                </div>
                                 <p className="font-display text-3xl font-extrabold text-[#1B4332]">{s.value}</p>
-                                <p className="text-sm font-semibold text-[#47423D] mt-1">{s.label}</p>
+                                <p className="text-xs font-bold text-[#47423D] uppercase tracking-wider mt-2">{s.label}</p>
                             </div>
                         ))}
                     </div>
