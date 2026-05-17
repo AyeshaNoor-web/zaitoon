@@ -167,9 +167,6 @@ export default function Navbar() {
                         {language === 'en' ? 'اردو' : 'EN'}
                     </button>
 
-                    {/* Dark Mode Toggle */}
-                    <ThemeToggle />
-
                     {mounted && isAuthenticated && customer && (
                         <div className="relative" ref={dropdownRef}>
                             <button

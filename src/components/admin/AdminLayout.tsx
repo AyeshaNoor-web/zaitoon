@@ -98,9 +98,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <ArrowLeft className="w-4 h-4" /> Back to Application
                 </Link>
 
-                <div className="flex justify-center mt-4 pt-4 border-t border-[rgba(253,248,240,0.1)]">
-                    <ThemeToggle />
-                </div>
             </footer>
         </aside>
     )
@@ -123,7 +120,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <span className="font-display text-[18px] text-[var(--orange-pale)] font-[700]">Admin</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <ThemeToggle />
                     <button
                         onClick={handleLogout}
                         disabled={loggingOut}

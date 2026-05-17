@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Printer } from 'lucide-react'
 import AdminLayout from '@/components/admin/AdminLayout'
 import CreateOrderModal from '@/components/admin/CreateOrderModal'
 import { getAllOrders, updateOrderStatus, subscribeToAllOrders } from '@/lib/api/orders'
@@ -45,6 +46,7 @@ export default function AdminOrdersPage() {
     const [toast, setToast] = useState<ToastMsg | null>(null)
     const [activeTab, setActiveTab] = useState<string>('pending')
     const [showCreateModal, setShowCreateModal] = useState(false)
+    const [selectedPrintOrder, setSelectedPrintOrder] = useState<Order | null>(null)
     const isMobile = useIsMobile()
 
     // Keep a ref to latest orders so the realtime callback can merge correctly
@@ -190,9 +192,19 @@ export default function AdminOrdersPage() {
                 className="bg-white rounded-2xl p-4 text-xs space-y-2 shadow-sm border border-[#E7E0D8]"
             >
                 <div className="flex justify-between items-center">
-                    <span className="font-bold text-sm" style={{ color: colColor }}>
-                        #{order.order_number}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-sm" style={{ color: colColor }}>
+                            #{order.order_number}
+                        </span>
+                        <button
+                            onClick={() => setSelectedPrintOrder(order)}
+                            className="p-1 rounded-lg text-[#47423D] hover:bg-[#E7E0D8]/50 hover:text-[#1B4332] transition-colors flex items-center justify-center"
+                            title="Print Receipt"
+                            aria-label="Print receipt"
+                        >
+                            <Printer className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#FEF9EE] text-[#B45309] uppercase tracking-wider">
                         {order.order_type}
                     </span>
@@ -301,7 +313,13 @@ export default function AdminOrdersPage() {
                         <span className="font-medium text-[#F0B429]">💰 Revenue: <span className="font-bold">{formatPrice(revenue)}</span></span>
                         <span className="font-medium text-white/90">🔄 Active: <span className="text-white font-bold">{activeCount}</span></span>
                         <span className="font-medium text-white/90">✅ Delivered: <span className="text-white font-bold">{delivered.length}</span></span>
-                        <span className="md:ml-auto text-white/75 text-xs">🔴 Live updates</span>
+                        <span className="md:ml-auto flex items-center gap-1.5 text-white/75 text-xs font-semibold">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            Live updates
+                        </span>
                     </div>
 
                     <button
@@ -440,8 +458,18 @@ export default function AdminOrdersPage() {
                                             </div>
                                             <div className="space-y-3 min-h-[80px]">
                                                 {byStatus('cancelled').map(order => (
-                                                    <div key={order.id} className="bg-white rounded-2xl p-4 text-xs space-y-1 shadow-sm border border-red-100 opacity-60">
-                                                        <span className="font-bold text-sm text-red-600">#{order.order_number}</span>
+                                                    <div key={order.id} className="bg-white rounded-2xl p-4 text-xs space-y-1 shadow-sm border border-red-100 opacity-60 relative group">
+                                                        <div className="flex justify-between items-center">
+                                                            <span className="font-bold text-sm text-red-600">#{order.order_number}</span>
+                                                            <button
+                                                                onClick={() => setSelectedPrintOrder(order)}
+                                                                className="p-1 rounded-lg text-red-600 hover:bg-red-50 transition-colors flex items-center justify-center"
+                                                                title="Print Receipt"
+                                                                aria-label="Print receipt"
+                                                            >
+                                                                <Printer className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </div>
                                                         <p className="font-bold text-[#18181B]">{order.customer_name}</p>
                                                         <p className="text-[#47423D]">{formatPrice(order.total ?? 0)}</p>
                                                     </div>
@@ -480,6 +508,165 @@ export default function AdminOrdersPage() {
                     isOpen={showCreateModal} 
                     onClose={() => setShowCreateModal(false)} 
                 />
+
+                {/* ── Printable receipt modal ──────────────────────────── */}
+                <AnimatePresence>
+                    {selectedPrintOrder && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto print:p-0 print:bg-white print:static"
+                        >
+                            {/* Inject print-specific styles dynamically */}
+                            <style dangerouslySetInnerHTML={{ __html: `
+                                @media print {
+                                    body * {
+                                        visibility: hidden !important;
+                                    }
+                                    #print-receipt-portal, #print-receipt-portal * {
+                                        visibility: visible !important;
+                                    }
+                                    #print-receipt-portal {
+                                        position: absolute !important;
+                                        left: 0 !important;
+                                        top: 0 !important;
+                                        width: 100% !important;
+                                        max-width: 100% !important;
+                                        padding: 0 !important;
+                                        margin: 0 !important;
+                                        background: white !important;
+                                        color: black !important;
+                                        box-shadow: none !important;
+                                        border: none !important;
+                                    }
+                                }
+                            `}} />
+
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                                transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+                                className="bg-white rounded-3xl shadow-xl max-w-md w-full overflow-hidden border border-[#E7E0D8] flex flex-col my-8 print:hidden"
+                            >
+                                {/* Modal Header */}
+                                <div className="p-4 border-b border-[#E7E0D8] flex items-center justify-between bg-gradient-to-r from-[#1B4332] to-[#0A1F13] text-white">
+                                    <div className="flex items-center gap-2">
+                                        <Printer size={18} className="text-[#F0B429]" />
+                                        <span className="font-bold text-sm">Print Receipt</span>
+                                    </div>
+                                    <button
+                                        onClick={() => setSelectedPrintOrder(null)}
+                                        className="text-white/80 hover:text-white font-bold"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+
+                                {/* Print Preview Container */}
+                                <div className="p-6 bg-[#F9F6F0] flex-1 overflow-y-auto max-h-[70vh] flex justify-center">
+                                    <div
+                                        id="print-receipt-portal"
+                                        className="bg-white p-6 shadow-sm border border-[#E7E0D8] rounded-xl text-black font-mono text-[11px] space-y-4 max-w-[320px] w-full"
+                                    >
+                                        {/* Receipt details */}
+                                        <div className="text-center space-y-1">
+                                            <h2 className="text-base font-black tracking-wider text-[#1B4332] uppercase">ZAITOON</h2>
+                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Deliciously Yours</p>
+                                            <div className="border-b border-dashed border-gray-400 my-2" />
+                                        </div>
+
+                                        <div className="space-y-1">
+                                            <p><strong>Order No:</strong> #{selectedPrintOrder.order_number}</p>
+                                            <p><strong>Date:</strong> {new Date(selectedPrintOrder.created_at).toLocaleString('en-PK', { timeZone: 'Asia/Karachi' })}</p>
+                                            <p><strong>Type:</strong> {selectedPrintOrder.order_type.toUpperCase()}</p>
+                                            <p><strong>Customer:</strong> {selectedPrintOrder.customer_name}</p>
+                                            <p><strong>Phone:</strong> {selectedPrintOrder.customer_phone}</p>
+                                            {selectedPrintOrder.delivery_address && (
+                                                <p className="leading-tight"><strong>Address:</strong> {selectedPrintOrder.delivery_address}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="border-b border-dashed border-gray-400 my-2" />
+
+                                        {/* Items Table */}
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between font-bold text-[9px] text-gray-500 uppercase">
+                                                <span>Item</span>
+                                                <span className="text-right">Qty × Price</span>
+                                            </div>
+                                            <div className="border-b border-dashed border-gray-300 my-1" />
+                                            {selectedPrintOrder.order_items?.map((item, idx) => (
+                                                <div key={idx} className="flex justify-between items-start gap-2">
+                                                    <div className="flex-1">
+                                                        <span className="font-bold">{item.name}</span>
+                                                        {item.size && <span className="text-[9px] text-gray-500 block">({item.size})</span>}
+                                                    </div>
+                                                    <div className="text-right whitespace-nowrap">
+                                                        {item.quantity} × {formatPrice(item.unit_price)}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div className="border-b border-dashed border-gray-400 my-2" />
+
+                                        {/* Financial summary */}
+                                        <div className="space-y-1">
+                                            <div className="flex justify-between">
+                                                <span>Subtotal</span>
+                                                <span>{formatPrice(selectedPrintOrder.subtotal ?? 0)}</span>
+                                            </div>
+                                            {selectedPrintOrder.delivery_fee > 0 && (
+                                                <div className="flex justify-between">
+                                                    <span>Delivery Fee</span>
+                                                    <span>{formatPrice(selectedPrintOrder.delivery_fee)}</span>
+                                                </div>
+                                            )}
+                                            {(selectedPrintOrder.loyalty_discount > 0 || selectedPrintOrder.tier_discount > 0) && (
+                                                <div className="flex justify-between text-red-600">
+                                                    <span>Discount</span>
+                                                    <span>-{formatPrice(selectedPrintOrder.loyalty_discount + selectedPrintOrder.tier_discount)}</span>
+                                                </div>
+                                            )}
+                                            <div className="border-b border-dashed border-gray-300 my-1" />
+                                            <div className="flex justify-between font-black text-xs pt-1">
+                                                <span>GRAND TOTAL</span>
+                                                <span>{formatPrice(selectedPrintOrder.total ?? 0)}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="border-b border-dashed border-gray-400 my-2" />
+
+                                        <div className="text-center space-y-1 text-[9px] text-gray-600">
+                                            <p className="font-bold uppercase tracking-wider">Payment: {selectedPrintOrder.payment_method.toUpperCase()}</p>
+                                            <div className="border-b border-dashed border-gray-300 my-1" />
+                                            <p className="italic">Thank you for ordering from Zaitoon!</p>
+                                            <p className="text-[8px] text-gray-400">Live Updates Enabled</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Modal Actions */}
+                                <div className="p-4 border-t border-[#E7E0D8] flex gap-3 bg-white">
+                                    <button
+                                        onClick={() => setSelectedPrintOrder(null)}
+                                        className="flex-1 py-3 rounded-xl border border-[#E7E0D8] font-bold text-xs hover:bg-[#F9F6F0] transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={() => window.print()}
+                                        className="flex-1 py-3 rounded-xl text-[#0A1F13] font-bold text-xs flex items-center justify-center gap-1.5 transition-all gold-shimmer hover:scale-[1.02]"
+                                    >
+                                        <Printer size={14} /> Print Now
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </AdminLayout>
     )
