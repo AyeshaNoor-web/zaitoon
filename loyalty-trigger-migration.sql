@@ -16,6 +16,15 @@ AS $$
   SELECT FLOOR(order_total / 100)::INTEGER;
 $$;
 
+-- Overload for DOUBLE PRECISION (float8) used by order total column
+CREATE OR REPLACE FUNCTION fn_calc_loyalty_points(order_total DOUBLE PRECISION)
+RETURNS INTEGER
+LANGUAGE sql
+IMMUTABLE
+AS $$
+  SELECT FLOOR(order_total / 100)::INTEGER;
+$$;
+
 -- 3. Helper function: calculate tier from points
 CREATE OR REPLACE FUNCTION fn_calc_tier(points INTEGER)
 RETURNS TEXT
@@ -53,7 +62,7 @@ BEGIN
   IF NEW.status = 'confirmed' AND OLD.status != 'confirmed' THEN
     -- Only award if customer exists and points not yet awarded
     IF v_customer_id IS NOT NULL AND NEW.loyalty_points_awarded = 0 THEN
-      v_points := fn_calc_loyalty_points(NEW.total);
+      v_points := fn_calc_loyalty_points(NEW.total::numeric);
 
       IF v_points > 0 THEN
         -- Lock customer row for atomic update
@@ -133,6 +142,7 @@ CREATE TRIGGER trg_loyalty_on_order_status
   EXECUTE FUNCTION fn_loyalty_on_order_status_change();
 
 -- 6. Grant execute to service_role (used by admin API)
-GRANT EXECUTE ON FUNCTION fn_loyalty_on_order_status_change() TO service_role;
-GRANT EXECUTE ON FUNCTION fn_calc_loyalty_points(NUMERIC)     TO service_role;
-GRANT EXECUTE ON FUNCTION fn_calc_tier(INTEGER)               TO service_role;
+GRANT EXECUTE ON FUNCTION fn_loyalty_on_order_status_change()   TO service_role;
+GRANT EXECUTE ON FUNCTION fn_calc_loyalty_points(NUMERIC)       TO service_role;
+GRANT EXECUTE ON FUNCTION fn_calc_loyalty_points(DOUBLE PRECISION) TO service_role;
+GRANT EXECUTE ON FUNCTION fn_calc_tier(INTEGER)                 TO service_role;
