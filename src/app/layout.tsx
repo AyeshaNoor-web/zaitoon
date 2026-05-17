@@ -1,5 +1,27 @@
 import type { Metadata } from 'next'
+import { Lora, Montserrat, Noto_Sans_Arabic } from 'next/font/google'
 import './globals.css'
+
+const lora = Lora({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  variable: '--font-lora',
+  display: 'swap',
+})
+
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-montserrat',
+  display: 'swap',
+})
+
+const notoUrdu = Noto_Sans_Arabic({
+  subsets: ['arabic'],
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-noto-urdu',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://zaitoon.pk'),
@@ -55,12 +77,9 @@ import { ThemeProvider } from '@/components/ThemeProvider'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={`${lora.variable} ${montserrat.variable} ${notoUrdu.variable}`} suppressHydrationWarning>
       <head>
         <RestaurantSchema />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Montserrat:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false} disableTransitionOnChange>

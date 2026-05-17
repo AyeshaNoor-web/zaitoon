@@ -39,9 +39,9 @@
     --white: #FFFFFF;
 
     /* ── Typography ── */
-    --font-display: 'Lora', Georgia, serif !important;
-    --font-body:    'Montserrat', system-ui, sans-serif !important;
-    --font-urdu:    'Noto Sans Arabic', system-ui, sans-serif !important;
+    --font-display: var(--font-lora), 'Lora', Georgia, serif !important;
+    --font-body:    var(--font-montserrat), 'Montserrat', system-ui, sans-serif !important;
+    --font-urdu:    var(--font-noto-urdu), 'Noto Sans Arabic', system-ui, sans-serif !important;
 
     /* ── Shadow Tokens ── */
     --shadow-sm:   0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
