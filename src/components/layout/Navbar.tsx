@@ -85,13 +85,13 @@ export default function Navbar() {
     return (
         <header
             role="banner"
-            className={`fixed top-0 left-0 right-0 z-50 h-[66px] lg:h-[76px] border-b border-[rgba(106,126,63,0.30)] transition-all duration-500 ${
+            className={`fixed top-0 left-0 right-0 z-50 h-[66px] lg:h-[76px] border-b border-[rgba(106,126,63,0.30)] transition-all duration-300 ${
                 scrolled
-                    ? 'backdrop-blur-2xl shadow-[0_10px_36px_rgba(76,92,45,0.24)]'
+                    ? 'shadow-[0_10px_36px_rgba(76,92,45,0.30)]'
                     : ''
             }`}
             style={{
-                background: `linear-gradient(180deg, rgba(106, 126, 63, ${scrolled ? '0.92' : '0.96'}) 0%, rgba(90, 109, 53, ${scrolled ? '0.90' : '0.94'}) 100%)`,
+                background: 'rgb(76, 92, 45)',
             }}
         >
             <nav aria-label="Main navigation" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
@@ -301,8 +301,8 @@ export default function Navbar() {
                         onClick={() => setDrawerOpen(true)}
                         aria-label="Open menu"
                         aria-expanded={drawerOpen}
-                        className="lg:hidden w-[44px] h-[44px] flex items-center justify-center rounded-[10px] border border-[rgba(255,255,255,0.35)] hover:bg-[rgba(255,255,255,0.18)] transition-colors"
-                        style={{ background: 'rgba(0,0,0,0.28)', color: '#fff' }}
+                        className="lg:hidden w-[44px] h-[44px] flex items-center justify-center rounded-[10px] border border-[rgba(255,255,255,0.35)] hover:opacity-90 transition-opacity"
+                        style={{ background: 'rgb(45, 55, 28)', color: '#fff' }}
                     >
                         <Menu className="w-6 h-6" />
                     </motion.button>

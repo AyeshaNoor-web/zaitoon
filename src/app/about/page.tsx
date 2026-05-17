@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { MapPin, Phone, Mail, Clock, ChevronRight, Leaf, Heart, Star } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -118,8 +119,14 @@ export default async function AboutPage() {
 
                         {/* Visual accent */}
                         <div className="relative">
-                            <div className="aspect-square rounded-3xl bg-[#1B4332] overflow-hidden flex items-center justify-center shadow-2xl">
-                                <span className="text-[10rem] select-none">🫒</span>
+                            <div className="aspect-square rounded-3xl overflow-hidden shadow-2xl border-4 border-[#2D6A4F]/20">
+                                <Image
+                                    src="/about-restaurant.png"
+                                    alt="Zaitoon restaurant – authentic Lebanese cuisine"
+                                    fill
+                                    className="object-cover hover:scale-105 transition-transform duration-700"
+                                    sizes="(max-width: 768px) 100vw, 50vw"
+                                />
                             </div>
                             <div className="absolute -bottom-4 -left-4 w-24 h-24 rounded-2xl bg-[#B45309] flex items-center justify-center shadow-lg text-4xl">
                                 🍗

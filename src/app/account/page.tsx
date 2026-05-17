@@ -13,6 +13,7 @@ import { useAuthStore } from '@/store/useAuthStore'
 import { formatPrice } from '@/lib/payment'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import ReviewModal from '@/components/ReviewModal'
 import type { Order, OrderItem } from '@/types'
 
 const supabase = createClient()
@@ -45,6 +46,7 @@ export default function AccountPage() {
     const [editName, setEditName] = useState('')
     const [savingProfile, setSavingProfile] = useState(false)
     const [saveSuccess, setSaveSuccess] = useState(false)
+    const [reviewTarget, setReviewTarget] = useState<{ orderId: string; orderNumber: string } | null>(null)
 
     useEffect(() => {
         if (!isAuthenticated || !customer) { router.replace('/menu'); return }
@@ -279,17 +281,29 @@ export default function AccountPage() {
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    <div className="flex justify-between items-end pt-3.5"
+                                                    <div className="flex justify-between items-center pt-3.5"
                                                         style={{ borderTop: '1px solid var(--linen)' }}>
                                                         <p className="text-[13px] line-clamp-1 flex-1"
                                                             style={{ color: 'var(--stone)' }}>
                                                             {order.order_items?.map((i: OrderItem) => `${i.quantity}× ${i.name}`).join(', ')}
                                                         </p>
-                                                        <div className="w-8 h-8 rounded-full flex items-center justify-center ml-3 transition-all"
-                                                            style={{ background: 'var(--cream)', color: 'var(--green-base)' }}
-                                                            onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'var(--orange-warm)'; el.style.color = 'white' }}
-                                                            onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'var(--cream)'; el.style.color = 'var(--green-base)' }}>
-                                                            <ChevronRight className="w-4 h-4" />
+                                                        <div className="flex items-center gap-2 ml-3">
+                                                            {order.status === 'delivered' && (
+                                                                <button
+                                                                    onClick={e => { e.preventDefault(); setReviewTarget({ orderId: order.id, orderNumber: order.order_number }) }}
+                                                                    className="flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-[700] transition-all hover:scale-105"
+                                                                    style={{ background: 'linear-gradient(135deg,#F59E0B,#D97706)', color: '#fff', boxShadow: '0 2px 8px rgba(217,119,6,0.35)' }}
+                                                                    title="Leave a review for this order"
+                                                                >
+                                                                    <Star className="w-3 h-3 fill-white" /> Review
+                                                                </button>
+                                                            )}
+                                                            <div className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
+                                                                style={{ background: 'var(--cream)', color: 'var(--green-base)' }}
+                                                                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'var(--orange-warm)'; el.style.color = 'white' }}
+                                                                onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'var(--cream)'; el.style.color = 'var(--green-base)' }}>
+                                                                <ChevronRight className="w-4 h-4" />
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </motion.div>
@@ -461,6 +475,17 @@ export default function AccountPage() {
 
             <Footer />
             <MobileCartBar />
+
+            {/* Review Modal — opened from delivered order cards */}
+            {reviewTarget && customer && (
+                <ReviewModal
+                    isOpen={!!reviewTarget}
+                    onClose={() => setReviewTarget(null)}
+                    orderId={reviewTarget.orderId}
+                    customerId={customer.id}
+                    orderNumber={reviewTarget.orderNumber}
+                />
+            )}
         </div>
     )
 }
