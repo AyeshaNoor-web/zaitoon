@@ -68,28 +68,28 @@ export default async function AboutPage() {
         <>
             <Navbar />
 
-            <main className="min-h-screen bg-[#FAF6EF]">
+            <main className="min-h-screen bg-[var(--background)]">
 
                 {/* ── Hero ────────────────────────────────────────────────────── */}
-                <section className="relative bg-[#1B4332] text-white overflow-hidden">
+                <section className="relative bg-[var(--green-darkest)] text-white overflow-hidden">
                     {/* Decorative circles */}
-                    <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full bg-[#2D6A4F] opacity-30" />
-                    <div className="absolute -bottom-24 -left-16 w-72 h-72 rounded-full bg-[#0D2B1F] opacity-40" />
+                    <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full bg-[var(--green-dark)] opacity-30" />
+                    <div className="absolute -bottom-24 -left-16 w-72 h-72 rounded-full bg-[var(--charcoal)] opacity-40" />
 
                     <div className="relative z-10 max-w-5xl mx-auto px-6 py-28 text-center">
-                        <span className="inline-block text-sm font-bold tracking-widest uppercase text-[#95D5B2] mb-4">
+                        <span className="inline-block text-sm font-bold tracking-widest uppercase text-[var(--green-pale)] mb-4">
                             Est. {founded} · {location}
                         </span>
                         <h1 className="font-display text-5xl md:text-7xl font-extrabold leading-tight mb-6">
                             Our Story
                         </h1>
-                        <p className="text-lg md:text-xl text-[#B7E4C7] max-w-2xl mx-auto leading-relaxed">
+                        <p className="text-lg md:text-xl text-[var(--green-pale)] max-w-2xl mx-auto leading-relaxed">
                             {mission}
                         </p>
                         <div className="mt-10 flex flex-wrap gap-4 justify-center">
                             <Link
                                 href="/menu"
-                                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white text-[#1B4332] font-bold text-sm hover:bg-[#F0FDF4] transition"
+                                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white text-[var(--green-darkest)] font-bold text-sm hover:bg-[var(--cream)] transition"
                             >
                                 Explore Our Menu <ChevronRight className="w-4 h-4" />
                             </Link>
@@ -103,13 +103,13 @@ export default async function AboutPage() {
                         {stats.map((s) => (
                             <div
                                 key={s.label}
-                                className="bg-white rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] p-8 flex flex-col items-center text-center border border-[#E7E0D8] transition-transform hover:-translate-y-1 duration-300"
+                                className="bg-white rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] p-8 flex flex-col items-center text-center border border-[var(--linen)] transition-transform hover:-translate-y-1 duration-300"
                             >
                                 <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: s.bg, color: s.color }}>
                                     {s.icon}
                                 </div>
-                                <p className="font-display text-3xl font-extrabold text-[#1B4332]">{s.value}</p>
-                                <p className="text-xs font-bold text-[#47423D] uppercase tracking-wider mt-2">{s.label}</p>
+                                <p className="font-display text-3xl font-extrabold text-[var(--green-darkest)]">{s.value}</p>
+                                <p className="text-xs font-bold text-[var(--stone)] uppercase tracking-wider mt-2">{s.label}</p>
                             </div>
                         ))}
                     </div>
@@ -119,14 +119,14 @@ export default async function AboutPage() {
                 <section className="max-w-5xl mx-auto px-6 py-20">
                     <div className="grid md:grid-cols-2 gap-12 items-center">
                         <div>
-                            <span className="text-xs font-bold uppercase tracking-widest text-[#2D6A4F] mb-3 block">Who We Are</span>
-                            <h2 className="font-display text-4xl font-bold text-[#18181B] leading-tight mb-6">
+                            <span className="text-xs font-bold uppercase tracking-widest text-[var(--green-dark)] mb-3 block">Who We Are</span>
+                            <h2 className="font-display text-4xl font-bold text-[var(--charcoal)] leading-tight mb-6">
                                 A Tradition of Authentic Lebanese Flavour
                             </h2>
-                            <p className="text-[#47423D] leading-relaxed text-base mb-4">
+                            <p className="text-[var(--stone)] leading-relaxed text-base mb-4">
                                 {storyEn}
                             </p>
-                            <p className="text-[#47423D] leading-relaxed text-base">
+                            <p className="text-[var(--stone)] leading-relaxed text-base">
                                 From our signature flame-grilled chicken to our freshly baked bread and house-made sauces — every bite carries a piece of our identity.
                             </p>
                         </div>
@@ -134,17 +134,17 @@ export default async function AboutPage() {
                         {/* Visual accent – icon grid */}
                         <div className="relative grid grid-cols-2 gap-4">
                             {[
-                                { icon: <Leaf className="w-8 h-8" />, label: 'Fresh Ingredients', sub: '100% natural', color: '#1B4332', glow: 'rgba(27,67,50,0.35)' },
-                                { icon: <Star className="w-8 h-8" />, label: 'Top Rated', sub: '4.9 ★ average', color: '#B45309', glow: 'rgba(180,83,9,0.35)' },
-                                { icon: <Heart className="w-8 h-8" />, label: 'Made with Love', sub: 'Family recipes', color: '#9B2335', glow: 'rgba(155,35,53,0.30)' },
-                                { icon: <Clock className="w-8 h-8" />, label: 'Always Fresh', sub: 'Cooked to order', color: '#2D6A4F', glow: 'rgba(45,106,79,0.35)' },
+                                { icon: <Leaf className="w-8 h-8" />, label: 'Fresh Ingredients', sub: '100% natural', color: 'var(--green-darkest)', glow: 'rgba(76,92,45,0.35)' },
+                                { icon: <Star className="w-8 h-8" />, label: 'Top Rated', sub: '4.9 ★ average', color: 'var(--orange-rich)', glow: 'rgba(166,82,79,0.35)' },
+                                { icon: <Heart className="w-8 h-8" />, label: 'Made with Love', sub: 'Family recipes', color: 'var(--orange-warm)', glow: 'rgba(184,98,94,0.30)' },
+                                { icon: <Clock className="w-8 h-8" />, label: 'Always Fresh', sub: 'Cooked to order', color: 'var(--green-dark)', glow: 'rgba(90,109,53,0.35)' },
                             ].map(({ icon, label, sub, color, glow }) => (
                                 <div
                                     key={label}
                                     className="rounded-2xl p-6 flex flex-col items-center text-center gap-3 transition-transform hover:-translate-y-1 duration-300"
                                     style={{
-                                        background: '#FAF6EF',
-                                        border: '1.5px solid #E7E0D8',
+                                        background: 'var(--background)',
+                                        border: '1.5px solid var(--linen)',
                                         boxShadow: `0 8px 24px ${glow}`,
                                     }}
                                 >
@@ -155,8 +155,8 @@ export default async function AboutPage() {
                                         {icon}
                                     </div>
                                     <div>
-                                        <p className="font-[700] text-[14px] text-[#1B2E1B]">{label}</p>
-                                        <p className="text-[11px] text-[#7C726A] mt-0.5">{sub}</p>
+                                        <p className="font-[700] text-[14px] text-[var(--charcoal)]">{label}</p>
+                                        <p className="text-[11px] text-[var(--stone)] mt-0.5">{sub}</p>
                                     </div>
                                 </div>
                             ))}
@@ -165,20 +165,20 @@ export default async function AboutPage() {
                 </section>
 
                 {/* ── Values ──────────────────────────────────────────────────── */}
-                <section className="bg-[#1B4332] py-20">
+                <section className="bg-[var(--green-darkest)] py-20">
                     <div className="max-w-5xl mx-auto px-6">
                         <div className="text-center mb-12">
-                            <span className="text-xs font-bold uppercase tracking-widest text-[#95D5B2] mb-3 block">What Drives Us</span>
+                            <span className="text-xs font-bold uppercase tracking-widest text-[var(--green-pale)] mb-3 block">What Drives Us</span>
                             <h2 className="font-display text-4xl font-bold text-white">Our Values</h2>
                         </div>
                         <div className="grid md:grid-cols-3 gap-6">
                             {values.map((v) => (
-                                <div key={v.title} className="bg-[#2D6A4F] rounded-3xl p-8 text-center">
-                                    <div className="inline-flex w-14 h-14 rounded-2xl bg-[#1B4332] text-[#95D5B2] items-center justify-center mb-5 mx-auto">
+                                <div key={v.title} className="bg-[var(--green-dark)] rounded-3xl p-8 text-center">
+                                    <div className="inline-flex w-14 h-14 rounded-2xl bg-[var(--green-darkest)] text-[var(--green-pale)] items-center justify-center mb-5 mx-auto">
                                         {v.icon}
                                     </div>
                                     <h3 className="font-display text-lg font-bold text-white mb-2">{v.title}</h3>
-                                    <p className="text-[#B7E4C7] text-sm leading-relaxed">{v.desc}</p>
+                                    <p className="text-[var(--green-pale)] text-sm leading-relaxed">{v.desc}</p>
                                 </div>
                             ))}
                         </div>
@@ -188,61 +188,61 @@ export default async function AboutPage() {
                 {/* ── Contact / Find Us ────────────────────────────────────────── */}
                 <section className="max-w-5xl mx-auto px-6 py-20">
                     <div className="text-center mb-12">
-                        <span className="text-xs font-bold uppercase tracking-widest text-[#2D6A4F] mb-3 block">Come Visit Us</span>
-                        <h2 className="font-display text-4xl font-bold text-[#18181B]">Find {name}</h2>
+                        <span className="text-xs font-bold uppercase tracking-widest text-[var(--green-dark)] mb-3 block">Come Visit Us</span>
+                        <h2 className="font-display text-4xl font-bold text-[var(--charcoal)]">Find {name}</h2>
                     </div>
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {address && (
-                            <div className="bg-white rounded-3xl p-8 border border-[#E7E0D8] shadow-sm flex gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-[#F0FDF4] flex items-center justify-center flex-shrink-0">
-                                    <MapPin className="w-5 h-5 text-[#1B4332]" />
+                            <div className="bg-white rounded-3xl p-8 border border-[var(--linen)] shadow-sm flex gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-[var(--cream)] flex items-center justify-center flex-shrink-0">
+                                    <MapPin className="w-5 h-5 text-[var(--green-darkest)]" />
                                 </div>
                                 <div>
-                                    <p className="font-bold text-[#18181B] mb-1">Address</p>
-                                    <p className="text-sm text-[#47423D] leading-relaxed">{address}</p>
+                                    <p className="font-bold text-[var(--charcoal)] mb-1">Address</p>
+                                    <p className="text-sm text-[var(--stone)] leading-relaxed">{address}</p>
                                 </div>
                             </div>
                         )}
                         {phone && (
-                            <div className="bg-white rounded-3xl p-8 border border-[#E7E0D8] shadow-sm flex gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-[#F0FDF4] flex items-center justify-center flex-shrink-0">
-                                    <Phone className="w-5 h-5 text-[#1B4332]" />
+                            <div className="bg-white rounded-3xl p-8 border border-[var(--linen)] shadow-sm flex gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-[var(--cream)] flex items-center justify-center flex-shrink-0">
+                                    <Phone className="w-5 h-5 text-[var(--green-darkest)]" />
                                 </div>
                                 <div>
-                                    <p className="font-bold text-[#18181B] mb-1">Phone</p>
-                                    <a href={`tel:${phone}`} className="text-sm text-[#2D6A4F] font-semibold hover:underline">{phone}</a>
+                                    <p className="font-bold text-[var(--charcoal)] mb-1">Phone</p>
+                                    <a href={`tel:${phone}`} className="text-sm text-[var(--green-dark)] font-semibold hover:underline">{phone}</a>
                                 </div>
                             </div>
                         )}
                         {email && (
-                            <div className="bg-white rounded-3xl p-8 border border-[#E7E0D8] shadow-sm flex gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-[#F0FDF4] flex items-center justify-center flex-shrink-0">
-                                    <Mail className="w-5 h-5 text-[#1B4332]" />
+                            <div className="bg-white rounded-3xl p-8 border border-[var(--linen)] shadow-sm flex gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-[var(--cream)] flex items-center justify-center flex-shrink-0">
+                                    <Mail className="w-5 h-5 text-[var(--green-darkest)]" />
                                 </div>
                                 <div>
-                                    <p className="font-bold text-[#18181B] mb-1">Email</p>
-                                    <a href={`mailto:${email}`} className="text-sm text-[#2D6A4F] font-semibold hover:underline break-all">{email}</a>
+                                    <p className="font-bold text-[var(--charcoal)] mb-1">Email</p>
+                                    <a href={`mailto:${email}`} className="text-sm text-[var(--green-dark)] font-semibold hover:underline break-all">{email}</a>
                                 </div>
                             </div>
                         )}
-                        <div className="bg-white rounded-3xl p-8 border border-[#E7E0D8] shadow-sm flex gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-[#F0FDF4] flex items-center justify-center flex-shrink-0">
-                                <Clock className="w-5 h-5 text-[#1B4332]" />
+                        <div className="bg-white rounded-3xl p-8 border border-[var(--linen)] shadow-sm flex gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-[var(--cream)] flex items-center justify-center flex-shrink-0">
+                                <Clock className="w-5 h-5 text-[var(--green-darkest)]" />
                             </div>
                             <div>
-                                <p className="font-bold text-[#18181B] mb-1">Opening Hours</p>
-                                <p className="text-sm text-[#47423D]">Daily: 12:00 PM – 1:00 AM</p>
+                                <p className="font-bold text-[var(--charcoal)] mb-1">Opening Hours</p>
+                                <p className="text-sm text-[var(--stone)]">Daily: 12:00 PM – 1:00 AM</p>
                             </div>
                         </div>
                     </div>
 
                     {/* CTA */}
-                    <div className="mt-14 rounded-3xl bg-gradient-to-br from-[#1B4332] to-[#2D6A4F] p-10 text-center text-white">
+                    <div className="mt-14 rounded-3xl bg-gradient-to-br from-[var(--green-darkest)] to-[var(--green-dark)] p-10 text-center text-white">
                         <h3 className="font-display text-3xl font-bold mb-3">Ready to order?</h3>
-                        <p className="text-[#B7E4C7] mb-8">Browse our full menu and get fresh Lebanese food delivered to your door.</p>
+                        <p className="text-[var(--green-pale)] mb-8">Browse our full menu and get fresh Lebanese food delivered to your door.</p>
                         <Link
                             href="/menu"
-                            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white text-[#1B4332] font-bold text-sm hover:bg-[#F0FDF4] transition"
+                            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white text-[var(--green-darkest)] font-bold text-sm hover:bg-[var(--cream)] transition"
                         >
                             Order Now <ChevronRight className="w-4 h-4" />
                         </Link>
