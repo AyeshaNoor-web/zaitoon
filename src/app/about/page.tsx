@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
 import { MapPin, Phone, Mail, Clock, ChevronRight, Leaf, Heart, Star } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -117,23 +116,35 @@ export default async function AboutPage() {
                             </p>
                         </div>
 
-                        {/* Visual accent */}
-                        <div className="relative">
-                            <div className="aspect-square rounded-3xl overflow-hidden shadow-2xl border-4 border-[#2D6A4F]/20">
-                                <Image
-                                    src="/about-restaurant.png"
-                                    alt="Zaitoon restaurant – authentic Lebanese cuisine"
-                                    fill
-                                    className="object-cover hover:scale-105 transition-transform duration-700"
-                                    sizes="(max-width: 768px) 100vw, 50vw"
-                                />
-                            </div>
-                            <div className="absolute -bottom-4 -left-4 w-24 h-24 rounded-2xl bg-[#B45309] flex items-center justify-center shadow-lg text-4xl">
-                                🍗
-                            </div>
-                            <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-[#FAF6EF] border-4 border-[#E7E0D8] flex items-center justify-center text-3xl shadow">
-                                🌿
-                            </div>
+                        {/* Visual accent – icon grid */}
+                        <div className="relative grid grid-cols-2 gap-4">
+                            {[
+                                { icon: <Leaf className="w-8 h-8" />, label: 'Fresh Ingredients', sub: '100% natural', color: '#1B4332', glow: 'rgba(27,67,50,0.35)' },
+                                { icon: <Star className="w-8 h-8" />, label: 'Top Rated', sub: '4.9 ★ average', color: '#B45309', glow: 'rgba(180,83,9,0.35)' },
+                                { icon: <Heart className="w-8 h-8" />, label: 'Made with Love', sub: 'Family recipes', color: '#9B2335', glow: 'rgba(155,35,53,0.30)' },
+                                { icon: <Clock className="w-8 h-8" />, label: 'Always Fresh', sub: 'Cooked to order', color: '#2D6A4F', glow: 'rgba(45,106,79,0.35)' },
+                            ].map(({ icon, label, sub, color, glow }) => (
+                                <div
+                                    key={label}
+                                    className="rounded-2xl p-6 flex flex-col items-center text-center gap-3 transition-transform hover:-translate-y-1 duration-300"
+                                    style={{
+                                        background: '#FAF6EF',
+                                        border: '1.5px solid #E7E0D8',
+                                        boxShadow: `0 8px 24px ${glow}`,
+                                    }}
+                                >
+                                    <div
+                                        className="w-14 h-14 rounded-xl flex items-center justify-center text-white"
+                                        style={{ background: color, boxShadow: `0 4px 14px ${glow}` }}
+                                    >
+                                        {icon}
+                                    </div>
+                                    <div>
+                                        <p className="font-[700] text-[14px] text-[#1B2E1B]">{label}</p>
+                                        <p className="text-[11px] text-[#7C726A] mt-0.5">{sub}</p>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </section>
