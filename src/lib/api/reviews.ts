@@ -15,6 +15,7 @@ export async function submitReview(data: ReviewPayload): Promise<void> {
         order_id: data.orderId,
         rating: data.rating,
         comment: data.comment?.trim() || null,
+        is_approved: true, // auto-approve; admin can reject via the Reviews panel
     })
     if (error) throw new Error(error.message)
 }

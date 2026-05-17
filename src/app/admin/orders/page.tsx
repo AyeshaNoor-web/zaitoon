@@ -504,10 +504,7 @@ export default function AdminOrdersPage() {
                     </>
                 )}
 
-                <CreateOrderModal 
-                    isOpen={showCreateModal} 
-                    onClose={() => setShowCreateModal(false)} 
-                />
+
 
                 {/* ── Printable receipt modal ──────────────────────────── */}
                 <AnimatePresence>
@@ -668,6 +665,10 @@ export default function AdminOrdersPage() {
                     )}
                 </AnimatePresence>
             </div>
+                <CreateOrderModal 
+                    isOpen={showCreateModal} 
+                    onClose={() => setShowCreateModal(false)} 
+                />
         </AdminLayout>
     )
 }

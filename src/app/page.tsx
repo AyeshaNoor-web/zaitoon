@@ -30,6 +30,7 @@ export default function HomePage() {
   const [faqs, setFaqs] = useState<FAQ[]>([])
   const [reviews, setReviews] = useState<AdminReview[]>([])
   const [openFaq, setOpenFaq] = useState<string | null>(null)
+  const [aboutContent, setAboutContent] = useState<Record<string, string>>({})
   const { language, isRTL } = useLanguageStore()
   const { locationSet } = useLocationStore()
   const [showLocationModal, setShowLocationModal] = useState(false)
@@ -65,6 +66,7 @@ export default function HomePage() {
         setMenuItems(m)
         const key = language === 'ur' ? 'hero_tagline_ur' : 'hero_tagline_en'
         if (content[key]) setHeroIntro(content[key])
+        setAboutContent(content)
       })
       .finally(() => {})
     supabase.from('branches').select('id', { count: 'exact', head: true }).eq('is_active', true).then(({ count }) => setBranchCount(count ?? 2))
@@ -600,7 +602,108 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ── FAQ SECTION ── */}
+        {/* ══════════════════════════════════════════════
+            ABOUT SECTION — Quick brand intro
+        ══════════════════════════════════════════════ */}
+        <section
+          aria-label="About Zaitoon"
+          className="relative py-[88px] px-6 overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, #1F221B 0%, #34392B 60%, #262A21 100%)' }}
+        >
+          {/* Dot grid */}
+          <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
+            style={{
+              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(250,243,224,0.6) 1px, transparent 0)`,
+              backgroundSize: '32px 32px'
+            }}
+          />
+          <div className="relative z-10 max-w-7xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-14 items-center">
+              {/* Text side */}
+              <motion.div
+                initial={{ opacity: 0, x: -32 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                className={isRTL ? 'text-right' : ''}
+              >
+                <span className="section-label" style={{ color: 'var(--green-light)' }}>Our Story</span>
+                <h2 className="text-white mt-2 mb-6">
+                  {aboutContent['about_restaurant_name'] || 'Zaitoon'}
+                  <span className="block italic text-[var(--orange-pale)] text-[0.7em]">
+                    {aboutContent['about_founded_year'] ? `Est. ${aboutContent['about_founded_year']}` : 'Est. 2018'}
+                  </span>
+                </h2>
+                <motion.div
+                  initial={{ scaleX: 0 }}
+                  whileInView={{ scaleX: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                  style={{
+                    transformOrigin: isRTL ? 'right' : 'left',
+                    height: 3,
+                    background: 'linear-gradient(90deg, var(--orange-warm), var(--green-base))',
+                    width: 64, marginBottom: '24px', borderRadius: 99,
+                    marginLeft: isRTL ? 'auto' : 0
+                  }}
+                />
+                <p className="text-[15px] font-[300] leading-[1.8]" style={{ color: 'rgba(250,243,224,0.78)' }}>
+                  {aboutContent['about_story_en'] || 'We started with a simple dream: to bring the rich, authentic flavours of Lebanese cuisine to the streets of Pakistan. Every dish we prepare is a love letter to our heritage.'}
+                </p>
+                <p className="text-[14px] font-[300] leading-[1.7] mt-4" style={{ color: 'rgba(250,243,224,0.6)' }}>
+                  {aboutContent['about_mission'] || 'Bringing authentic Lebanese flavours to every table.'}
+                </p>
+                <Link
+                  href="/about"
+                  className="inline-flex items-center gap-2 mt-8 px-6 py-3 rounded-2xl font-[700] text-[13px] tracking-[0.06em] transition-all hover:-translate-y-0.5"
+                  style={{
+                    background: 'linear-gradient(135deg, var(--orange-warm), #A6524F)',
+                    color: '#fff',
+                    boxShadow: '0 6px 20px rgba(204,132,95,0.35)',
+                  }}
+                >
+                  Our Full Story <ChevronRight className="w-4 h-4" />
+                </Link>
+              </motion.div>
+
+              {/* Stats / visual side */}
+              <motion.div
+                initial={{ opacity: 0, x: 32 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                className="grid grid-cols-2 gap-4"
+              >
+                {[
+                  { emoji: aboutContent['about_stat1_emoji'] || '🏆', value: aboutContent['about_stat1_value'] || '7+', label: aboutContent['about_stat1_label'] || 'Years of Excellence' },
+                  { emoji: aboutContent['about_stat2_emoji'] || '😊', value: aboutContent['about_stat2_value'] || '50,000+', label: aboutContent['about_stat2_label'] || 'Happy Customers' },
+                  { emoji: aboutContent['about_stat3_emoji'] || '🍽️', value: aboutContent['about_stat3_value'] || '80+', label: aboutContent['about_stat3_label'] || 'Menu Items' },
+                  { emoji: '🌿', value: '100%', label: 'Fresh Ingredients' },
+                ].map((s, i) => (
+                  <motion.div
+                    key={s.label}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }}
+                    className="rounded-2xl p-6 text-center"
+                    style={{
+                      background: 'rgba(156,175,136,0.10)',
+                      border: '1px solid rgba(156,175,136,0.22)',
+                      backdropFilter: 'blur(12px)',
+                    }}
+                  >
+                    <div className="text-3xl mb-2">{s.emoji}</div>
+                    <p className="text-2xl font-[800] text-white mb-1">{s.value}</p>
+                    <p className="text-[11px] font-[600] uppercase tracking-wider" style={{ color: 'rgba(250,243,224,0.55)' }}>{s.label}</p>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+
         {faqs.length > 0 && (
           <section className="w-full max-w-3xl mx-auto px-4 lg:px-8 py-16">
             <p className="section-label mb-3 text-center">Got Questions?</p>

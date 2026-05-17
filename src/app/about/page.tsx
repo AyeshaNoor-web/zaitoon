@@ -10,6 +10,9 @@ export const metadata: Metadata = {
     description: 'Learn about the story behind Zaitoon – our heritage, mission, and dedication to bringing authentic Lebanese flavours to Pakistan.',
 }
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 // Server component – fetches CMS data at request time
 export default async function AboutPage() {
     let cms: Record<string, string> = {}
