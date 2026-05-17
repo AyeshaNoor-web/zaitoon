@@ -12,6 +12,8 @@ interface AddOn {
     id: string
     name: string
     price: number
+    priceLarge: number | null
+    hasSizes: boolean
     categoryLabel: string
 }
 
@@ -19,6 +21,8 @@ interface SupabaseAddOnRow {
     id: string
     name: string
     price: number
+    price_large: number | null
+    has_sizes: boolean
     categories: { label: string } | null
 }
 
@@ -79,7 +83,7 @@ function getAddonOrder(categoryLabel: string): string[] {
 async function fetchAddOns(): Promise<AddOn[]> {
     const { data, error } = await supabase
         .from('menu_items')
-        .select('id, name, price, categories(label)')
+        .select('id, name, price, price_large, has_sizes, categories(label)')
         .eq('is_available', true)
         .eq('price_on_request', false)
         .not('price', 'is', null)
@@ -97,6 +101,8 @@ async function fetchAddOns(): Promise<AddOn[]> {
             id: row.id,
             name: row.name,
             price: row.price,
+            priceLarge: row.price_large,
+            hasSizes: row.has_sizes,
             categoryLabel: row.categories?.label ?? '',
         }))
 }
@@ -124,33 +130,41 @@ export default function AddOnsModal({ mainItem, onClose }: Props) {
         return () => { document.body.style.overflow = '' }
     }, [])
 
-    const setQty = (id: string, qty: number) => {
+    const setQty = (id: string, size: 'small' | 'large' | null, qty: number) => {
+        const key = `${id}|${size ?? 'none'}`
         setSelected(prev => {
             if (qty <= 0) {
                 const next = { ...prev }
-                delete next[id]
+                delete next[key]
                 return next
             }
-            return { ...prev, [id]: Math.min(qty, 10) }
+            return { ...prev, [key]: Math.min(qty, 10) }
         })
     }
 
-    const totalAddOnCost = addOns.reduce((sum, a) => {
-        return sum + a.price * (selected[a.id] ?? 0)
+    const totalAddOnCost = Object.entries(selected).reduce((sum, [key, qty]) => {
+        const [id, size] = key.split('|')
+        const addon = addOns.find(a => a.id === id)
+        if (!addon) return sum
+        const price = (size === 'large' && addon.priceLarge) ? addon.priceLarge : addon.price
+        return sum + price * qty
     }, 0)
 
     const selectedCount = Object.values(selected).reduce((s, q) => s + q, 0)
 
     const handleConfirm = () => {
         addItem(mainItem)
-        addOns.forEach(a => {
-            const qty = selected[a.id] ?? 0
-            if (qty > 0) {
+        Object.entries(selected).forEach(([key, qty]) => {
+            const [id, sizeStr] = key.split('|')
+            const size = sizeStr === 'none' ? null : sizeStr as 'small' | 'large'
+            const addon = addOns.find(a => a.id === id)
+            if (addon && qty > 0) {
+                const price = (size === 'large' && addon.priceLarge) ? addon.priceLarge : addon.price
                 addItem({
-                    menuItemId: a.id,
-                    name: a.name,
-                    size: null,
-                    unitPrice: a.price,
+                    menuItemId: addon.id,
+                    name: addon.name,
+                    size: size,
+                    unitPrice: price,
                     quantity: qty,
                     imageUrl: null,
                 })
@@ -162,6 +176,69 @@ export default function AddOnsModal({ mainItem, onClose }: Props) {
     const handleSkip = () => {
         addItem(mainItem)
         onClose()
+    }
+
+    const renderAddonRow = (addon: AddOn, size: 'small' | 'large' | null) => {
+        const key = `${addon.id}|${size ?? 'none'}`
+        const qty = selected[key] ?? 0
+        const price = size === 'large' && addon.priceLarge ? addon.priceLarge : addon.price
+        const name = size ? `${addon.name} (${size === 'small' ? 'Regular' : 'Large'})` : addon.name
+
+        return (
+            <li
+                key={key}
+                className={`flex items-center justify-between px-3.5 py-3 rounded-[10px] border-[1.5px] transition-all duration-200 ${qty > 0
+                    ? 'border-[var(--green-base)] bg-[var(--cream)] shadow-sm'
+                    : 'border-[var(--linen)] bg-[var(--parchment)] hover:border-[var(--green-pale)]'
+                    }`}
+            >
+                <div className="flex-1 min-w-0">
+                    <span className="text-[14px] font-[600] text-[var(--charcoal)] block truncate">
+                        {name}
+                    </span>
+                    <span className="text-[12px] font-[600] text-[var(--green-dark)]">
+                        +{formatPrice(price)}
+                    </span>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 ml-3">
+                    {qty === 0 ? (
+                        <button
+                            onClick={() => setQty(addon.id, size, 1)}
+                            aria-label={`Add ${name}`}
+                            className="w-8 h-8 rounded-full text-white flex items-center justify-center transition-colors shadow-sm"
+                            style={{ background: 'linear-gradient(135deg, var(--orange-rich), var(--orange-warm))', boxShadow: '0 2px 8px rgba(168,35,35,0.30)' }}
+                        >
+                            <Plus className="w-4 h-4" />
+                        </button>
+                    ) : (
+                        <div className="flex items-center gap-1.5 rounded-full px-1.5 py-1" style={{ background: 'linear-gradient(135deg, var(--green-dark), var(--green-darkest))' }}>
+                            <button
+                                onClick={() => setQty(addon.id, size, qty - 1)}
+                                aria-label={`Remove one ${name}`}
+                                className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors text-white"
+                            >
+                                <Minus className="w-3 h-3" />
+                            </button>
+                            <span
+                                className="text-[13px] font-[700] text-white w-5 text-center"
+                                aria-live="polite"
+                                aria-label={`${qty} ${name} selected`}
+                            >
+                                {qty}
+                            </span>
+                            <button
+                                onClick={() => setQty(addon.id, size, qty + 1)}
+                                aria-label={`Add one more ${name}`}
+                                className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors text-white"
+                            >
+                                <Plus className="w-3 h-3" />
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </li>
+        )
     }
 
     // Group and sort by intelligent order
@@ -237,63 +314,14 @@ export default function AddOnsModal({ mainItem, onClose }: Props) {
                                         {label}
                                     </p>
                                     <ul className="space-y-2">
-                                        {items.map(addon => {
-                                            const qty = selected[addon.id] ?? 0
-                                            return (
-                                                <li
-                                                    key={addon.id}
-                                                    className={`flex items-center justify-between px-3.5 py-3 rounded-[10px] border-[1.5px] transition-all duration-200 ${qty > 0
-                                                        ? 'border-[var(--green-base)] bg-[var(--cream)] shadow-sm'
-                                                        : 'border-[var(--linen)] bg-[var(--parchment)] hover:border-[var(--green-pale)]'
-                                                        }`}
-                                                >
-                                                    <div className="flex-1 min-w-0">
-                                                        <span className="text-[14px] font-[600] text-[var(--charcoal)] block truncate">
-                                                            {addon.name}
-                                                        </span>
-                                                        <span className="text-[12px] font-[600] text-[var(--green-dark)]">
-                                                            +{formatPrice(addon.price)}
-                                                        </span>
-                                                    </div>
-
-                                                    <div className="flex items-center gap-2 shrink-0 ml-3">
-                                                        {qty === 0 ? (
-                                                            <button
-                                                                onClick={() => setQty(addon.id, 1)}
-                                                                aria-label={`Add ${addon.name}`}
-                                                                className="w-8 h-8 rounded-full text-white flex items-center justify-center transition-colors shadow-sm"
-                                                                style={{ background: 'linear-gradient(135deg, var(--orange-rich), var(--orange-warm))', boxShadow: '0 2px 8px rgba(168,35,35,0.30)' }}
-                                                            >
-                                                                <Plus className="w-4 h-4" />
-                                                            </button>
-                                                        ) : (
-                                                            <div className="flex items-center gap-1.5 rounded-full px-1.5 py-1" style={{ background: 'linear-gradient(135deg, var(--green-dark), var(--green-darkest))' }}>
-                                                                <button
-                                                                    onClick={() => setQty(addon.id, qty - 1)}
-                                                                    aria-label={`Remove one ${addon.name}`}
-                                                                    className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors text-white"
-                                                                >
-                                                                    <Minus className="w-3 h-3" />
-                                                                </button>
-                                                                <span
-                                                                    className="text-[13px] font-[700] text-white w-5 text-center"
-                                                                    aria-live="polite"
-                                                                    aria-label={`${qty} ${addon.name} selected`}
-                                                                >
-                                                                    {qty}
-                                                                </span>
-                                                                <button
-                                                                    onClick={() => setQty(addon.id, qty + 1)}
-                                                                    aria-label={`Add one more ${addon.name}`}
-                                                                    className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors text-white"
-                                                                >
-                                                                    <Plus className="w-3 h-3" />
-                                                                </button>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </li>
-                                            )
+                                        {items.flatMap(addon => {
+                                            if (addon.hasSizes && addon.priceLarge) {
+                                                return [
+                                                    renderAddonRow(addon, 'small'),
+                                                    renderAddonRow(addon, 'large')
+                                                ]
+                                            }
+                                            return renderAddonRow(addon, null)
                                         })}
                                     </ul>
                                 </div>

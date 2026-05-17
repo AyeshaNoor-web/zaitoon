@@ -106,6 +106,7 @@ export default function CheckoutPage() {
     const [customerTier, setCustomerTier] = useState<LoyaltyTier>('bronze')
     const [isReturning, setIsReturning] = useState(false)
     const [lookingUp, setLookingUp] = useState(false)
+    const [orderNotes, setOrderNotes] = useState('')
     const { lookupOrCreateCustomer, refreshCustomer } = useAuthStore()
 
     // Pre-fill from stored session
@@ -289,6 +290,7 @@ export default function CheckoutPage() {
                 tierDiscount,
                 total,
                 paymentMethod: payMethod,
+                notes: orderNotes.trim() || undefined,
             })
 
             // 4. Loyalty points are awarded automatically by the database trigger
@@ -336,6 +338,7 @@ export default function CheckoutPage() {
                 total,
                 paymentMethod: payMethod,
                 pointsEarned: earnedPoints,
+                notes: orderNotes.trim() || undefined,
             })
 
             // 6. Clear cart
@@ -748,6 +751,21 @@ export default function CheckoutPage() {
                                 ⚠ Delivery fee not calculated yet. Go back and pin your location on the map.
                             </div>
                         )}
+
+                        {/* Order Notes */}
+                        <div className="space-y-1.5 mt-4">
+                            <label htmlFor="order-notes" className="block text-[13px] font-[600] text-[var(--charcoal)]">
+                                Order Notes (Optional)
+                            </label>
+                            <textarea
+                                id="order-notes"
+                                rows={2}
+                                value={orderNotes}
+                                onChange={e => setOrderNotes(e.target.value)}
+                                placeholder="Any special instructions for the kitchen?"
+                                className="w-full bg-white border-[2px] border-[var(--linen)] rounded-[4px] px-4 py-3 text-[14px] text-[var(--charcoal)] focus:outline-none focus:border-[var(--green-base)] focus:shadow-[0_0_0_3px_rgba(46,204,113,0.15)] transition-all resize-none"
+                            />
+                        </div>
                     </motion.div>
                 )
 

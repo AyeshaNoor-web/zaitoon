@@ -59,33 +59,25 @@
   }
 
   .dark {
-    --background: 15 15 15;
-    --foreground: 240 240 240;
-    --card: 26 26 26;
-    --card-foreground: 240 240 240;
-    --popover: 26 26 26;
-    --popover-foreground: 240 240 240;
-    --primary: 106 126 63; /* Brand green */
-    --primary-foreground: 255 255 255;
-    --secondary: 30 30 30;
-    --secondary-foreground: 240 240 240;
-    --muted: 38 38 38;
-    --muted-foreground: 160 160 160;
-    --accent: 30 30 30;
-    --accent-foreground: 240 240 240;
-    --border: 42 42 42;
-    --input: 42 42 42;
-    --ring: 106 126 63;
+    /* ── Radix/shadcn base tokens (Dark Mode) ── */
+    --background:   26 21 18;
+    --foreground:   250 246 239;
+    --border:       91 70 58;
+    --ring:         126 147 80;
+    --muted:        46 41 38;
+    --muted-foreground: 160 153 148;
+    --accent:       46 41 38;
+    --accent-foreground: 250 246 239;
 
-    /* Custom variables used in layout */
-    --cream: #0f0f0f;
-    --parchment: #1a1a1a;
-    --linen: #2a2a2a;
-    --stone: #a0a0a0;
-    --charcoal: #f0f0f0;
-    --white: #1a1a1a;
+    /* ── Neutrals (Inverted for Dark Mode) ── */
+    --cream:     #1A1512;
+    --parchment: #221D1A;
+    --linen:     #2D2825;
+    --stone:     #A09994;
+    --charcoal:  #FBF6F6;
 
-    color-scheme: dark;
+    /* ── White ── */
+    --white: #111111; /* Or keeping true white where needed, but mostly inverted */
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -103,7 +95,6 @@
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
     text-rendering: optimizeLegibility;
-    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   h1, h2, h3, h4, h5, h6 {

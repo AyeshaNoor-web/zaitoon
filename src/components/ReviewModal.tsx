@@ -68,7 +68,7 @@ export default function ReviewModal({
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.88, y: 20 }}
                         transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-                        className="relative w-full max-w-sm bg-[#FFFDF9] dark:bg-zinc-900 rounded-3xl p-7 shadow-2xl z-10 overflow-hidden"
+                        className="relative w-full max-w-sm bg-[#FFFDF9] rounded-3xl p-7 shadow-2xl z-10 overflow-hidden"
                     >
                         {/* Close */}
                         {!success && (
@@ -160,7 +160,7 @@ export default function ReviewModal({
                                             placeholder="Tell us about your experience (optional)&hellip;"
                                             value={comment}
                                             onChange={e => setComment(e.target.value)}
-                                            className="w-full px-4 py-3 bg-white dark:bg-zinc-950 border-[2px] border-[var(--linen)] rounded-2xl text-[14px] text-[var(--charcoal)] placeholder:text-[var(--stone)] focus:outline-none focus:border-[var(--green-base)] transition-colors resize-none"
+                                            className="w-full px-4 py-3 bg-white border-[2px] border-[var(--linen)] rounded-2xl text-[14px] text-[var(--charcoal)] placeholder:text-[var(--stone)] focus:outline-none focus:border-[var(--green-base)] transition-colors resize-none"
                                         />
                                         <span className="absolute bottom-3 right-3 text-[11px] text-[var(--stone)]">
                                             {comment.length}/300

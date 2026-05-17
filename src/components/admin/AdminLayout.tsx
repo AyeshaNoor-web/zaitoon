@@ -4,21 +4,17 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ClipboardList, UtensilsCrossed, BarChart3, Settings, ArrowLeft, Menu, X, LogOut, Star, FileText, Bell } from 'lucide-react'
+import { ClipboardList, UtensilsCrossed, BarChart3, Settings, ArrowLeft, Menu, X, LogOut, Star, FileText } from 'lucide-react'
 import { useAdminRole } from '@/hooks/useAdminRole'
-import { useQuery } from '@tanstack/react-query'
-import { createClient } from '@/lib/supabase/client'
-
-const supabase = createClient()
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 const NAV = [
-    { label: 'Order Management', href: '/admin/orders', icon: ClipboardList, roles: ['owner', 'employee'], badge: true },
-    { label: 'Menu Manager', href: '/admin/menu', icon: UtensilsCrossed, roles: ['owner', 'employee'] },
-    { label: '📖 Our Story', href: '/admin/about', icon: FileText, roles: ['owner'] },
-    { label: 'Content / CMS', href: '/admin/content', icon: FileText, roles: ['owner'] },
-    { label: 'Reviews', href: '/admin/reviews', icon: Star, roles: ['owner'] },
-    { label: 'Revenue & Analytics', href: '/admin/analytics', icon: BarChart3, roles: ['owner'] },
-    { label: 'Settings', href: '/admin/settings', icon: Settings, roles: ['owner'] },
+    { label: 'Live Orders',   href: '/admin/orders',   icon: ClipboardList,   roles: ['owner', 'employee'] },
+    { label: 'Menu Manager',  href: '/admin/menu',     icon: UtensilsCrossed, roles: ['owner', 'employee'] },
+    { label: 'Content / CMS', href: '/admin/content',  icon: FileText,        roles: ['owner'] },
+    { label: 'Reviews',       href: '/admin/reviews',  icon: Star,            roles: ['owner'] },
+    { label: 'Analytics',     href: '/admin/analytics',icon: BarChart3,       roles: ['owner'] },
+    { label: 'Settings',      href: '/admin/settings', icon: Settings,        roles: ['owner'] },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -38,18 +34,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             router.push('/admin/login')
         }
     }
-
-    const { data: pendingCount } = useQuery({
-        queryKey: ['pending-orders-count'],
-        queryFn: async () => {
-            const { count } = await supabase
-                .from('orders')
-                .select('*', { count: 'exact', head: true })
-                .in('order_status', ['received', 'preparing'])
-            return count || 0
-        },
-        refetchInterval: 30000
-    })
 
     const sidebar = (
         <aside aria-label="Admin sidebar" className="bg-[var(--green-mid)] h-full flex flex-col border-r-[2px] border-[var(--linen)] shadow-[4px_0_24px_rgba(0,0,0,0.2)]">
@@ -72,18 +56,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             href={item.href}
                             onClick={() => setOpen(false)}
                             aria-current={isActive ? 'page' : undefined}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-[6px] text-[14px] font-[600] transition-colors border-l-[3px] relative ${isActive
+                            className={`flex items-center gap-3 px-4 py-3 rounded-[6px] text-[14px] font-[600] transition-colors border-l-[3px] ${isActive
                                 ? 'bg-[#0D2015] text-[var(--cream)] border-[var(--orange-warm)] shadow-inner'
                                 : 'border-transparent text-[rgba(253,248,240,0.88)] hover:text-[var(--cream)] hover:bg-[var(--green-dark)]'
                                 }`}
                         >
                             <Icon className="w-[18px] h-[18px]" />
-                            <span className="flex-1">{item.label}</span>
-                            {item.badge && (pendingCount ?? 0) > 0 && (
-                                <span className="absolute right-2 top-1/2 -translate-y-1/2 bg-[var(--orange-warm)] text-[#0D2015] text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse">
-                                    {pendingCount}
-                                </span>
-                            )}
+                            {item.label}
                         </Link>
                     )
                 })}
@@ -118,6 +97,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 >
                     <ArrowLeft className="w-4 h-4" /> Back to Application
                 </Link>
+
+                <div className="flex justify-center mt-4 pt-4 border-t border-[rgba(253,248,240,0.1)]">
+                    <ThemeToggle />
+                </div>
             </footer>
         </aside>
     )
@@ -139,14 +122,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <div className="flex items-center gap-2">
                     <span className="font-display text-[18px] text-[var(--orange-pale)] font-[700]">Admin</span>
                 </div>
-                <button
-                    onClick={handleLogout}
-                    disabled={loggingOut}
-                    aria-label="Sign out"
-                    className="text-red-400 hover:text-red-300 p-2 transition-colors disabled:opacity-50"
-                >
-                    <LogOut className="w-5 h-5" />
-                </button>
+                <div className="flex items-center gap-2">
+                    <ThemeToggle />
+                    <button
+                        onClick={handleLogout}
+                        disabled={loggingOut}
+                        aria-label="Sign out"
+                        className="text-red-400 hover:text-red-300 p-2 transition-colors disabled:opacity-50"
+                    >
+                        <LogOut className="w-5 h-5" />
+                    </button>
+                </div>
             </header>
 
             {/* Mobile drawer */}

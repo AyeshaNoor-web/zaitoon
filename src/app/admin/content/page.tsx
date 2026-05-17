@@ -316,7 +316,150 @@ export default function AdminContentPage() {
                     {savingContent ? 'Saving…' : 'Save All Content'}
                 </button>
 
-                {/* ── B) Popular Combos Manager ─────────────────────────────── */}
+                {/* ── B) About Page CMS ─────────────────────────────────────── */}
+                <Section title="🏠 About Page Content">
+                    <div className="space-y-4">
+                        <div>
+                            <label className={labelCls}>Restaurant Name</label>
+                            <input className={fieldCls}
+                                value={content['about_restaurant_name'] ?? ''}
+                                onChange={e => updateField('about_restaurant_name', e.target.value)}
+                                placeholder="Zaitoon" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className={labelCls}>Founded Year</label>
+                                <input className={fieldCls} type="number"
+                                    value={content['about_founded_year'] ?? ''}
+                                    onChange={e => updateField('about_founded_year', e.target.value)}
+                                    placeholder="2015" />
+                            </div>
+                            <div>
+                                <label className={labelCls}>City / Location</label>
+                                <input className={fieldCls}
+                                    value={content['about_location'] ?? ''}
+                                    onChange={e => updateField('about_location', e.target.value)}
+                                    placeholder="Lahore, Pakistan" />
+                            </div>
+                        </div>
+                        <div>
+                            <label className={labelCls}>Our Story (English)</label>
+                            <textarea className={fieldCls} rows={4}
+                                value={content['about_story_en'] ?? ''}
+                                onChange={e => updateField('about_story_en', e.target.value)}
+                                placeholder="Tell customers your restaurant's story..." />
+                        </div>
+                        <div>
+                            <label className={labelCls}>Our Story (Urdu)</label>
+                            <textarea className={fieldCls + ' text-right'} rows={4}
+                                value={content['about_story_ur'] ?? ''}
+                                onChange={e => updateField('about_story_ur', e.target.value)}
+                                placeholder="ہماری کہانی..." />
+                        </div>
+                        <div>
+                            <label className={labelCls}>Mission Statement</label>
+                            <input className={fieldCls}
+                                value={content['about_mission'] ?? ''}
+                                onChange={e => updateField('about_mission', e.target.value)}
+                                placeholder="Bringing authentic Lebanese flavours to every table." />
+                        </div>
+                        <div>
+                            <label className={labelCls}>Address (Full)</label>
+                            <input className={fieldCls}
+                                value={content['about_address'] ?? ''}
+                                onChange={e => updateField('about_address', e.target.value)}
+                                placeholder="123 Food Street, Gulberg III, Lahore" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className={labelCls}>Phone Number</label>
+                                <input className={fieldCls}
+                                    value={content['about_phone'] ?? ''}
+                                    onChange={e => updateField('about_phone', e.target.value)}
+                                    placeholder="+92 300 1234567" />
+                            </div>
+                            <div>
+                                <label className={labelCls}>Email Address</label>
+                                <input className={fieldCls} type="email"
+                                    value={content['about_email'] ?? ''}
+                                    onChange={e => updateField('about_email', e.target.value)}
+                                    placeholder="hello@zaitoon.pk" />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                            <div>
+                                <label className={labelCls}>Stat 1 – Label</label>
+                                <input className={fieldCls}
+                                    value={content['about_stat1_label'] ?? ''}
+                                    onChange={e => updateField('about_stat1_label', e.target.value)}
+                                    placeholder="Years of Service" />
+                            </div>
+                            <div>
+                                <label className={labelCls}>Stat 1 – Value</label>
+                                <input className={fieldCls}
+                                    value={content['about_stat1_value'] ?? ''}
+                                    onChange={e => updateField('about_stat1_value', e.target.value)}
+                                    placeholder="10+" />
+                            </div>
+                            <div>
+                                <label className={labelCls}>Stat 1 – Emoji</label>
+                                <input className={fieldCls}
+                                    value={content['about_stat1_emoji'] ?? ''}
+                                    onChange={e => updateField('about_stat1_emoji', e.target.value)}
+                                    placeholder="🏆" />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                            <div>
+                                <label className={labelCls}>Stat 2 – Label</label>
+                                <input className={fieldCls}
+                                    value={content['about_stat2_label'] ?? ''}
+                                    onChange={e => updateField('about_stat2_label', e.target.value)}
+                                    placeholder="Happy Customers" />
+                            </div>
+                            <div>
+                                <label className={labelCls}>Stat 2 – Value</label>
+                                <input className={fieldCls}
+                                    value={content['about_stat2_value'] ?? ''}
+                                    onChange={e => updateField('about_stat2_value', e.target.value)}
+                                    placeholder="50,000+" />
+                            </div>
+                            <div>
+                                <label className={labelCls}>Stat 2 – Emoji</label>
+                                <input className={fieldCls}
+                                    value={content['about_stat2_emoji'] ?? ''}
+                                    onChange={e => updateField('about_stat2_emoji', e.target.value)}
+                                    placeholder="😊" />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                            <div>
+                                <label className={labelCls}>Stat 3 – Label</label>
+                                <input className={fieldCls}
+                                    value={content['about_stat3_label'] ?? ''}
+                                    onChange={e => updateField('about_stat3_label', e.target.value)}
+                                    placeholder="Menu Items" />
+                            </div>
+                            <div>
+                                <label className={labelCls}>Stat 3 – Value</label>
+                                <input className={fieldCls}
+                                    value={content['about_stat3_value'] ?? ''}
+                                    onChange={e => updateField('about_stat3_value', e.target.value)}
+                                    placeholder="80+" />
+                            </div>
+                            <div>
+                                <label className={labelCls}>Stat 3 – Emoji</label>
+                                <input className={fieldCls}
+                                    value={content['about_stat3_emoji'] ?? ''}
+                                    onChange={e => updateField('about_stat3_emoji', e.target.value)}
+                                    placeholder="🍽️" />
+                            </div>
+                        </div>
+                        <p className="text-xs text-gray-400 pt-1">Changes are saved when you click <strong>Save Content</strong> at the top.</p>
+                    </div>
+                </Section>
+
+                {/* ── C) Popular Combos Manager ─────────────────────────────── */}
                 <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6">
                     <div className="flex items-center justify-between mb-6">
                         <div>

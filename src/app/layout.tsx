@@ -73,8 +73,7 @@ export const metadata: Metadata = {
 import { Toaster } from 'sonner'
 import RestaurantSchema from '@/components/seo/RestaurantSchema'
 import { ClientLocalizationWrapper } from '@/components/layout/ClientLocalizationWrapper'
-import { ThemeProvider } from '@/components/theme-provider'
-import { DarkModeToggle } from '@/components/dark-mode-toggle'
+import { ThemeProvider } from '@/components/ThemeProvider'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -83,19 +82,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <RestaurantSchema />
       </head>
       <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
-          disableTransitionOnChange={false}
-        >
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <ClientLocalizationWrapper>
             {children}
           </ClientLocalizationWrapper>
           <Toaster position="top-right" />
-          <div className="fixed bottom-6 right-6 z-50 md:bottom-6 md:right-6 bottom-20 right-4">
-            <DarkModeToggle className="w-12 h-12 shadow-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800" />
-          </div>
         </ThemeProvider>
       </body>
     </html>

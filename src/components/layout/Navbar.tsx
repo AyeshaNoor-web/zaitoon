@@ -14,7 +14,8 @@ import { translations } from '@/lib/translations'
 import { MessageCircle } from 'lucide-react'
 import LocationModal from '@/components/LocationModal'
 import { User, Star, Languages, ChevronRight } from 'lucide-react'
-import { DarkModeToggle } from '@/components/dark-mode-toggle'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
+
 export default function Navbar() {
     const [drawerOpen, setDrawerOpen] = useState(false)
     const [cartOpen, setCartOpen] = useState(false)
@@ -34,7 +35,6 @@ export default function Navbar() {
 
     const NAV_LINKS = [
         { label: t.menu, href: '/menu' },
-        { label: t.ourStory, href: '/about' },
         { label: t.branches, href: '/#branches' },
         { label: t.trackOrder, href: '/order' },
         { label: t.loyalty, href: '/loyalty' },
@@ -166,8 +166,9 @@ export default function Navbar() {
                     >
                         {language === 'en' ? 'اردو' : 'EN'}
                     </button>
-                    <DarkModeToggle className="w-[38px] h-[38px] border border-[rgba(251,246,246,0.35)] text-[var(--cream)] hover:bg-[rgba(251,246,246,0.18)]" />
 
+                    {/* Dark Mode Toggle */}
+                    <ThemeToggle />
 
                     {mounted && isAuthenticated && customer && (
                         <div className="relative" ref={dropdownRef}>
@@ -303,7 +304,8 @@ export default function Navbar() {
                         onClick={() => setDrawerOpen(true)}
                         aria-label="Open menu"
                         aria-expanded={drawerOpen}
-                        className="lg:hidden w-[44px] h-[44px] flex items-center justify-center text-[var(--cream)] hover:text-[var(--green-light)] transition-colors"
+                        className="lg:hidden w-[44px] h-[44px] flex items-center justify-center rounded-[10px] border border-[rgba(255,255,255,0.35)] hover:bg-[rgba(255,255,255,0.18)] transition-colors"
+                        style={{ background: 'rgba(0,0,0,0.28)', color: '#fff' }}
                     >
                         <Menu className="w-6 h-6" />
                     </motion.button>
@@ -395,10 +397,14 @@ export default function Navbar() {
                                 <motion.li variants={navItemVariants}>
                                     <button
                                         onClick={() => setLanguage(language === 'en' ? 'ur' : 'en')}
-                                        className="flex items-center gap-3 min-h-[48px] px-4 font-[600] text-[14px] text-[var(--green-light)]"
+                                        className="flex items-center gap-3 min-h-[48px] px-4 font-[600] text-[14px] text-[var(--green-light)] w-full text-left"
                                     >
                                         <Languages className="w-5 h-5" /> {language === 'en' ? 'اردو میں دیکھیں' : 'Switch to English'}
                                     </button>
+                                </motion.li>
+                                {/* Mobile Dark Mode Toggle */}
+                                <motion.li variants={navItemVariants} className="px-4 py-2">
+                                    <ThemeToggle />
                                 </motion.li>
                             </motion.ul>
 

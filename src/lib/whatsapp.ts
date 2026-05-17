@@ -27,6 +27,7 @@ export interface WhatsAppPayload {
     total: number
     paymentMethod: 'jazzcash' | 'cod'
     pointsEarned?: number
+    notes?: string
 }
 
 /** Badge emoji for a tier */
@@ -62,6 +63,11 @@ export function buildWhatsAppMessage(payload: WhatsAppPayload): string {
         lines.push(`🏪 *Takeaway from:* ${payload.branchName}`)
     } else {
         lines.push(`🍽️ *Dine-In at:* ${payload.branchName}`)
+    }
+
+    if (payload.notes) {
+        lines.push(``)
+        lines.push(`📝 *Notes:* ${payload.notes}`)
     }
 
     lines.push(``)

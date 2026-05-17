@@ -7,7 +7,6 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: '*.supabase.co' },
       { protocol: 'https', hostname: 'zaitoon.pk' },
-      { protocol: 'https', hostname: 'i.pravatar.cc' },
     ],
     minimumCacheTTL: 86400,
   },
