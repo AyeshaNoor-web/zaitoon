@@ -95,7 +95,7 @@ export default function ReviewModal({
                                         Thanks for the review!
                                     </h2>
                                     <p className="text-[var(--stone)] text-[15px] leading-snug">
-                                        <span className="font-bold text-[var(--green-base)]">20 points</span> have been added to your loyalty account.
+                                        Your feedback has been received.
                                     </p>
                                     <div className="flex gap-1 mt-1">
                                         {[1, 2, 3, 4, 5].map(s => (
@@ -120,7 +120,7 @@ export default function ReviewModal({
                                             How was your meal?
                                         </h2>
                                         <p className="text-[var(--stone)] text-[13px] mt-1">
-                                            Leave a review &mdash; earn <span className="font-bold text-[var(--green-base)]">20 pts</span> ⭐
+                                            We value your feedback ⭐
                                         </p>
                                     </div>
 

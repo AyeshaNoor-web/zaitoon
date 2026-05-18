@@ -2,7 +2,7 @@
 import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Check, MessageCircle, MapPin, ChevronRight, ShoppingBag, Star } from 'lucide-react'
+import { Check, MessageCircle, MapPin, ChevronRight, ShoppingBag, Star, X } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import ReviewModal from '@/components/ReviewModal'
@@ -176,108 +176,135 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                     </motion.div>
 
                     {/* Status Tracker */}
-                    <motion.section
-                        aria-label="Order status"
-                        initial={{ opacity: 0, y: 24 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.55, delay: 0.1, ease: [0.16,1,0.3,1] }}
-                        className="rounded-[16px] p-6"
-                        style={{
-                            background: 'rgba(253,248,240,0.04)',
-                            backdropFilter: 'blur(16px)',
-                            WebkitBackdropFilter: 'blur(16px)',
-                            border: '1px solid rgba(253,248,240,0.10)',
-                            boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
-                        }}
-                    >
-                        <div className="flex items-center justify-between mb-5 pb-3"
-                            style={{ borderBottom: '1px solid rgba(253,248,240,0.08)' }}>
-                            <h2 className="text-[20px] font-display font-[700] text-white">
-                                Status Tracker
+                    {order.status === 'cancelled' ? (
+                        <motion.section
+                            aria-label="Order status"
+                            initial={{ opacity: 0, y: 24 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.55, delay: 0.1, ease: [0.16,1,0.3,1] }}
+                            className="rounded-[16px] p-6 text-center"
+                            style={{
+                                background: 'rgba(239, 68, 68, 0.05)',
+                                backdropFilter: 'blur(16px)',
+                                WebkitBackdropFilter: 'blur(16px)',
+                                border: '1px solid rgba(239, 68, 68, 0.2)',
+                                boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+                            }}
+                        >
+                            <div className="w-16 h-16 mx-auto bg-red-500/20 rounded-full flex items-center justify-center mb-4 border border-red-500/30">
+                                <X className="w-8 h-8 text-red-400" />
+                            </div>
+                            <h2 className="text-[22px] font-display font-[700] text-red-400 mb-2">
+                                Order Cancelled
                             </h2>
-                            {statusIdx < STATUSES.length - 1 && (
-                                <span className="flex items-baseline gap-1 px-3 py-1 rounded-full text-[13px] font-[700]"
-                                    style={{ background: 'rgba(217,119,6,0.15)', color: 'var(--orange-pale)', border: '1px solid rgba(217,119,6,0.25)' }}>
-                                    <span className="text-[18px] leading-none">{mins}</span>m
-                                    <span>{secs}s</span>
-                                    <span className="text-[11px] font-[400] ml-0.5" style={{ color: 'rgba(253,248,240,0.8)' }}>est.</span>
-                                </span>
-                            )}
-                        </div>
+                            <p className="text-white/80 text-[14px]">
+                                Your order has been cancelled. Please contact us if you need help.
+                            </p>
+                        </motion.section>
+                    ) : (
+                        <motion.section
+                            aria-label="Order status"
+                            initial={{ opacity: 0, y: 24 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.55, delay: 0.1, ease: [0.16,1,0.3,1] }}
+                            className="rounded-[16px] p-6"
+                            style={{
+                                background: 'rgba(253,248,240,0.04)',
+                                backdropFilter: 'blur(16px)',
+                                WebkitBackdropFilter: 'blur(16px)',
+                                border: '1px solid rgba(253,248,240,0.10)',
+                                boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
+                            }}
+                        >
+                            <div className="flex items-center justify-between mb-5 pb-3"
+                                style={{ borderBottom: '1px solid rgba(253,248,240,0.08)' }}>
+                                <h2 className="text-[20px] font-display font-[700] text-white">
+                                    Status Tracker
+                                </h2>
+                                {statusIdx < STATUSES.length - 1 && (
+                                    <span className="flex items-baseline gap-1 px-3 py-1 rounded-full text-[13px] font-[700]"
+                                        style={{ background: 'rgba(217,119,6,0.15)', color: 'var(--orange-pale)', border: '1px solid rgba(217,119,6,0.25)' }}>
+                                        <span className="text-[18px] leading-none">{mins}</span>m
+                                        <span>{secs}s</span>
+                                        <span className="text-[11px] font-[400] ml-0.5" style={{ color: 'rgba(253,248,240,0.8)' }}>est.</span>
+                                    </span>
+                                )}
+                            </div>
 
-                        {/* Gradient Progress bar */}
-                        <div className="w-full h-[6px] rounded-full mb-8 overflow-hidden" style={{ background: 'rgba(253,248,240,0.08)' }} aria-hidden="true">
-                            <motion.div
-                                className="h-full rounded-full"
-                                style={{ background: 'linear-gradient(90deg, var(--orange-warm), var(--orange-bright))' }}
-                                initial={{ width: 0 }}
-                                animate={{ width: `${progressPct}%` }}
-                                transition={{ duration: 1.2, ease: [0.16,1,0.3,1] }}
-                            />
-                        </div>
+                            {/* Gradient Progress bar */}
+                            <div className="w-full h-[6px] rounded-full mb-8 overflow-hidden" style={{ background: 'rgba(253,248,240,0.08)' }} aria-hidden="true">
+                                <motion.div
+                                    className="h-full rounded-full"
+                                    style={{ background: 'linear-gradient(90deg, var(--orange-warm), var(--orange-bright))' }}
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${progressPct}%` }}
+                                    transition={{ duration: 1.2, ease: [0.16,1,0.3,1] }}
+                                />
+                            </div>
 
-                        <ul role="list" aria-label="Tracking timeline" className="space-y-6">
-                            {STATUSES.map((s, i) => {
-                                const isDone = i <= statusIdx
-                                const isActive = i === statusIdx
-                                const info = STATUS_LABELS[s]
-                                return (
-                                    <li key={s} className="flex gap-4 relative" aria-current={isActive ? 'step' : undefined}>
-                                        <div className="relative pt-[2px]">
-                                            {/* Connector line */}
-                                            {i < STATUSES.length - 1 && (
+                            <ul role="list" aria-label="Tracking timeline" className="space-y-6">
+                                {STATUSES.map((s, i) => {
+                                    const isDone = i <= statusIdx
+                                    const isActive = i === statusIdx
+                                    const info = STATUS_LABELS[s]
+                                    return (
+                                        <li key={s} className="flex gap-4 relative" aria-current={isActive ? 'step' : undefined}>
+                                            <div className="relative pt-[2px]">
+                                                {/* Connector line */}
+                                                {i < STATUSES.length - 1 && (
+                                                    <div
+                                                        className="absolute top-[28px] left-[13px] w-[2px] h-[36px]"
+                                                        style={{ backgroundColor: isDone ? 'var(--orange-warm)' : 'var(--linen)' }}
+                                                        aria-hidden="true"
+                                                    />
+                                                )}
+
                                                 <div
-                                                    className="absolute top-[28px] left-[13px] w-[2px] h-[36px]"
-                                                    style={{ backgroundColor: isDone ? 'var(--orange-warm)' : 'var(--linen)' }}
-                                                    aria-hidden="true"
-                                                />
-                                            )}
+                                                    className="w-[28px] h-[28px] rounded-full flex items-center justify-center border-[2px] shrink-0 z-10 bg-white"
+                                                    style={{
+                                                        borderColor: isDone ? 'var(--orange-warm)' : 'var(--linen)',
+                                                        color: isDone ? 'var(--orange-warm)' : 'var(--linen)',
+                                                    }}
+                                                >
+                                                    {isDone && <Check className="w-[14px] h-[14px]" strokeWidth={3} />}
+                                                </div>
 
-                                            <div
-                                                className="w-[28px] h-[28px] rounded-full flex items-center justify-center border-[2px] shrink-0 z-10 bg-white"
-                                                style={{
-                                                    borderColor: isDone ? 'var(--orange-warm)' : 'var(--linen)',
-                                                    color: isDone ? 'var(--orange-warm)' : 'var(--linen)',
-                                                }}
-                                            >
-                                                {isDone && <Check className="w-[14px] h-[14px]" strokeWidth={3} />}
+                                                {/* Pulse ring on active step */}
+                                                {isActive && i < STATUSES.length - 1 && (
+                                                    <motion.div
+                                                        className="absolute top-[2px] left-0 w-[28px] h-[28px] rounded-full border-[2px] border-[var(--orange-warm)]"
+                                                        initial={{ opacity: 0.8, scale: 1 }}
+                                                        animate={{ opacity: 0, scale: 1.6 }}
+                                                        transition={{ repeat: Infinity, duration: 1.5, ease: 'easeOut' }}
+                                                        aria-hidden="true"
+                                                    />
+                                                )}
                                             </div>
 
-                                            {/* Pulse ring on active step */}
-                                            {isActive && i < STATUSES.length - 1 && (
-                                                <motion.div
-                                                    className="absolute top-[2px] left-0 w-[28px] h-[28px] rounded-full border-[2px] border-[var(--orange-warm)]"
-                                                    initial={{ opacity: 0.8, scale: 1 }}
-                                                    animate={{ opacity: 0, scale: 1.6 }}
-                                                    transition={{ repeat: Infinity, duration: 1.5, ease: 'easeOut' }}
-                                                    aria-hidden="true"
-                                                />
-                                            )}
-                                        </div>
-
-                                        <div className="flex-1 pt-[2px]">
-                                            <div className={`font-[700] text-[15px] ${isActive ? 'text-[var(--green-base)]' : isDone ? 'text-[var(--charcoal)]' : 'text-[var(--stone)]'}`}>
-                                                {info.label}
+                                            <div className="flex-1 pt-[2px]">
+                                                <div className={`font-[700] text-[15px] ${isActive ? 'text-[var(--green-base)]' : isDone ? 'text-[var(--charcoal)]' : 'text-[var(--stone)]'}`}>
+                                                    {info.label}
+                                                </div>
+                                                <div className="text-[13px] text-[var(--stone)] mt-1 font-[400]">
+                                                    {info.desc}
+                                                </div>
                                             </div>
-                                            <div className="text-[13px] text-[var(--stone)] mt-1 font-[400]">
-                                                {info.desc}
-                                            </div>
-                                        </div>
-                                    </li>
-                                )
-                            })}
-                        </ul>
+                                        </li>
+                                    )
+                                })}
+                            </ul>
 
-                        {/* Dev helper to advance status without touching DB */}
-                        {process.env.NODE_ENV === 'development' && (
-                            <button
-                                onClick={() => setStatusIdx(i => Math.min(i + 1, STATUSES.length - 1))}
-                                className="mt-6 text-[11px] text-[var(--stone)] underline"
-                            >
-                                [Dev] Advance status locally
-                            </button>
-                        )}
-                    </motion.section>
+                            {/* Dev helper to advance status without touching DB */}
+                            {process.env.NODE_ENV === 'development' && (
+                                <button
+                                    onClick={() => setStatusIdx(i => Math.min(i + 1, STATUSES.length - 1))}
+                                    className="mt-6 text-[11px] text-[var(--stone)] underline"
+                                >
+                                    [Dev] Advance status locally
+                                </button>
+                            )}
+                        </motion.section>
+                    )}
 
                     {/* Receipt */}
                     <motion.section
@@ -371,7 +398,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                                     How was your meal? ⭐
                                 </p>
                                 <p className="text-[var(--orange-pale)]/90 text-[13px] mt-0.5">
-                                    Leave a review &mdash; earn <strong>20 pts</strong>!
+                                    Leave a review &mdash; let us know!
                                 </p>
                             </div>
                             <button
