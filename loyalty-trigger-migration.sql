@@ -26,16 +26,18 @@ AS $$
 $$;
 
 -- 3. Helper function: calculate tier from points
+DROP FUNCTION IF EXISTS fn_calc_tier(INTEGER) CASCADE;
+
 CREATE OR REPLACE FUNCTION fn_calc_tier(points INTEGER)
-RETURNS TEXT
+RETURNS loyalty_tier
 LANGUAGE sql
 IMMUTABLE
 AS $$
   SELECT CASE
-    WHEN points >= 5000 THEN 'platinum'
-    WHEN points >= 1500 THEN 'gold'
-    WHEN points >= 500  THEN 'silver'
-    ELSE 'bronze'
+    WHEN points >= 5000 THEN 'platinum'::loyalty_tier
+    WHEN points >= 1500 THEN 'gold'::loyalty_tier
+    WHEN points >= 500  THEN 'silver'::loyalty_tier
+    ELSE 'bronze'::loyalty_tier
   END;
 $$;
 
@@ -62,6 +64,8 @@ BEGIN
   IF NEW.status = 'confirmed' AND OLD.status != 'confirmed' THEN
     -- Only award if customer exists and points not yet awarded
     IF v_customer_id IS NOT NULL AND NEW.loyalty_points_awarded = 0 THEN
+      
+      -- Calculate points based on the numeric value
       v_points := fn_calc_loyalty_points(NEW.total::numeric);
 
       IF v_points > 0 THEN
