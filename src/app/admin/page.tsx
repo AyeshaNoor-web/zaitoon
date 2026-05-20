@@ -70,9 +70,9 @@ export default function AdminPage() {
                     <h2 className="text-[18px] font-display font-[700] text-[var(--cream)] mb-4">Quick Actions</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-[24px]">
                         {[
-                            { label: 'Manage Orders', href: '/admin/orders', emoji: '📋', desc: 'Process live incoming orders.' },
+                            { label: 'Order Stats', href: '/admin/analytics', emoji: '📊', desc: 'Revenue, sales, and analytics across branches.' },
+                            { label: 'Live Feed', href: '/admin/orders', emoji: '📋', desc: 'View live order flow across branches.' },
                             { label: 'Edit Menu', href: '/admin/menu', emoji: '🍽️', desc: 'Update items and availability.' },
-                            { label: 'View Analytics', href: '/admin/analytics', emoji: '📊', desc: 'Revenue and sales insights.' },
                         ].map((card, i) => (
                             <motion.div
                                 key={card.href}

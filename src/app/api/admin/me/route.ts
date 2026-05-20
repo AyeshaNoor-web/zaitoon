@@ -18,7 +18,7 @@ export async function GET() {
 
     const { data: session, error } = await adminSupabase
       .from('admin_sessions')
-      .select('role, name, expires_at')
+      .select('role, name, expires_at, branch_id')
       .eq('token', token)
       .single()
 
@@ -39,6 +39,7 @@ export async function GET() {
     return NextResponse.json({
       role: session.role,
       name: session.name,
+      branchId: session.branch_id,
     })
 
   } catch (err) {

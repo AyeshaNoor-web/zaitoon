@@ -117,15 +117,22 @@ export async function updateOrderStatus(orderId: string, status: string) {
 }
 
 // Admin — get all orders with pagination
-export async function getAllOrders(page = 1, limit = 30): Promise<{ orders: Order[]; total: number }> {
+export async function getAllOrders(page = 1, limit = 30, branchId?: string | null): Promise<{ orders: Order[]; total: number }> {
     const from = (page - 1) * limit
-    const { data, error, count } = await supabase
+    
+    let query = supabase
         .from('orders')
         .select(`
       *,
       branches (name),
       order_items (name, quantity, unit_price)
     `, { count: 'exact' })
+
+    if (branchId) {
+        query = query.eq('branch_id', branchId)
+    }
+
+    const { data, error, count } = await query
         .order('created_at', { ascending: false })
         .range(from, from + limit - 1)
 
@@ -146,17 +153,19 @@ export function subscribeToOrder(orderId: string, callback: (order: Order) => vo
 }
 
 // Realtime subscription for admin (new orders + status updates)
-export function subscribeToAllOrders(callback: (order: Order) => void) {
+export function subscribeToAllOrders(callback: (order: Order) => void, branchId?: string | null) {
+    const filter = branchId ? `branch_id=eq.${branchId}` : undefined;
+
     return supabase
         .channel('all-orders')
         .on(
             'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'orders' },
+            { event: 'INSERT', schema: 'public', table: 'orders', filter },
             payload => callback(payload.new as Order)
         )
         .on(
             'postgres_changes',
-            { event: 'UPDATE', schema: 'public', table: 'orders' },
+            { event: 'UPDATE', schema: 'public', table: 'orders', filter },
             payload => callback(payload.new as Order)
         )
         .subscribe()

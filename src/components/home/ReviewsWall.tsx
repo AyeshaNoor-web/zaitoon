@@ -52,7 +52,7 @@ export default function ReviewsWall({ reviews }: { reviews: AdminReview[] }) {
                                 ))}
                             </div>
                             <p className="text-[var(--charcoal)] dark:text-[var(--foreground)] text-[15px] leading-relaxed mb-6 italic">
-                                "{review.comment}"
+                                &quot;{review.comment}&quot;
                             </p>
                             <div className="flex items-center gap-3 mt-auto">
                                 <div className="w-10 h-10 rounded-full bg-[var(--green-light)] flex items-center justify-center text-white font-bold text-sm">

@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     // Fetch user by username only (no password in query — prevents timing leak)
     const { data: adminUser, error } = await adminSupabase
       .from('admin_users')
-      .select('id, username, password, role, name, is_active')
+      .select('id, username, password, role, name, is_active, branch_id')
       .eq('username', username.toLowerCase().trim())
       .eq('is_active', true)
       .single()
@@ -85,6 +85,7 @@ export async function POST(req: NextRequest) {
         admin_id:   adminUser.id,
         role:       adminUser.role,
         name:       adminUser.name,
+        branch_id:  adminUser.branch_id,
         expires_at: expiresAt,
       })
 
@@ -112,6 +113,7 @@ export async function POST(req: NextRequest) {
       success: true,
       role:    adminUser.role,
       name:    adminUser.name,
+      branchId: adminUser.branch_id,
     })
 
   } catch (err) {

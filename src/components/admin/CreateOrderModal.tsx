@@ -1,12 +1,12 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { X, Plus, Minus, ShoppingBag, Printer, CheckCircle } from 'lucide-react'
 import { formatPrice } from '@/lib/payment'
 import { getMenuItems, getCategories } from '@/lib/api/menu'
 import { createOrder } from '@/lib/api/orders'
 import { getBranches } from '@/lib/api/branches'
-import type { MenuItem, CartItem, OrderType, Branch, Category } from '@/types'
+import type { MenuItem, CartItem, OrderType, Branch, Category, Order } from '@/types'
 
 
 interface Props {
@@ -28,7 +28,7 @@ export default function CreateOrderModal({ isOpen, onClose }: Props) {
     const [notes, setNotes] = useState('')
     
     const [submitting, setSubmitting] = useState(false)
-    const [placedOrder, setPlacedOrder] = useState<any>(null)
+    const [placedOrder, setPlacedOrder] = useState<Order | null>(null)
 
     const [categories, setCategories] = useState<Category[]>([])
     const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all')
@@ -135,8 +135,8 @@ export default function CreateOrderModal({ isOpen, onClose }: Props) {
                 notes
             })
             setPlacedOrder(created)
-        } catch (err: any) {
-            setError(err.message || 'Failed to place order')
+        } catch (err: unknown) {
+            setError((err as Error).message || 'Failed to place order')
         } finally {
             setSubmitting(false)
         }

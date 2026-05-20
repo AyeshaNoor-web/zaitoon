@@ -6,7 +6,6 @@ import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ClipboardList, UtensilsCrossed, BarChart3, Settings, ArrowLeft, Menu, X, LogOut, Star, FileText } from 'lucide-react'
 import { useAdminRole } from '@/hooks/useAdminRole'
-import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 const NAV = [
     { label: 'Live Orders',   href: '/admin/orders',   icon: ClipboardList,   roles: ['owner', 'employee'] },

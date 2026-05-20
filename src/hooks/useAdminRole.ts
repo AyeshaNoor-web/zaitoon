@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 interface AdminSession {
   role: 'owner' | 'employee' | null
   name: string
+  branchId?: string | null
   loading: boolean
   isOwner: boolean
   isEmployee: boolean
@@ -13,6 +14,7 @@ interface AdminSession {
 export function useAdminRole(): AdminSession {
   const [role, setRole]     = useState<'owner' | 'employee' | null>(null)
   const [name, setName]     = useState('')
+  const [branchId, setBranchId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
@@ -26,6 +28,7 @@ export function useAdminRole(): AdminSession {
         const data = await res.json()
         setRole(data.role)
         setName(data.name)
+        setBranchId(data.branchId)
       })
       .catch(() => {
         router.push('/admin/login')
@@ -38,6 +41,7 @@ export function useAdminRole(): AdminSession {
   return {
     role,
     name,
+    branchId,
     loading,
     isOwner:    role === 'owner',
     isEmployee: role === 'employee',

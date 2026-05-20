@@ -87,6 +87,7 @@ export interface Order {
     updated_at: string
     branches?: Branch // Joined branch details
     order_items?: OrderItem[]
+    notes?: string | null
 }
 
 export interface OrderItem {

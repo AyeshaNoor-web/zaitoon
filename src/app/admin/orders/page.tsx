@@ -7,6 +7,7 @@ import CreateOrderModal from '@/components/admin/CreateOrderModal'
 import { getAllOrders, updateOrderStatus, subscribeToAllOrders } from '@/lib/api/orders'
 import { formatPrice } from '@/lib/payment'
 import type { OrderStatus, Order } from '@/types'
+import { useAdminRole } from '@/hooks/useAdminRole'
 
 const PAGE_SIZE = 30
 
@@ -36,6 +37,7 @@ function useIsMobile() {
 interface ToastMsg { message: string; orderId: string }
 
 export default function AdminOrdersPage() {
+    const { role, branchId, loading: roleLoading } = useAdminRole()
     const [orders, setOrders] = useState<Order[]>([])
     const [totalOrders, setTotalOrders] = useState(0)
     const [page, setPage] = useState(1)
@@ -58,7 +60,9 @@ export default function AdminOrdersPage() {
 
     // ── Initial load ─────────────────────────────────────────
     useEffect(() => {
-        getAllOrders(1, PAGE_SIZE)
+        if (roleLoading) return
+
+        getAllOrders(1, PAGE_SIZE, branchId)
             .then(({ orders: data, total }) => {
                 setOrders(data)
                 setTotalOrders(total)
@@ -78,29 +82,32 @@ export default function AdminOrdersPage() {
                     next[idx] = { ...prev[idx], ...changed }
                     return next
                 }
-                // New order — play sound + flash + toast
-                playNotification()
-                flashTitle()
-                setToast({
-                    message: `New order from ${changed.customer_name} — Rs. ${changed.total?.toLocaleString()}`,
-                    orderId: changed.id,
-                })
-                setTimeout(() => setToast(null), 6000)
+                
+                // Do not notify admins, only employees get notifications
+                if (role === 'employee') {
+                    playNotification()
+                    flashTitle()
+                    setToast({
+                        message: `New order from ${changed.customer_name} — Rs. ${changed.total?.toLocaleString()}`,
+                        orderId: changed.id,
+                    })
+                    setTimeout(() => setToast(null), 6000)
+                }
 
                 return [changed, ...prev]
             })
             setTotalOrders(t => t + 1)
-        })
+        }, branchId)
 
         return () => { channel.unsubscribe() }
-    }, [])
+    }, [branchId, roleLoading, role])
 
     // ── Load more ────────────────────────────────────────────
     const loadMore = async () => {
         setLoadingMore(true)
         try {
             const nextPage = page + 1
-            const { orders: more } = await getAllOrders(nextPage, PAGE_SIZE)
+            const { orders: more } = await getAllOrders(nextPage, PAGE_SIZE, branchId)
             setOrders(prev => [...prev, ...more])
             setPage(nextPage)
         } catch { /* silently fail */ }
