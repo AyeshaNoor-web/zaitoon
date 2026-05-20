@@ -1,18 +1,19 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 const supabase = createClient()
 
-export default function ReferralPage({ params }: { params: { code: string } }) {
+export default function ReferralPage({ params }: { params: Promise<{ code: string }> }) {
+    const { code: rawCode } = use(params)
     const router = useRouter()
     const [referrerName, setReferrerName] = useState('')
     const [valid, setValid] = useState(false)
 
     useEffect(() => {
-        const code = params.code.toUpperCase()
+        const code = rawCode.toUpperCase()
 
         // 1. Validate the referral code exists
         supabase
@@ -37,7 +38,7 @@ export default function ReferralPage({ params }: { params: { code: string } }) {
         const t = setTimeout(() => router.push('/menu'), 3000)
         return () => clearTimeout(t)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [params.code])
+    }, [rawCode])
 
     if (!valid) return null
 
