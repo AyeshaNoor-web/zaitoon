@@ -21,16 +21,16 @@ export async function POST(req: NextRequest) {
   }
 
   // Validate file
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'model/gltf-binary', 'model/gltf+json']
   if (!allowedTypes.includes(file.type)) {
     return NextResponse.json(
-      { error: 'Only JPEG, PNG, and WebP images allowed' },
+      { error: 'Only JPEG, PNG, WebP images, and GLB/GLTF models allowed' },
       { status: 400 }
     )
   }
-  if (file.size > 5 * 1024 * 1024) {
+  if (file.size > 50 * 1024 * 1024) {
     return NextResponse.json(
-      { error: 'Image must be under 5MB' },
+      { error: 'File must be under 50MB' },
       { status: 400 }
     )
   }
