@@ -3,8 +3,8 @@ import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 
-import { motion, useScroll, useTransform, AnimatePresence, type Variants } from 'framer-motion'
-import { Clock, ChevronRight, Star, Rocket, MapPin, ShoppingBag, Truck, Phone, MessageCircle, Trophy, Users, Utensils, Leaf } from 'lucide-react'
+import { motion, useScroll, useTransform, useReducedMotion, AnimatePresence, type Variants } from 'framer-motion'
+import { Clock, ChevronRight, Star, Rocket, MapPin, ShoppingBag, Truck, Phone, MessageCircle, Trophy, Users, Utensils, Leaf, Flame } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import MobileCartBar from '@/components/layout/MobileCartBar'
@@ -40,13 +40,9 @@ export default function HomePage() {
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
   const heroY = useTransform(scrollYProgress, [0, 1], [0, 80])
   const heroOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0])
+  const shouldReduceMotion = useReducedMotion()
 
   const t = translations[language]
-  const [heroIntro, setHeroIntro] = useState(
-    language === 'ur'
-      ? 'اصلی لبنانی ذائقہ، فلیم گرل چکن کے ساتھ'
-      : 'Fresh Lebanese Taste with Flame-Grilled Chicken'
-  )
 
   useEffect(() => { requestAnimationFrame(() => setStoreHydrated(true)) }, [])
   useEffect(() => {
@@ -64,8 +60,6 @@ export default function HomePage() {
       .then(([b, m, content]) => {
         setBranches(b)
         setMenuItems(m)
-        const key = language === 'ur' ? 'hero_tagline_ur' : 'hero_tagline_en'
-        if (content[key]) setHeroIntro(content[key])
         setAboutContent(content)
       })
       .finally(() => {})
@@ -111,225 +105,239 @@ export default function HomePage() {
         <section
           ref={heroRef}
           aria-label="Welcome to Zaitoon"
-          className="relative w-full overflow-hidden min-h-[100dvh]"
-          style={{
-            backgroundImage: `
-              linear-gradient(140deg, rgba(31,34,27,0.86) 0%, rgba(52,57,43,0.83) 45%, rgba(38,42,33,0.88) 100%),
-              url("/hero-grilled-chicken.png")
-            `,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center 42%',
-          }}
+          className="relative w-full overflow-hidden min-h-[100dvh] flex flex-col justify-between bg-[#1A3A28]"
+          style={{ minHeight: '100vh' }}
         >
-          {/* Animated ambient orbs */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <motion.div
-              animate={{ scale: [1, 1.15, 1], opacity: [0.20, 0.30, 0.20] }}
-              transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute top-[-15%] left-[-8%] w-[600px] h-[600px] rounded-full"
-              style={{ background: 'radial-gradient(circle, rgba(156,175,136,0.38) 0%, transparent 70%)' }}
-            />
-            <motion.div
-              animate={{ scale: [1, 1.2, 1], opacity: [0.18, 0.28, 0.18] }}
-              transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-              className="absolute bottom-[-10%] right-[-5%] w-[520px] h-[520px] rounded-full"
-              style={{ background: 'radial-gradient(circle, rgba(204,132,95,0.28) 0%, transparent 70%)' }}
-            />
-          </div>
+          {/* HD Background Video Backdrop */}
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none transform scale-105"
+            style={{ filter: 'brightness(0.85) contrast(1.08)' }}
+          >
+            <source src="/4440943-hd_1920_1080_25fps.mp4" type="video/mp4" />
+          </video>
 
-          {/* Decorative diagonal right panel */}
-          <div
-            className="hidden lg:block absolute top-0 right-0 bottom-0"
-            style={{
-              width: '42%',
-              background: 'linear-gradient(180deg, rgba(26,58,40,0.9) 0%, rgba(15,42,28,1) 100%)',
-              clipPath: 'polygon(8% 0, 100% 0, 100% 100%, 0% 100%)'
-            }}
-          />
+          {/* Dark readability gradient overlay */}
+          <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.3) 55%, transparent 100%)' }} />
 
-          {/* Dot grid */}
-          <div className="absolute inset-0 pointer-events-none"
-            style={{
-              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(156,175,136,0.08) 1px, transparent 0)`,
-              backgroundSize: '40px 40px'
-            }}
-          />
-
+          {/* Main Hero Content */}
           <motion.div
             style={{ y: heroY, opacity: heroOpacity }}
-            className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 w-full flex flex-col lg:flex-row items-center lg:items-center min-h-[100dvh] pt-[120px] pb-[80px] gap-8"
+            className="relative z-10 w-full flex flex-col justify-center items-start min-h-full pt-[12vh] sm:pt-[15vh] pb-[8vh] sm:pb-[10vh] pl-[5%] sm:pl-[60px] pr-5 sm:pr-6 flex-grow"
           >
-            {/* HERO LEFT CONTENT */}
-            <div className="w-full lg:w-[68%] flex flex-col items-start pt-8 lg:pt-0">
+            {/* HERO CONTENT */}
+            <div className="w-full max-w-5xl flex flex-col items-start text-left">
+              {/* EYEBROW LINE */}
               <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="flex items-center gap-[8px] sm:gap-[10px] mb-[12px] sm:mb-[16px]"
               >
-                <p className={`section-label mb-6 text-[var(--orange-warm)] ${isRTL ? 'text-right' : ''}`}>
-                  {heroIntro}
-                </p>
+                <span className="w-[18px] sm:w-[24px] h-[2px] bg-[#D4748A] inline-block shrink-0" />
+                <span
+                  className="text-[9.5px] sm:text-[11px] tracking-[0.14em] sm:tracking-[0.2em] uppercase text-[#D4748A] leading-tight"
+                  style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600 }}
+                >
+                  FRESH FLAME-GRILLED TASTE FROM THE HEART OF LAHORE
+                </span>
               </motion.div>
 
-              <h1 className={`text-white ${isRTL ? 'text-right' : ''}`}>
+              <h1 className="flex flex-col gap-0 text-left">
                 <motion.span
-                  className="block"
-                  initial={{ y: 50, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                  className="text-white"
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontWeight: 400,
+                    fontSize: '12px',
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    opacity: 0.5,
+                    display: 'block',
+                    marginBottom: '4px'
+                  }}
+                  initial={{ y: 30, opacity: 0 }}
+                  animate={{ y: 0, opacity: 0.5 }}
+                  transition={{ duration: 0.7, delay: 0.1 }}
                 >
-                  {t.lahores}
+                  {language === 'ur' ? t.lahores : "Lahore's"}
                 </motion.span>
                 <motion.span
-                  className="block italic"
-                  style={{ color: 'var(--orange-pale)', textShadow: '0 0 60px rgba(204,132,95,0.35)' }}
-                  initial={{ y: 50, opacity: 0 }}
+                  className="italic leading-[1.02] text-[#D4748A]"
+                  style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 700, fontSize: 'clamp(44px, 8.5vw, 92px)', textShadow: '0 0 40px rgba(212,116,138,0.3)' }}
+                  initial={{ y: 30, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 0.7, delay: 0.2 }}
                 >
-                  {t.finest}
+                  {language === 'ur' ? t.finest : "Finest"}
                 </motion.span>
                 <motion.span
-                  className="block"
-                  initial={{ y: 50, opacity: 0 }}
+                  className="leading-[1.02] text-white"
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontWeight: 800,
+                    fontSize: 'clamp(34px, 6.5vw, 80px)',
+                    letterSpacing: '-0.01em'
+                  }}
+                  initial={{ y: 30, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ duration: 0.7, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 0.7, delay: 0.3 }}
                 >
-                  {t.bbqGrill}
+                  {language === 'ur' ? t.bbqGrill : "BBQ & Grill"}
                 </motion.span>
               </h1>
 
               <motion.div
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
-                transition={{ duration: 0.7, delay: 0.55, ease: [0.16, 1, 0.3, 1] }}
-                className={`h-[3px] w-[72px] mt-7 mb-7 rounded-full ${isRTL ? 'origin-right float-right' : 'origin-left'}`}
-                style={{ background: 'linear-gradient(90deg, var(--orange-warm), var(--green-base))' }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                className="w-[40px] sm:w-[48px] h-[2px] bg-[#D4748A] mt-[16px] sm:mt-[20px] mb-[18px] sm:mb-[24px] origin-left"
               />
 
-              <motion.div
-                initial={{ y: 28, opacity: 0 }}
+              <motion.p
+                initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.65 }}
-                className={isRTL ? 'text-right' : ''}
+                transition={{ duration: 0.6, delay: 0.5 }}
+                className="text-[14px] sm:text-[16px] leading-[1.6] sm:leading-[1.7] text-white/[0.7] text-left"
+                style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, maxWidth: '480px' }}
               >
-                <p className="text-[17px] font-[300] leading-[1.7] max-w-md" style={{ color: 'rgba(250,243,224,0.65)' }}>
-                  {t.heroDesc}
-                </p>
+                {language === 'ur' ? t.heroDesc : "Slow charcoal. Real smoke. The kind of shawarma Lahore talks about."}
+              </motion.p>
 
-                <div className={`mt-4 flex flex-wrap items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                  {['Avg delivery 28 min', '4.9 customer rating', 'Live order tracking'].map((line) => (
-                    <span
-                      key={line}
-                      className="text-[11px] font-[700] tracking-[0.06em] uppercase px-3 py-1.5 rounded-full"
-                      style={{
-                        background: 'rgba(188,217,162,0.20)',
-                        border: '1px solid rgba(188,217,162,0.38)',
-                        color: 'rgba(250,243,224,0.86)',
-                      }}
-                    >
-                      {line}
-                    </span>
-                  ))}
-                </div>
-
-                <div className={`flex flex-col sm:flex-row gap-3 mt-8 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
-                  <Link href="/menu" className="btn-primary w-full sm:w-auto">
-                    {t.orderNow} <ChevronRight className="w-4 h-4" />
-                  </Link>
-                  <Link href="/menu" className="btn-secondary w-full sm:w-auto">
-                    {t.viewMenu}
-                  </Link>
-                </div>
-
-                {/* Stats row */}
-                <div className={`flex flex-wrap items-center gap-6 mt-10 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                  {[
-                    { icon: Star, label: t.rating },
-                    { icon: Rocket, label: t.heroDelivery },
-                    { icon: MapPin, label: branchCount > 0 ? `${branchCount} ${t.branchCount}` : '…' },
-                  ].map((badge, i) => (
-                    <div key={i} className={`flex items-center gap-6 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                      <motion.div
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.75 + i * 0.1, duration: 0.4 }}
-                        className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
-                      >
-                        <badge.icon className="w-[19px] h-[19px] text-[var(--green-light)]" />
-                        <span className="font-[400] text-[13px]" style={{ color: 'rgba(250,243,224,0.82)' }}>
-                          {badge.label}
-                        </span>
-                      </motion.div>
-                      {i < 2 && <div className="h-[20px] w-[1px] hidden sm:block" style={{ background: 'rgba(156,175,136,0.30)' }} />}
-                    </div>
-                  ))}
-                </div>
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+                className="flex flex-row gap-3.5 mt-[18px] sm:mt-[22px] w-full sm:w-auto max-w-[360px] sm:max-w-none"
+              >
+                <Link
+                  href="/menu"
+                  className="group relative flex-1 sm:flex-initial min-h-[46px] sm:min-h-[50px] overflow-hidden bg-gradient-to-r from-[#D4748A] to-[#B5364F] border border-[#D4748A]/40 text-white text-[11px] sm:text-[12px] tracking-[0.12em] sm:tracking-[0.14em] uppercase px-6 sm:px-8 py-3 rounded-[8px] flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-[0_8px_25px_rgba(212,116,138,0.45)] hover:-translate-y-[1px] active:translate-y-0 whitespace-nowrap"
+                  style={{ fontFamily: "'Inter', sans-serif", fontWeight: 800 }}
+                >
+                  <span className="relative z-10 flex items-center gap-1.5">
+                    {t.orderNow}
+                    <ChevronRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
+                </Link>
+                <Link
+                  href="/menu"
+                  className="group flex-1 sm:flex-initial min-h-[46px] sm:min-h-[50px] bg-white/[0.06] backdrop-blur-md border border-white/30 hover:border-white/60 text-white text-[11px] sm:text-[12px] tracking-[0.12em] sm:tracking-[0.14em] uppercase px-6 sm:px-8 py-3 rounded-[8px] flex items-center justify-center gap-2 transition-all duration-300 hover:bg-white/[0.12] hover:shadow-[0_8px_25px_rgba(255,255,255,0.12)] hover:-translate-y-[1px] active:translate-y-0 whitespace-nowrap"
+                  style={{ fontFamily: "'Inter', sans-serif", fontWeight: 800 }}
+                >
+                  <span>{t.viewMenu}</span>
+                  <Utensils className="w-3.5 h-3.5 opacity-70 transition-all duration-300 group-hover:opacity-100 group-hover:rotate-12" />
+                </Link>
               </motion.div>
             </div>
+          </motion.div>
 
-            {/* HERO RIGHT — Logo image */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col items-center justify-center flex-1 shrink-0 order-first lg:order-none mb-12 lg:mb-0"
-            >
-              <motion.div
-                animate={{ y: [0, -14, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                className="relative flex items-center justify-center w-full"
+        </section>
+
+        {/* ══════════════════════════════════════════════
+            ZAITOON KITCHEN TICKET SECTION
+        ══════════════════════════════════════════════ */}
+        <section
+          aria-label="Zaitoon Kitchen Ticket"
+          className="relative w-full py-14 sm:py-16 px-6 overflow-hidden z-20"
+          style={{
+            backgroundColor: '#F4EEE2',
+            backgroundImage: `repeating-conic-gradient(rgba(30,42,32,0.018) 0% 25%, transparent 0% 50%)`,
+            backgroundSize: '3px 3px',
+          }}
+        >
+          <div className="max-w-7xl mx-auto">
+            {/* Header */}
+            <div className="flex flex-col items-center text-center mb-12 sm:mb-16">
+              <span
+                className="text-xs font-bold tracking-[0.25em] uppercase mb-2 block"
+                style={{ color: '#D4748A' }}
               >
-                {/* Outer ambient glow — matches the logo's green tone */}
-                <div
-                  className="absolute rounded-full pointer-events-none"
-                  style={{
-                    inset: '-15%',
-                    background: 'radial-gradient(circle, rgba(76,92,45,0.4) 0%, transparent 70%)',
-                    filter: 'blur(50px)',
-                  }}
-                />
-                
-                {/* Decorative rotating ring */}
+                ZAITOON KITCHEN TICKET
+              </span>
+              <h2
+                className="text-3xl sm:text-5xl font-bold tracking-tight"
+                style={{ color: '#1E2A20', fontFamily: 'var(--font-display)' }}
+              >
+                Four Things We Never Skip
+              </h2>
+            </div>
+
+            {/* Ticket Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-4">
+              {[
+                {
+                  num: '01',
+                  label: '01 — THE GRILL',
+                  desc: 'Real charcoal, not gas. Marinated up to 12 hours, then charred till the edges catch flame.',
+                },
+                {
+                  num: '02',
+                  label: '02 — THE KITCHEN',
+                  desc: 'Every sauce made fresh that morning. No shortcuts, no pre-mixed bases.',
+                },
+                {
+                  num: '03',
+                  label: '03 — THE ROUTE',
+                  desc: 'Sealed in heat-locked packaging the second it leaves the grill. At your door inside 30 minutes.',
+                },
+                {
+                  num: '04',
+                  label: '04 — THE VERDICT',
+                  desc: "50,000+ orders in Lahore. 4.9 stars because the chicken's never dry.",
+                },
+              ].map((item, index) => (
                 <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                  className="absolute -inset-4 rounded-[48px] border border-dashed border-[var(--green-light)] opacity-20"
-                />
+                  key={index}
+                  initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 1.04, rotate: 2.5 }}
+                  whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1, rotate: 0 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{
+                    duration: 0.4,
+                    delay: index * 0.12,
+                    ease: 'easeOut',
+                  }}
+                  className={`relative py-8 lg:py-6 px-4 sm:px-8 flex flex-col justify-between ${
+                    index < 3
+                      ? 'border-b border-dashed lg:border-b-0 lg:border-r border-[#D4748A]/40'
+                      : ''
+                  }`}
+                >
+                  {/* Ghost Numeral Background */}
+                  <span
+                    className="absolute top-0 left-4 sm:left-6 select-none pointer-events-none font-bold leading-none tracking-tighter"
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: 'clamp(90px, 9vw, 120px)',
+                      color: 'rgba(181, 54, 79, 0.06)',
+                    }}
+                  >
+                    {item.num}
+                  </span>
 
-                <div className="relative z-10 w-full max-w-[320px] lg:max-w-[500px] aspect-square overflow-hidden rounded-[40px] shadow-[0_32px_64px_rgba(0,0,0,0.5)] border border-white/10">
-                  <Image
-                    src="/photo.PNG"
-                    alt="Zaitoon – House of Shawarma & BBQ"
-                    fill
-                    className="object-cover transform hover:scale-110 transition-transform duration-700"
-                    priority
-                  />
-                  {/* Subtle glass overlay on the image */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
-                </div>
-              </motion.div>
-            </motion.div>
-
-          </motion.div>
-
-          {/* Scroll indicator */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.4, duration: 0.6 }}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-10"
-          >
-            <span className="text-[10px] font-[600] tracking-[0.2em] uppercase" style={{ color: 'rgba(250,243,224,0.74)' }}>
-              Scroll
-            </span>
-            <motion.div
-              animate={{ y: [0, 6, 0] }}
-              transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
-              className="w-[1px] h-[32px] rounded-full"
-              style={{ background: 'linear-gradient(180deg, rgba(156,175,136,0.72), transparent)' }}
-            />
-          </motion.div>
+                  {/* Content Block */}
+                  <div className="relative z-10 pt-6 sm:pt-8">
+                    <h3
+                      className="text-sm font-bold tracking-widest uppercase mb-3"
+                      style={{ color: '#1E2A20', fontFamily: 'var(--font-display)' }}
+                    >
+                      {item.label}
+                    </h3>
+                    <p
+                      className="text-base sm:text-lg leading-relaxed font-normal"
+                      style={{ color: '#1E2A20', fontFamily: 'var(--font-body)' }}
+                    >
+                      {item.desc}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
         </section>
 
         {/* ══════════════════════════════════════════════

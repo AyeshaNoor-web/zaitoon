@@ -7,15 +7,18 @@ const adminSupabase = createClient(
 )
 
 export async function POST(req: NextRequest) {
-  const { customerId, name } = await req.json()
-  
-  if (!customerId || !name) {
-    return NextResponse.json({ error: 'Missing customer ID or name' }, { status: 400 })
-  }
+  try {
+    const { customerId, name } = await req.json()
+    
+    if (!customerId || typeof customerId !== 'string' || !name || typeof name !== 'string' || !name.trim()) {
+      return NextResponse.json({ error: 'Valid customer ID and name required' }, { status: 400 })
+    }
 
-  const { data: customer, error } = await adminSupabase
-    .from('customers')
-    .update({ name })
+    const cleanName = name.trim().slice(0, 100)
+
+    const { data: customer, error } = await adminSupabase
+      .from('customers')
+      .update({ name: cleanName })
     .eq('id', customerId)
     .select()
     .single()
@@ -25,4 +28,8 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ customer })
+  } catch (err: unknown) {
+    console.error('Update profile error:', err)
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
+  }
 }

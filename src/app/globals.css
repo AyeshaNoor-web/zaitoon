@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital@1&family=Inter:wght@400;800&display=swap');
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
@@ -57,12 +58,12 @@
     --green-light:   #9CAF71;
     --green-pale:    #C8D6A7;
 
-    /* ── Brand Accent: Coral Rose ── */
-    --orange-deep:   #A84E4E;
-    --orange-rich:   #A6524F;
-    --orange-warm:   #B8625E;
-    --orange-bright: #E18484;
-    --orange-pale:   #F3C1C1;
+    /* ── Brand Accent: Burnt Rose ── */
+    --orange-deep:   #8C253B;
+    --orange-rich:   #B5364F;
+    --orange-warm:   #D4748A;
+    --orange-bright: #E293A4;
+    --orange-pale:   #F3C1CB;
 
     /* ── Neutrals ── */
     --cream:     #FBF6F6;

@@ -98,7 +98,7 @@ export default function Navbar() {
 
                 {/* Logo */}
                 <Link href="/" aria-label="Zaitoon &mdash; go to homepage" className="shrink-0 flex items-center h-full">
-                    <Image src="/logo-en.png" alt="Zaitoon logo" width={164} height={46} priority style={{ mixBlendMode: 'screen', height: '42px', width: 'auto' }} />
+                    <Image src="/logo-en.png" alt="Zaitoon logo" width={164} height={46} priority className="h-[34px] sm:h-[42px] w-auto" style={{ mixBlendMode: 'screen' }} />
                 </Link>
 
                 {/* Desktop Nav Links */}

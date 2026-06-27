@@ -10,18 +10,27 @@ export async function POST(req: NextRequest) {
   try {
     const { phone, name } = await req.json()
 
-    if (!phone) {
+    if (!phone || typeof phone !== 'string') {
       return NextResponse.json(
-        { error: 'Phone number required' },
+        { error: 'Valid phone number required' },
         { status: 400 }
       )
+    }
+
+    let normalizedPhone = phone.trim().replace(/\D/g, '')
+    if (normalizedPhone.startsWith('0')) {
+      normalizedPhone = '+92' + normalizedPhone.slice(1)
+    } else if (normalizedPhone.startsWith('92')) {
+      normalizedPhone = '+' + normalizedPhone
+    } else if (!normalizedPhone.startsWith('+')) {
+      normalizedPhone = '+92' + normalizedPhone
     }
 
     // Try to find existing customer
     const { data: existing } = await adminSupabase
       .from('customers')
       .select('*')
-      .eq('phone', phone)
+      .eq('phone', normalizedPhone)
       .maybeSingle()  // Using maybeSingle to avoid errors if not found
 
     if (existing) {
@@ -37,15 +46,12 @@ export async function POST(req: NextRequest) {
     }
 
     // New customer — create account silently
-    const referralCode = Math.random()
-      .toString(36)
-      .substring(2, 10)
-      .toUpperCase()
+    const referralCode = crypto.randomUUID().split('-')[0].toUpperCase()
 
     const { data: newCustomer, error } = await adminSupabase
       .from('customers')
       .insert({
-        phone,
+        phone:          normalizedPhone,
         name:           name?.trim() || 'Customer',
         referral_code:  referralCode,
         loyalty_points: 0,
