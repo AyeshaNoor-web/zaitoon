@@ -79,15 +79,22 @@ export default function AdminAnalyticsPage() {
 
         data.orders.forEach((o) => {
             const date = new Date(o.created_at)
-            const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-            if (!dayMap.has(dateStr)) dayMap.set(dateStr, { day: dateStr })
-            const entry = dayMap.get(dateStr)!
+            const sortKey = date.toISOString().split('T')[0]
+            const dayLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            
+            if (!dayMap.has(sortKey)) {
+                const initRecord: Record<string, string | number> = { sortKey, day: dayLabel }
+                branches.forEach(b => { initRecord[b.name] = 0 })
+                dayMap.set(sortKey, initRecord)
+            }
+            const entry = dayMap.get(sortKey)!
 
             const branchName = branches.find(b => b.id === o.branch_id)?.name || 'Unknown'
+            if (entry[branchName] === undefined) entry[branchName] = 0
             entry[branchName] = (Number(entry[branchName]) || 0) + o.total
         })
 
-        const revenueData = Array.from(dayMap.values()).sort((a, b) => new Date(a.day as string).getTime() - new Date(b.day as string).getTime())
+        const revenueData = Array.from(dayMap.values()).sort((a, b) => (a.sortKey as string).localeCompare(b.sortKey as string))
 
         // Top Items
         const itemsMap = new Map<string, number>()
@@ -99,8 +106,8 @@ export default function AdminAnalyticsPage() {
             }
         })
         const topItems = Array.from(itemsMap.entries())
-            .map(([name, orders]) => ({ name, orders }))
-            .sort((a, b) => b.orders - a.orders)
+            .map(([name, quantity]) => ({ name, quantity }))
+            .sort((a, b) => b.quantity - a.quantity)
             .slice(0, 5)
 
         // Order Type split & Revenue split
@@ -118,16 +125,17 @@ export default function AdminAnalyticsPage() {
 
         const COLORS: Record<string, string> = { 'Delivery': '#1B4332', 'Takeaway': '#B45309', 'Dine-In': '#2D6A4F' }
         
-        const orderSplit = Array.from(typeCountMap.entries()).map(([name, value]) => ({
+        const orderSplit = Array.from(typeCountMap.entries()).map(([name, count]) => ({
             name,
-            value: totalSplit > 0 ? Math.round((value / totalSplit) * 100) : 0,
+            count,
+            percentage: totalSplit > 0 ? Math.round((count / totalSplit) * 100) : 0,
             color: COLORS[name] || '#18181B'
         }))
 
         const revenueSplit = Array.from(typeRevenueMap.entries()).map(([name, value]) => ({
             name,
-            value: totalRevenueSplit > 0 ? Math.round((value / totalRevenueSplit) * 100) : 0,
             revenue: value,
+            percentage: totalRevenueSplit > 0 ? Math.round((value / totalRevenueSplit) * 100) : 0,
             color: COLORS[name] || '#18181B'
         }))
 
@@ -204,9 +212,12 @@ export default function AdminAnalyticsPage() {
                                     <YAxis tick={{ fontSize: 12, fill: '#47423D' }} tickFormatter={v => `${Math.round((v as number) / 1000)}k`} axisLine={false} tickLine={false} />
                                     <Tooltip formatter={(v) => `Rs. ${Number(v).toLocaleString()}`} contentStyle={{ borderRadius: '16px', border: '1px solid #E7E0D8', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }} />
                                     <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px' }} />
-                                    {branchNames.map((name, i) => (
-                                        <Line key={name} type="monotone" dataKey={name} name={name} stroke={i === 0 ? "#1B4332" : "#B45309"} strokeWidth={3} dot={{ strokeWidth: 2, r: 4 }} activeDot={{ r: 6 }} />
-                                    ))}
+                                    {branchNames.map((name, i) => {
+                                        const BRANCH_COLORS = ["#1B4332", "#B45309", "#2D6A4F", "#D97706", "#2563EB", "#4B5563"]
+                                        return (
+                                            <Line key={name} type="monotone" dataKey={name} name={name} stroke={BRANCH_COLORS[i % BRANCH_COLORS.length]} strokeWidth={3} dot={{ strokeWidth: 2, r: 4 }} activeDot={{ r: 6 }} />
+                                        )
+                                    })}
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
@@ -220,8 +231,8 @@ export default function AdminAnalyticsPage() {
                                         <BarChart data={chartData.topItems} layout="vertical" margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                                             <XAxis type="number" hide />
                                             <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 12, fill: '#18181B', fontWeight: 500 }} axisLine={false} tickLine={false} />
-                                            <Tooltip cursor={{ fill: '#FAF6EF' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                                            <Bar dataKey="orders" fill="#1B4332" radius={[0, 8, 8, 0]} barSize={24} />
+                                            <Tooltip formatter={(value) => [`${value} units`, 'Quantity Sold']} cursor={{ fill: '#FAF6EF' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                            <Bar dataKey="quantity" fill="#1B4332" radius={[0, 8, 8, 0]} barSize={24} />
                                         </BarChart>
                                     ) : (
                                         <div className="flex h-full items-center justify-center text-sm text-gray-600">Not enough item data</div>
@@ -234,10 +245,10 @@ export default function AdminAnalyticsPage() {
                                 <h2 className="font-display text-xl font-bold text-[#18181B] mb-2 self-start">Orders by Type</h2>
                                 <ResponsiveContainer width="100%" height={240}>
                                     <PieChart>
-                                        <Pie data={chartData.orderSplit} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={90} label={({ name, value }) => `${name} ${value}%`} labelLine={false} stroke="none">
+                                        <Pie data={chartData.orderSplit} dataKey="count" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={90} label={(entry: any) => `${entry.name} ${entry.percentage}%`} labelLine={false} stroke="none">
                                             {chartData.orderSplit.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
                                         </Pie>
-                                        <Tooltip formatter={(v) => `${v}%`} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                        <Tooltip formatter={(v, n, p) => [`${v} orders (${p.payload.percentage}%)`, n]} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
                                     </PieChart>
                                 </ResponsiveContainer>
                             </div>
@@ -247,10 +258,10 @@ export default function AdminAnalyticsPage() {
                                 <h2 className="font-display text-xl font-bold text-[#18181B] mb-2 self-start">Revenue by Type</h2>
                                 <ResponsiveContainer width="100%" height={240}>
                                     <PieChart>
-                                        <Pie data={chartData.revenueSplit} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={90} label={({ name, value }) => `${name} ${value}%`} labelLine={false} stroke="none">
+                                        <Pie data={chartData.revenueSplit} dataKey="revenue" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={90} label={(entry: any) => `${entry.name} ${entry.percentage}%`} labelLine={false} stroke="none">
                                             {chartData.revenueSplit.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
                                         </Pie>
-                                        <Tooltip formatter={(v, n, p) => [`${v}% (Rs. ${p.payload.revenue.toLocaleString()})`, n]} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                        <Tooltip formatter={(v, n, p) => [`Rs. ${Number(v).toLocaleString()} (${p.payload.percentage}%)`, n]} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
                                     </PieChart>
                                 </ResponsiveContainer>
                             </div>
