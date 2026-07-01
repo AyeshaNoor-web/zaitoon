@@ -158,10 +158,10 @@ export default function AdminAnalyticsPage() {
     }
 
     const STAT_CARDS = [
-        { emoji: '📦', label: 'Total Orders', value: data?.totalOrders?.toLocaleString() || '0' },
-        { emoji: '💰', label: 'Revenue', value: `Rs. ${data?.totalRevenue?.toLocaleString() || '0'}` },
-        { emoji: '📊', label: 'Avg Order Value', value: `Rs. ${data?.avgOrderValue?.toLocaleString() || '0'}` },
-        { emoji: '👥', label: 'New Customers', value: data?.newCustomers?.toLocaleString() || '0' },
+        { emoji: '📦', label: 'Total Orders Placed', value: data?.totalOrders?.toLocaleString() || '0' },
+        { emoji: '💰', label: 'Total Revenue Earned', value: `Rs. ${data?.totalRevenue?.toLocaleString() || '0'}` },
+        { emoji: '🧾', label: 'Avg. Bill per Order', value: `Rs. ${data?.avgOrderValue?.toLocaleString() || '0'}` },
+        { emoji: '👥', label: 'First-Time Customers', value: data?.newCustomers?.toLocaleString() || '0' },
     ]
 
     const branchNames = branches.map(b => b.name)
@@ -172,7 +172,7 @@ export default function AdminAnalyticsPage() {
             <div className="p-6 max-w-5xl mx-auto space-y-6">
                 {/* Header + date tabs */}
                 <div className="flex flex-wrap items-center gap-4">
-                    <h1 className="font-display text-3xl font-bold mr-auto text-[#18181B]">Analytics</h1>
+                    <h1 className="font-display text-3xl font-bold mr-auto text-[#18181B]">Sales & Analytics</h1>
                     <div className="flex gap-1 p-1.5 rounded-2xl bg-white border border-[#E7E0D8]">
                         {RANGES.map(r => (
                             <button key={r} onClick={() => setRange(r)} disabled={loading}
@@ -197,15 +197,15 @@ export default function AdminAnalyticsPage() {
 
                 {noOrders ? (
                     <div className="bg-white rounded-3xl p-16 card-lg border border-[#E7E0D8] text-center">
-                        <div className="text-5xl mb-4 opacity-50">📊</div>
-                        <h2 className="font-display text-2xl font-bold text-[#18181B] mb-2">No orders yet</h2>
-                        <p className="text-[#47423D]">There is no order data to display for &quot;{range}&quot;.</p>
+                        <div className="text-5xl mb-4 opacity-50">📋</div>
+                        <h2 className="font-display text-2xl font-bold text-[#18181B] mb-2">No orders found for this period</h2>
+                        <p className="text-[#47423D]">There are no orders to show for &quot;{range}&quot;. Try selecting a different time range.</p>
                     </div>
                 ) : (
                     <>
                         {/* Revenue Line Chart */}
                         <div className="bg-white rounded-3xl p-6 card-lg border border-[#E7E0D8]">
-                            <h2 className="font-display text-xl font-bold text-[#18181B] mb-6">Revenue Over Time</h2>
+                            <h2 className="font-display text-xl font-bold text-[#18181B] mb-6">Daily Sales Trend</h2>
                             <ResponsiveContainer width="100%" height={240}>
                                 <LineChart data={chartData.revenueData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                                     <XAxis dataKey="day" tick={{ fontSize: 12, fill: '#47423D' }} axisLine={false} tickLine={false} />
@@ -225,7 +225,7 @@ export default function AdminAnalyticsPage() {
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             {/* Top Items Bar Chart */}
                             <div className="bg-white rounded-3xl p-6 card-md border border-[#E7E0D8]">
-                                <h2 className="font-display text-xl font-bold text-[#18181B] mb-6">Top Items</h2>
+                                <h2 className="font-display text-xl font-bold text-[#18181B] mb-6">Best-Selling Items</h2>
                                 <ResponsiveContainer width="100%" height={240}>
                                     {chartData.topItems.length > 0 ? (
                                         <BarChart data={chartData.topItems} layout="vertical" margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
@@ -235,14 +235,14 @@ export default function AdminAnalyticsPage() {
                                             <Bar dataKey="quantity" fill="#1B4332" radius={[0, 8, 8, 0]} barSize={24} />
                                         </BarChart>
                                     ) : (
-                                        <div className="flex h-full items-center justify-center text-sm text-gray-600">Not enough item data</div>
+                                        <div className="flex h-full items-center justify-center text-sm text-gray-600">No item sales recorded yet</div>
                                     )}
                                 </ResponsiveContainer>
                             </div>
 
                             {/* Order Type Pie */}
                             <div className="bg-white rounded-3xl p-6 card-md border border-[#E7E0D8] flex flex-col items-center">
-                                <h2 className="font-display text-xl font-bold text-[#18181B] mb-2 self-start">Orders by Type</h2>
+                                <h2 className="font-display text-xl font-bold text-[#18181B] mb-2 self-start">How Customers Order</h2>
                                 <ResponsiveContainer width="100%" height={240}>
                                     <PieChart>
                                         <Pie data={chartData.orderSplit} dataKey="count" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={90} label={(entry: any) => `${entry.name} ${entry.percentage}%`} labelLine={false} stroke="none">
@@ -255,7 +255,7 @@ export default function AdminAnalyticsPage() {
 
                             {/* Revenue by Type Pie */}
                             <div className="bg-white rounded-3xl p-6 card-md border border-[#E7E0D8] flex flex-col items-center">
-                                <h2 className="font-display text-xl font-bold text-[#18181B] mb-2 self-start">Revenue by Type</h2>
+                                <h2 className="font-display text-xl font-bold text-[#18181B] mb-2 self-start">Earnings by Order Channel</h2>
                                 <ResponsiveContainer width="100%" height={240}>
                                     <PieChart>
                                         <Pie data={chartData.revenueSplit} dataKey="revenue" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={90} label={(entry: any) => `${entry.name} ${entry.percentage}%`} labelLine={false} stroke="none">

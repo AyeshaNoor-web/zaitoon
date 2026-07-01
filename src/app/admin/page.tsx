@@ -29,18 +29,18 @@ export default function AdminPage() {
     const delivered = orders.filter(o => o.status === 'delivered').length
 
     const STATS = [
-        { icon: Package, label: 'Total Orders', value: orders.length, bg: 'bg-[var(--green-mid)]', text: 'text-[var(--cream)]' },
-        { icon: TrendingUp, label: 'Revenue', value: formatPrice(revenue), bg: 'bg-[var(--orange-warm)]', text: 'text-[#0D2015]' },
-        { icon: ClipboardList, label: 'Active Orders', value: active, bg: 'bg-[var(--parchment)]', text: 'text-[var(--charcoal)]' },
-        { icon: CheckCircle, label: 'Delivered', value: delivered, bg: 'bg-[var(--parchment)]', text: 'text-[var(--charcoal)]' },
+        { icon: Package, label: 'Total Orders Placed', value: orders.length, bg: 'bg-[var(--green-mid)]', text: 'text-[var(--cream)]' },
+        { icon: TrendingUp, label: 'Total Revenue Earned', value: formatPrice(revenue), bg: 'bg-[var(--orange-warm)]', text: 'text-[#0D2015]' },
+        { icon: ClipboardList, label: 'Being Prepared', value: active, bg: 'bg-[var(--parchment)]', text: 'text-[var(--charcoal)]' },
+        { icon: CheckCircle, label: 'Successfully Delivered', value: delivered, bg: 'bg-[var(--parchment)]', text: 'text-[var(--charcoal)]' },
     ]
 
     return (
         <AdminLayout>
             <div className="p-6 md:p-10 max-w-[1200px] mx-auto min-h-full">
                 <header className="mb-10 border-b border-[var(--linen)] pb-6">
-                    <h1 className="font-display text-[32px] font-[700] text-white">Dashboard Overview</h1>
-                    <p className="text-[14px] mt-2 text-[rgba(251,246,246,0.82)] font-[400]">Monitor real-time metrics and manage restaurant operations.</p>
+                    <h1 className="font-display text-[32px] font-[700] text-white">Restaurant Dashboard</h1>
+                    <p className="text-[14px] mt-2 text-[rgba(251,246,246,0.82)] font-[400]">A live snapshot of today's orders, revenue, and activity.</p>
                 </header>
 
                 {/* Stat cards */}
@@ -70,9 +70,9 @@ export default function AdminPage() {
                     <h2 className="text-[18px] font-display font-[700] text-[var(--cream)] mb-4">Quick Actions</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-[24px]">
                         {[
-                            { label: 'Order Stats', href: '/admin/analytics', emoji: '📊', desc: 'Revenue, sales, and analytics across branches.' },
-                            { label: 'Live Feed', href: '/admin/orders', emoji: '📋', desc: 'View live order flow across branches.' },
-                            { label: 'Edit Menu', href: '/admin/menu', emoji: '🍽️', desc: 'Update items and availability.' },
+                            { label: 'Sales & Analytics', href: '/admin/analytics', emoji: '📊', desc: 'See revenue, best-selling items, and order trends by date.' },
+                            { label: 'Live Orders', href: '/admin/orders', emoji: '📋', desc: 'Watch and manage incoming orders in real time.' },
+                            { label: 'Manage Menu', href: '/admin/menu', emoji: '🍽️', desc: 'Add, remove, or update menu items and their availability.' },
                         ].map((card, i) => (
                             <motion.div
                                 key={card.href}
