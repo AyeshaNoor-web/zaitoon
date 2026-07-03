@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Save, Store, Truck, Globe, Award, Phone, MessageCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useAdminRole } from '@/hooks/useAdminRole'
+import { clearDeliverySettingsCache } from '@/lib/api/settings'
 
 const supabase = createClient()
 
@@ -72,6 +73,8 @@ export default function AdminSettingsPage() {
     const [branchEdits, setBranchEdits] = useState<Record<string, { phone: string; whatsapp: string; hours: string }>>({})
 
     // ── Delivery settings ─────────────────────────────────────
+    const [baseKm, setBaseKm] = useState('5')
+    const [baseFee, setBaseFee] = useState('150')
     const [feePerKm, setFeePerKm] = useState('30')
     const [minFee, setMinFee] = useState('60')
     const [maxKm, setMaxKm] = useState('15')
@@ -104,6 +107,8 @@ export default function AdminSettingsPage() {
                 if (sData) {
                     const map: Record<string, string> = {}
                     sData.forEach((row) => { map[row.key] = row.value })
+                    if (map.base_delivery_km) setBaseKm(map.base_delivery_km)
+                    if (map.base_delivery_fee) setBaseFee(map.base_delivery_fee)
                     if (map.delivery_fee_per_km) setFeePerKm(map.delivery_fee_per_km)
                     if (map.min_delivery_fee) setMinFee(map.min_delivery_fee)
                     if (map.max_delivery_km) setMaxKm(map.max_delivery_km)
@@ -135,6 +140,8 @@ export default function AdminSettingsPage() {
 
             // Upsert all settings
             const settingsRows = [
+                { key: 'base_delivery_km', value: baseKm },
+                { key: 'base_delivery_fee', value: baseFee },
                 { key: 'delivery_fee_per_km', value: feePerKm },
                 { key: 'min_delivery_fee', value: minFee },
                 { key: 'max_delivery_km', value: maxKm },
@@ -142,6 +149,7 @@ export default function AdminSettingsPage() {
                 { key: 'site_url', value: siteUrl },
             ]
             await supabase.from('settings').upsert(settingsRows, { onConflict: 'key' })
+            clearDeliverySettingsCache()
 
             setSaved(true)
             setTimeout(() => setSaved(false), 3000)
@@ -241,10 +249,18 @@ export default function AdminSettingsPage() {
 
                 {/* ── B) Delivery Settings ─────────────────────────────── */}
                 <Section icon={<Truck className="w-5 h-5 text-[#1B4332]" />} title="Delivery Settings">
+                    <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-2xl flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2 text-green-900 font-medium">
+                            <span className="w-2.5 h-2.5 rounded-full bg-green-600 animate-pulse"></span>
+                            <span>Routing Engine: <strong>Live Google Maps Distance Matrix</strong></span>
+                        </div>
+                        <span className="text-xs bg-green-200 text-green-800 px-2.5 py-1 rounded-lg font-bold">Active</span>
+                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <Field label="Delivery fee per km" value={feePerKm} onChange={setFeePerKm} type="number" prefix="Rs." />
-                        <Field label="Minimum delivery fee" value={minFee} onChange={setMinFee} type="number" prefix="Rs." />
-                        <Field label="Max delivery distance" value={maxKm} onChange={setMaxKm} type="number" suffix="km" />
+                        <Field label="Base Delivery Distance" value={baseKm} onChange={setBaseKm} type="number" suffix="km" hint="Flat rate distance threshold" />
+                        <Field label="Base Delivery Fee" value={baseFee} onChange={setBaseFee} type="number" prefix="Rs." hint="Fee charged within base distance" />
+                        <Field label="Additional Rate per km" value={feePerKm} onChange={setFeePerKm} type="number" prefix="Rs." hint="Fee charged per km beyond base distance" />
+                        <Field label="Max delivery distance" value={maxKm} onChange={setMaxKm} type="number" suffix="km" hint="Orders outside this radius are takeaway only" />
                         <Field
                             label="Free delivery above (Rs.)"
                             value={freeAbove}

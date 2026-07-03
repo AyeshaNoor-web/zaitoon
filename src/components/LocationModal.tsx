@@ -4,7 +4,8 @@ import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MapPin, Navigation, X, Pencil, CheckCircle2, AlertTriangle, Search, Loader2 } from 'lucide-react'
 import { getBranches } from '@/lib/api/branches'
-import { haversineDistance, calculateDeliveryFee, MAX_DELIVERY_KM } from '@/lib/distance'
+import { haversineDistance, calculateRealWorldDistance, getDeliveryFeeDetails, calculateEstimatedDeliveryTime } from '@/lib/distance'
+import { getDeliverySettings } from '@/lib/api/settings'
 import { useLocationStore } from '@/store/useLocationStore'
 import { Branch } from '@/types'
 
@@ -60,6 +61,8 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
         distanceKm: number
         deliveryFee: number | null
         address: string
+        etaMin?: number
+        breakdownText?: string
     } | null>(null)
     const [error, setError] = useState('')
 
@@ -101,9 +104,12 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
             if (d < minDist) { minDist = d; nearest = b }
         })
 
-        const distKm = Math.round(minDist * 10) / 10
-        const feeResult = calculateDeliveryFee(minDist)
-        const oor = feeResult === -1 || minDist > MAX_DELIVERY_KM
+        const config = await getDeliverySettings()
+        const route = await calculateRealWorldDistance(lat, lng, nearest.lat, nearest.lng)
+        const distKm = route.distanceKm
+        const feeDetails = getDeliveryFeeDetails(distKm, config)
+        const oor = feeDetails.outOfRange
+        const etaMin = calculateEstimatedDeliveryTime(distKm)
 
         const address = await reverseGeocode(lat, lng)
 
@@ -113,11 +119,11 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
             nearestBranchName: nearest.name,
             deliveryAddress: address,
             distanceKm: distKm,
-            deliveryFee: oor ? 0 : feeResult,
+            deliveryFee: oor ? 0 : (feeDetails.fee ?? 0),
             outOfRange: oor,
         })
 
-        return { nearest, distKm, fee: oor ? null : feeResult, address, oor }
+        return { nearest, distKm, fee: oor ? null : feeDetails.fee, address, oor, etaMin, breakdownText: feeDetails.breakdownText }
     }, [setLocation])
 
     // ── GPS flow ───────────────────────────────────────────────
@@ -142,8 +148,9 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                 distanceKm: result.distKm,
                 deliveryFee: result.fee,
                 address: result.address,
+                etaMin: result.etaMin,
+                breakdownText: result.breakdownText,
             })
-            setTimeout(() => dismiss(), 2400)
         } catch (err) {
             const geoErr = err as GeolocationPositionError
             if (geoErr.code === 1) setError('Location access denied. Use "Enter Address Manually" instead.')
@@ -190,15 +197,22 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
     // Recalc fee when pin moves in manual mode
     useEffect(() => {
         if (!manualCoords || manualBranches.length === 0) return
+        let active = true
+        let nearest = manualBranches[0]
         let minDist = haversineDistance(manualCoords.lat, manualCoords.lng, manualBranches[0].lat, manualBranches[0].lng)
         manualBranches.forEach(b => {
             const d = haversineDistance(manualCoords.lat, manualCoords.lng, b.lat, b.lng)
-            if (d < minDist) { minDist = d }
+            if (d < minDist) { minDist = d; nearest = b }
         })
-        const distKm = Math.round(minDist * 10) / 10
-        const feeResult = calculateDeliveryFee(minDist)
-        const oor = feeResult === -1 || minDist > MAX_DELIVERY_KM
-        setManualFee({ distanceKm: distKm, fee: oor ? null : feeResult, outOfRange: oor })
+
+        getDeliverySettings().then(config => {
+            calculateRealWorldDistance(manualCoords.lat, manualCoords.lng, nearest.lat, nearest.lng).then(route => {
+                if (!active) return
+                const feeDetails = getDeliveryFeeDetails(route.distanceKm, config)
+                setManualFee({ distanceKm: route.distanceKm, fee: feeDetails.fee, outOfRange: feeDetails.outOfRange })
+            })
+        })
+        return () => { active = false }
     }, [manualCoords, manualBranches])
 
     const handleConfirmManual = useCallback(async () => {
@@ -214,9 +228,12 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                 const d = haversineDistance(manualCoords.lat, manualCoords.lng, b.lat, b.lng)
                 if (d < minDist) { minDist = d; nearest = b }
             })
-            const distKm = Math.round(minDist * 10) / 10
-            const feeResult = calculateDeliveryFee(minDist)
-            const oor = feeResult === -1 || minDist > MAX_DELIVERY_KM
+            const config = await getDeliverySettings()
+            const route = await calculateRealWorldDistance(manualCoords.lat, manualCoords.lng, nearest.lat, nearest.lng)
+            const distKm = route.distanceKm
+            const feeDetails = getDeliveryFeeDetails(distKm, config)
+            const oor = feeDetails.outOfRange
+            const etaMin = calculateEstimatedDeliveryTime(distKm)
 
             setLocation({
                 coords: manualCoords,
@@ -224,17 +241,18 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                 nearestBranchName: nearest.name,
                 deliveryAddress: manualAddress.trim(),
                 distanceKm: distKm,
-                deliveryFee: oor ? 0 : feeResult,
+                deliveryFee: oor ? 0 : (feeDetails.fee ?? 0),
                 outOfRange: oor,
             })
 
             setConfirmed({
                 branchName: nearest.name,
                 distanceKm: distKm,
-                deliveryFee: oor ? null : feeResult,
+                deliveryFee: oor ? null : feeDetails.fee,
                 address: manualAddress.trim(),
+                etaMin,
+                breakdownText: feeDetails.breakdownText,
             })
-            setTimeout(() => dismiss(), 2400)
         } finally {
             setConfirming(false)
         }
@@ -308,19 +326,32 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                             {confirmed.address}
                                         </p>
                                         <p className="text-[13px] font-[600]" style={{ color: 'var(--green-dark)' }}>
-                                            Nearest branch: <strong>{confirmed.branchName}</strong> ({confirmed.distanceKm} km)
+                                            Nearest branch: <strong>{confirmed.branchName}</strong> ({confirmed.distanceKm} km{confirmed.etaMin ? ` · ~${confirmed.etaMin} mins` : ''})
                                         </p>
                                         {confirmed.deliveryFee !== null ? (
-                                            confirmed.deliveryFee === 0
-                                                ? <p className="text-[13px] font-[700]" style={{ color: '#16A34A' }}>Free delivery available</p>
-                                                : <p className="text-[13px] font-[700]" style={{ color: 'var(--orange-warm)' }}>Delivery fee: Rs. {confirmed.deliveryFee}</p>
+                                            <div className="space-y-1">
+                                                {confirmed.deliveryFee === 0
+                                                    ? <p className="text-[13px] font-[700]" style={{ color: '#16A34A' }}>Free delivery available</p>
+                                                    : <p className="text-[13px] font-[700]" style={{ color: 'var(--orange-warm)' }}>Delivery fee: Rs. {confirmed.deliveryFee}</p>}
+                                                {confirmed.breakdownText && (
+                                                    <p className="text-[11px] opacity-75" style={{ color: 'var(--stone)' }}>{confirmed.breakdownText}</p>
+                                                )}
+                                            </div>
                                         ) : (
                                             <div className="flex items-center gap-2 justify-center text-[13px] font-[700]" style={{ color: '#DC2626' }}>
                                                 <AlertTriangle className="w-4 h-4" />
                                                 <span>Outside delivery range ({confirmed.distanceKm} km). Takeaway only.</span>
                                             </div>
                                         )}
-                                        <p className="text-[11px] pt-1" style={{ color: 'var(--stone)', opacity: 0.5 }}>Closing automatically&hellip;</p>
+                                        <div className="pt-3">
+                                            <button
+                                                onClick={dismiss}
+                                                className="w-full py-3 rounded-xl font-display text-[15px] font-[600] text-white transition-all shadow-md hover:opacity-95 active:scale-[0.98]"
+                                                style={{ background: 'var(--charcoal)' }}
+                                            >
+                                                Continue & Explore Menu
+                                            </button>
+                                        </div>
                                     </div>
 
                                 ) : mode === 'gps' ? (

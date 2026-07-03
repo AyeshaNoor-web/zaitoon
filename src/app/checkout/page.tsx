@@ -17,9 +17,12 @@ import { formatPrice } from '@/lib/payment'
 import { buildWhatsAppURL } from '@/lib/whatsapp'
 import {
     haversineDistance,
-    calculateDeliveryFee,
+    calculateRealWorldDistance,
+    getDeliveryFeeDetails,
+    calculateEstimatedDeliveryTime,
     MAX_DELIVERY_KM,
 } from '@/lib/distance'
+import { getDeliverySettings, DeliveryConfig, DEFAULT_DELIVERY_CONFIG } from '@/lib/api/settings'
 import {
     applyTierPerks,
     calculateEarnedPoints,
@@ -129,6 +132,9 @@ export default function CheckoutPage() {
     const [distanceKm, setDistanceKm] = useState<number | null>(null)
     const [deliveryFee, setDeliveryFee] = useState<number | null>(null)
     const [outOfRange, setOutOfRange] = useState(false)
+    const [etaMin, setEtaMin] = useState<number | null>(null)
+    const [breakdownText, setBreakdownText] = useState<string | null>(null)
+    const [deliveryConfig, setDeliveryConfig] = useState<DeliveryConfig>(DEFAULT_DELIVERY_CONFIG)
 
     // Read pre-detected location from store
     const {
@@ -165,6 +171,7 @@ export default function CheckoutPage() {
                 setSelectedBranchId(data[0].id)
             }
         }).catch(() => { })
+        getDeliverySettings().then(cfg => setDeliveryConfig(cfg)).catch(() => {})
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])  // intentionally run once on mount
 
@@ -173,19 +180,32 @@ export default function CheckoutPage() {
         if (orderType !== 'delivery' || !mapCoords || !selectedBranchId || branches.length === 0) return
         const branch = branches.find((b) => b.id === selectedBranchId)
         if (!branch?.lat || !branch?.lng) return
+        let active = true
 
-        const km = haversineDistance(mapCoords.lat, mapCoords.lng, branch.lat, branch.lng)
-        const rounded = Math.round(km * 10) / 10
-        setDistanceKm(rounded)
+        getDeliverySettings().then(config => {
+            if (!active) return
+            setDeliveryConfig(config)
+            calculateRealWorldDistance(mapCoords.lat, mapCoords.lng, branch.lat, branch.lng).then(route => {
+                if (!active) return
+                const rounded = route.distanceKm
+                setDistanceKm(rounded)
+                setEtaMin(route.durationMin)
 
-        if (km > MAX_DELIVERY_KM) {
-            setOutOfRange(true)
-            setDeliveryFee(null)
-        } else {
-            setOutOfRange(false)
-            setDeliveryFee(calculateDeliveryFee(km))
-        }
-    }, [mapCoords, selectedBranchId, branches, orderType])
+                if (cartSubtotal >= config.freeAbove && config.freeAbove > 0) {
+                    setOutOfRange(false)
+                    setDeliveryFee(0)
+                    setBreakdownText(`🎉 Free delivery on orders over Rs. ${config.freeAbove}`)
+                } else {
+                    const feeDetails = getDeliveryFeeDetails(rounded, config)
+                    setOutOfRange(feeDetails.outOfRange)
+                    setDeliveryFee(feeDetails.fee)
+                    setBreakdownText(feeDetails.breakdownText)
+                }
+            })
+        })
+
+        return () => { active = false }
+    }, [mapCoords, selectedBranchId, branches, orderType, cartSubtotal])
 
     // Reset fee when switching away from delivery
     useEffect(() => {
@@ -193,6 +213,8 @@ export default function CheckoutPage() {
             setDistanceKm(null)
             setDeliveryFee(null)
             setOutOfRange(false)
+            setEtaMin(null)
+            setBreakdownText(null)
         }
     }, [orderType])
 
@@ -229,7 +251,8 @@ export default function CheckoutPage() {
     const [loyaltyRedeem, setLoyaltyRedeem] = useState(0)
 
     // ── Computed totals ───────────────────────────────────────
-    const baseDeliveryFee = orderType === 'delivery' ? (deliveryFee ?? storedFee ?? 0) : 0
+    const isThresholdFree = orderType === 'delivery' && cartSubtotal >= deliveryConfig.freeAbove && deliveryConfig.freeAbove > 0
+    const baseDeliveryFee = orderType === 'delivery' ? (isThresholdFree ? 0 : (deliveryFee ?? storedFee ?? 0)) : 0
     const { tierDiscount, finalDeliveryFee } = applyTierPerks(customerTier, cartSubtotal, baseDeliveryFee)
     const loyaltyDiscount = loyaltyRedeem * POINT_VALUE_IN_RS
     const resolvedDeliveryFee = finalDeliveryFee
@@ -938,11 +961,17 @@ export default function CheckoutPage() {
                                 <span>{formatPrice(cartSubtotal)}</span>
                             </div>
                             <div className="flex justify-between text-white/80">
-                                <span>Delivery Fee</span>
+                                <span>Delivery Fee {distanceKm ? `(${distanceKm} km)` : ''}</span>
                                 <span className={outOfRange ? 'text-red-400' : deliveryFee === null && orderType === 'delivery' ? 'text-white/70 italic' : ''}>
                                     {deliveryFeeDisplay()}
                                 </span>
                             </div>
+                            {orderType === 'delivery' && breakdownText && (
+                                <div className="text-[11px] text-white/60 -mt-1 flex justify-between">
+                                    <span>{breakdownText}</span>
+                                    {etaMin && <span>~{etaMin} mins</span>}
+                                </div>
+                            )}
 
                             {/* Tier discount (Silver 2% / Gold 5% / Platinum 10%) */}
                             {tierDiscount > 0 && (
