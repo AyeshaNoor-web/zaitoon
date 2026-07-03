@@ -100,7 +100,7 @@ export function getDeliveryFeeDetails(distanceKm: number, config: DeliveryConfig
         distanceKm: roundedDist,
         fee: totalFee,
         outOfRange: false,
-        breakdownText: `Base: PKR ${config.baseFee} (${config.baseKm} km) + PKR ${extraFee} (${extraKm} km × PKR ${config.ratePerKm}/km)`
+        breakdownText: `Base: PKR ${config.baseFee} (${config.baseKm} km) + PKR ${extraFee} (${roundedDist} km - ${config.baseKm} km = ${extraKm} km × PKR ${config.ratePerKm}/km)`
     }
 }
 
