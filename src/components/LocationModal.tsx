@@ -24,8 +24,24 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
             )
             if (res.ok) {
                 const data = await res.json()
-                if (data.status === 'OK' && data.results?.[0]) {
-                    return data.results[0].formatted_address
+                if (data.status === 'OK' && Array.isArray(data.results)) {
+                    // Try to find a precise street address, route, or sublocality first, and skip Plus Codes
+                    const preciseResult = data.results.find((r: any) => 
+                        !r.types.includes('plus_code') && 
+                        (
+                            r.types.includes('street_address') || 
+                            r.types.includes('premise') || 
+                            r.types.includes('subpremise') || 
+                            r.types.includes('route') || 
+                            r.types.includes('neighborhood') || 
+                            r.types.includes('sublocality') ||
+                            r.types.includes('establishment')
+                        )
+                    )
+                    const bestResult = preciseResult || data.results[0]
+                    if (bestResult) {
+                        return bestResult.formatted_address
+                    }
                 }
             }
         } catch (err) {
@@ -45,26 +61,31 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
     }
 }
 
-interface GeoSuggestion { display_name: string; lat: string; lon: string }
+interface GeoSuggestion { 
+    display_name: string
+    lat?: string
+    lon?: string
+    place_id?: string
+}
 
 async function forwardGeocode(query: string): Promise<GeoSuggestion[]> {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
     if (apiKey && apiKey !== 'your_google_maps_api_key_here') {
         try {
-            const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&components=country:PK&key=${apiKey}`
+            // Use Google Places Autocomplete API for highly precise real-time street suggestions
+            const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(query)}&components=country:pk&key=${apiKey}`
             const res = await fetch(url)
             if (res.ok) {
                 const data = await res.json()
-                if (data.status === 'OK' && Array.isArray(data.results)) {
-                    return data.results.map((r: any) => ({
-                        display_name: r.formatted_address,
-                        lat: String(r.geometry.location.lat),
-                        lon: String(r.geometry.location.lng),
+                if (data.status === 'OK' && Array.isArray(data.predictions)) {
+                    return data.predictions.map((p: any) => ({
+                        display_name: p.description,
+                        place_id: p.place_id
                     }))
                 }
             }
         } catch (err) {
-            console.warn('[Google Geocode] Forward geocode failed, falling back:', err)
+            console.warn('[Google Places Autocomplete] Autocomplete failed, falling back:', err)
         }
     }
 
@@ -73,7 +94,11 @@ async function forwardGeocode(query: string): Promise<GeoSuggestion[]> {
         const res = await fetch(url, { headers: { 'Accept-Language': 'en' } })
         if (!res.ok) return []
         const data = await res.json()
-        return Array.isArray(data) ? data : []
+        return Array.isArray(data) ? data.map((r: any) => ({
+            display_name: r.display_name,
+            lat: r.lat,
+            lon: r.lon
+        })) : []
     } catch {
         return []
     }
@@ -221,13 +246,37 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
         }, 600)
     }, [])
 
-    const handleSelectSuggestion = useCallback((suggestion: GeoSuggestion) => {
-        const lat = parseFloat(suggestion.lat)
-        const lng = parseFloat(suggestion.lon)
+    const handleSelectSuggestion = useCallback(async (suggestion: GeoSuggestion) => {
         setManualAddress(suggestion.display_name)
-        setManualCoords({ lat, lng })
         setSuggestions([])
         setShowSuggestions(false)
+
+        if (suggestion.place_id) {
+            const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+            if (apiKey && apiKey !== 'your_google_maps_api_key_here') {
+                try {
+                    const res = await fetch(
+                        `https://maps.googleapis.com/maps/api/place/details/json?place_id=${suggestion.place_id}&fields=geometry&key=${apiKey}`
+                    )
+                    if (res.ok) {
+                        const data = await res.json()
+                        if (data.status === 'OK' && data.result?.geometry?.location) {
+                            const { lat, lng } = data.result.geometry.location
+                            setManualCoords({ lat, lng })
+                            return
+                        }
+                    }
+                } catch (err) {
+                    console.warn('[Google Places Details] Details lookup failed:', err)
+                }
+            }
+        }
+
+        if (suggestion.lat && suggestion.lon) {
+            const lat = parseFloat(suggestion.lat)
+            const lng = parseFloat(suggestion.lon)
+            setManualCoords({ lat, lng })
+        }
     }, [])
 
     // Recalc fee when pin moves in manual mode
