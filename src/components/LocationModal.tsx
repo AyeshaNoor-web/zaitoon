@@ -14,8 +14,25 @@ const LeafletCheckoutMap = dynamic(
     { ssr: false }
 )
 
-// ── Reverse geocode with Nominatim (no API key) ────────────────
+// ── Geocoding: Google Geocoding API (with Nominatim fallback) ────────────
 async function reverseGeocode(lat: number, lng: number): Promise<string> {
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+    if (apiKey && apiKey !== 'your_google_maps_api_key_here') {
+        try {
+            const res = await fetch(
+                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
+            )
+            if (res.ok) {
+                const data = await res.json()
+                if (data.status === 'OK' && data.results?.[0]) {
+                    return data.results[0].formatted_address
+                }
+            }
+        } catch (err) {
+            console.warn('[Google Geocode] Reverse geocode failed, falling back:', err)
+        }
+    }
+
     try {
         const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
@@ -28,10 +45,29 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
     }
 }
 
-// ── Forward geocode with Nominatim ─────────────────────────────────
 interface GeoSuggestion { display_name: string; lat: string; lon: string }
 
 async function forwardGeocode(query: string): Promise<GeoSuggestion[]> {
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+    if (apiKey && apiKey !== 'your_google_maps_api_key_here') {
+        try {
+            const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&components=country:PK&key=${apiKey}`
+            const res = await fetch(url)
+            if (res.ok) {
+                const data = await res.json()
+                if (data.status === 'OK' && Array.isArray(data.results)) {
+                    return data.results.map((r: any) => ({
+                        display_name: r.formatted_address,
+                        lat: String(r.geometry.location.lat),
+                        lon: String(r.geometry.location.lng),
+                    }))
+                }
+            }
+        } catch (err) {
+            console.warn('[Google Geocode] Forward geocode failed, falling back:', err)
+        }
+    }
+
     try {
         const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5&countrycodes=pk`
         const res = await fetch(url, { headers: { 'Accept-Language': 'en' } })
