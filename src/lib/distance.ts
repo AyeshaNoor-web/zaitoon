@@ -104,9 +104,20 @@ export function getDeliveryFeeDetails(distanceKm: number, config: DeliveryConfig
     }
 }
 
-export function calculateEstimatedDeliveryTime(distanceKm: number, prepTimeMin = 25): number {
+export function formatDistance(distanceKm: number): string {
+    const meters = Math.round(distanceKm * 1000)
+    if (meters < 1000) {
+        return `${Math.max(10, meters)} m`
+    }
+    const rounded = Math.round(distanceKm * 10) / 10
+    return `${rounded.toFixed(1)} km`
+}
+
+export function calculateEstimatedDeliveryTime(distanceKm: number, prepTimeMin = 20): number {
     const ridingTimeMin = Math.round((distanceKm / 20) * 60)
-    return prepTimeMin + Math.max(5, ridingTimeMin)
+    // If very close (under 0.5 km), delivery time is minimal (e.g. 3 mins)
+    const travelTime = distanceKm < 0.5 ? 3 : Math.max(5, ridingTimeMin)
+    return prepTimeMin + travelTime
 }
 
 export function getOrderOptions(distanceKm: number, config: DeliveryConfig = DEFAULT_DELIVERY_CONFIG) {

@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MapPin, Navigation, X, Pencil, CheckCircle2, AlertTriangle, Search, Loader2 } from 'lucide-react'
 import { getBranches } from '@/lib/api/branches'
-import { haversineDistance, calculateRealWorldDistance, getDeliveryFeeDetails, calculateEstimatedDeliveryTime } from '@/lib/distance'
+import { haversineDistance, calculateRealWorldDistance, getDeliveryFeeDetails, calculateEstimatedDeliveryTime, formatDistance } from '@/lib/distance'
 import { getDeliverySettings } from '@/lib/api/settings'
 import { useLocationStore } from '@/store/useLocationStore'
 import { Branch } from '@/types'
@@ -411,7 +411,7 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                             {confirmed.address}
                                         </p>
                                         <p className="text-[13px] font-[600]" style={{ color: 'var(--green-dark)' }}>
-                                            Nearest branch: <strong>{confirmed.branchName}</strong> ({confirmed.distanceKm} km{confirmed.etaMin ? ` · ~${confirmed.etaMin} mins` : ''})
+                                            Nearest branch: <strong>{confirmed.branchName}</strong> ({formatDistance(confirmed.distanceKm)}{confirmed.etaMin ? ` · ~${confirmed.etaMin} mins` : ''})
                                         </p>
                                         {confirmed.deliveryFee !== null ? (
                                             <div className="space-y-1">
@@ -425,7 +425,7 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                         ) : (
                                             <div className="flex items-center gap-2 justify-center text-[13px] font-[700]" style={{ color: '#DC2626' }}>
                                                 <AlertTriangle className="w-4 h-4" />
-                                                <span>Outside delivery range ({confirmed.distanceKm} km). Takeaway only.</span>
+                                                <span>Outside delivery range ({formatDistance(confirmed.distanceKm)}). Takeaway only.</span>
                                             </div>
                                         )}
                                         <div className="pt-3">
@@ -550,8 +550,8 @@ export default function LocationModal({ forceOpen = false, onClose, allowBackdro
                                             {manualFee && (
                                                 <p className="mt-2 text-[12px] font-[600]" style={{ color: manualFee.outOfRange ? '#DC2626' : 'var(--green-dark)' }}>
                                                     {manualFee.outOfRange
-                                                        ? `Outside delivery range (${manualFee.distanceKm} km). Takeaway only.`
-                                                        : `${manualFee.distanceKm} km · Fee: ${manualFee.fee === 0 ? 'Free' : `Rs. ${manualFee.fee}`}`}
+                                                        ? `Outside delivery range (${formatDistance(manualFee.distanceKm)}). Takeaway only.`
+                                                        : `${formatDistance(manualFee.distanceKm)} · Fee: ${manualFee.fee === 0 ? 'Free' : `Rs. ${manualFee.fee}`}`}
                                                 </p>
                                             )}
                                         </div>

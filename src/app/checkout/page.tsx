@@ -19,8 +19,8 @@ import {
     haversineDistance,
     calculateRealWorldDistance,
     getDeliveryFeeDetails,
-    calculateEstimatedDeliveryTime,
     MAX_DELIVERY_KM,
+    formatDistance,
 } from '@/lib/distance'
 import { getDeliverySettings, DeliveryConfig, DEFAULT_DELIVERY_CONFIG } from '@/lib/api/settings'
 import {
@@ -579,7 +579,7 @@ export default function CheckoutPage() {
                                         <p className="text-[var(--orange-pale)] text-[13px] font-bold uppercase tracking-wide">📍 Delivery Location</p>
                                         <p className="text-white text-[14px] leading-snug">{storedDeliveryAddress}</p>
                                         <p className="text-white/80 text-[12px]">
-                                            {storedDistance} km from {storedBranchName} · {storedFee === 0 ? 'Free delivery' : `Rs. ${storedFee} delivery fee`}
+                                            {formatDistance(storedDistance)} from {storedBranchName} · {storedFee === 0 ? 'Free delivery' : `Rs. ${storedFee} delivery fee`}
                                         </p>
                                         <button
                                             type="button"
@@ -592,7 +592,7 @@ export default function CheckoutPage() {
                                 ) : storedOutOfRange ? (
                                     /* ── OUT OF RANGE ── */
                                     <div className="bg-red-50 border border-red-200 rounded-[10px] p-4 space-y-2">
-                                        <p className="text-red-700 text-[13px] font-bold">⚠ Outside delivery range ({storedDistance} km)</p>
+                                        <p className="text-red-700 text-[13px] font-bold">⚠ Outside delivery range ({formatDistance(storedDistance)})</p>
                                         <p className="text-red-600 text-[12px]">Your location is too far for delivery. Please select Takeaway or Dine-In, or change your location.</p>
                                         <button
                                             type="button"
@@ -761,7 +761,7 @@ export default function CheckoutPage() {
                                         <span className="text-[var(--stone)]">Address</span>
                                         <span className="font-[600]">{manualAddress.trim() || storedDeliveryAddress || '—'}</span>
                                         <span className="text-[var(--stone)]">Distance</span>
-                                        <span className="font-[600]">{storedDistance ? `${storedDistance} km` : distanceKm !== null ? `${distanceKm} km` : '—'}</span>
+                                        <span className="font-[600]">{storedDistance ? formatDistance(storedDistance) : distanceKm !== null ? formatDistance(distanceKm) : '—'}</span>
                                     </>
                                 )}
                                 <span className="text-[var(--stone)]">Payment</span>
@@ -961,7 +961,7 @@ export default function CheckoutPage() {
                                 <span>{formatPrice(cartSubtotal)}</span>
                             </div>
                             <div className="flex justify-between text-white/80">
-                                <span>Delivery Fee {distanceKm ? `(${distanceKm} km)` : ''}</span>
+                                <span>Delivery Fee {distanceKm ? `(${formatDistance(distanceKm)})` : ''}</span>
                                 <span className={outOfRange ? 'text-red-400' : deliveryFee === null && orderType === 'delivery' ? 'text-white/70 italic' : ''}>
                                     {deliveryFeeDisplay()}
                                 </span>
