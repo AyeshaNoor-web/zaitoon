@@ -27,8 +27,21 @@ export async function getDeliverySettings(): Promise<DeliveryConfig> {
     }
 
     try {
-        const supabase = createClient()
-        const { data, error } = await supabase.from('settings').select('key,value')
+        // Client-side: fetch from the Next.js API route to bypass Supabase settings table RLS
+        if (typeof window !== 'undefined') {
+            const res = await fetch('/api/settings')
+            if (res.ok) {
+                const config = await res.json()
+                cachedConfig = config
+                cacheExpiresAt = now + CACHE_TTL_MS
+                return config
+            }
+            return DEFAULT_DELIVERY_CONFIG
+        }
+
+        // Server-side: import adminSupabase (uses Service Role Key to bypass RLS)
+        const { adminSupabase } = await import('@/lib/supabase/admin')
+        const { data, error } = await adminSupabase.from('settings').select('key,value')
         if (error || !data) {
             return DEFAULT_DELIVERY_CONFIG
         }
@@ -36,12 +49,18 @@ export async function getDeliverySettings(): Promise<DeliveryConfig> {
         const map: Record<string, string> = {}
         data.forEach((row) => { map[row.key] = row.value })
 
+        // Safely parse freeAbove: if empty, non-numeric, or explicitly 0, treat it as 0 (disabled)
+        const parsedFreeAbove = map.free_delivery_above !== undefined && map.free_delivery_above.trim() !== ''
+            ? parseFloat(map.free_delivery_above)
+            : DEFAULT_DELIVERY_CONFIG.freeAbove
+        const freeAboveVal = isNaN(parsedFreeAbove) ? 0 : parsedFreeAbove
+
         const config: DeliveryConfig = {
             baseKm: map.base_delivery_km ? parseFloat(map.base_delivery_km) : DEFAULT_DELIVERY_CONFIG.baseKm,
             baseFee: map.base_delivery_fee ? parseFloat(map.base_delivery_fee) : DEFAULT_DELIVERY_CONFIG.baseFee,
             ratePerKm: map.delivery_fee_per_km ? parseFloat(map.delivery_fee_per_km) : DEFAULT_DELIVERY_CONFIG.ratePerKm,
             maxKm: map.max_delivery_km ? parseFloat(map.max_delivery_km) : DEFAULT_DELIVERY_CONFIG.maxKm,
-            freeAbove: map.free_delivery_above !== undefined ? parseFloat(map.free_delivery_above) : DEFAULT_DELIVERY_CONFIG.freeAbove,
+            freeAbove: freeAboveVal,
         }
 
         cachedConfig = config
