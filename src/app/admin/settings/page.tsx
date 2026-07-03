@@ -131,14 +131,15 @@ export default function AdminSettingsPage() {
             for (const b of branches) {
                 const edit = branchEdits[b.id]
                 if (!edit) continue
-                await supabase.from('branches').update({
+                const { error: bErr } = await supabase.from('branches').update({
                     phone: edit.phone,
                     whatsapp: edit.whatsapp,
                     hours: edit.hours || null,
                 }).eq('id', b.id)
+                if (bErr) throw bErr
             }
 
-            // Upsert all settings
+            // Upsert all settings via API route to bypass client-side RLS table restrictions
             const settingsRows = [
                 { key: 'base_delivery_km', value: baseKm },
                 { key: 'base_delivery_fee', value: baseFee },
@@ -148,8 +149,17 @@ export default function AdminSettingsPage() {
                 { key: 'free_delivery_above', value: freeAbove },
                 { key: 'site_url', value: siteUrl },
             ]
-            await supabase.from('settings').upsert(settingsRows, { onConflict: 'key' })
-            clearDeliverySettingsCache()
+
+            const res = await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ settingsRows }),
+            })
+
+            if (!res.ok) {
+                const errData = await res.json()
+                throw new Error(errData.error || 'Failed to save settings via API')
+            }
 
             setSaved(true)
             setTimeout(() => setSaved(false), 3000)
