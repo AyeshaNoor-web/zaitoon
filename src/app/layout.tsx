@@ -74,6 +74,7 @@ import { Toaster } from 'sonner'
 import RestaurantSchema from '@/components/seo/RestaurantSchema'
 import { ClientLocalizationWrapper } from '@/components/layout/ClientLocalizationWrapper'
 import { ThemeProvider } from '@/components/ThemeProvider'
+import { Analytics } from '@vercel/analytics/next'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -88,6 +89,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </ClientLocalizationWrapper>
           <Toaster position="top-right" />
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   )
