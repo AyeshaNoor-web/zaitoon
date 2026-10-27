@@ -1,16 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
-
-const adminSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { adminSupabase } from '@/lib/supabase/admin'
+import { getAdminSession } from '@/lib/adminSession'
 
 export async function POST(req: NextRequest) {
   // Verify admin session first
-  const token = (await cookies()).get('admin_session')?.value
-  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!(await getAdminSession())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const formData = await req.formData()
   const file       = formData.get('file') as File
@@ -36,8 +30,13 @@ export async function POST(req: NextRequest) {
   }
 
   // Generate unique file name
-  const ext      = file.name.split('.').pop()
-  const fileName = `menu-items/${menuItemId}-${Date.now()}.${ext}`
+  const EXT: Record<string, string> = {
+    'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp',
+    'model/gltf-binary': 'glb', 'model/gltf+json': 'gltf',
+  }
+  const ext      = EXT[file.type]
+  const safeId   = menuItemId.replace(/[^a-zA-Z0-9_-]/g, '')
+  const fileName = `menu-items/${safeId}-${Date.now()}.${ext}`
 
   // Upload to Supabase Storage (bucket: menu-images)
   const buffer = Buffer.from(await file.arrayBuffer())

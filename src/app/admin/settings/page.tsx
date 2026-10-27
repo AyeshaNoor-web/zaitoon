@@ -1,13 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
 import AdminLayout from '@/components/admin/AdminLayout'
-import { createClient } from '@/lib/supabase/client'
+import { adminCall } from '@/lib/api/adminClient'
 import { Save, Store, Truck, Globe, Award, Phone, MessageCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useAdminRole } from '@/hooks/useAdminRole'
 import { clearDeliverySettingsCache } from '@/lib/api/settings'
+import { toast } from 'sonner'
 
-const supabase = createClient()
 
 // ── Tier table config ─────────────────────────────────────────
 const TIERS = [
@@ -88,7 +88,7 @@ export default function AdminSettingsPage() {
         const load = async () => {
             try {
                 // Branches
-                const { data: bData } = await supabase.from('branches').select('*').order('name')
+                const bData = await adminCall<Branch[]>('branches.listAll')
                 if (bData) {
                     setBranches(bData as Branch[])
                     const edits: typeof branchEdits = {}
@@ -103,7 +103,7 @@ export default function AdminSettingsPage() {
                 }
 
                 // Settings table
-                const { data: sData } = await supabase.from('settings').select('key,value')
+                const sData = await adminCall<{ key: string; value: string }[]>('settings.list')
                 if (sData) {
                     const map: Record<string, string> = {}
                     sData.forEach((row) => { map[row.key] = row.value })
@@ -131,12 +131,11 @@ export default function AdminSettingsPage() {
             for (const b of branches) {
                 const edit = branchEdits[b.id]
                 if (!edit) continue
-                const { error: bErr } = await supabase.from('branches').update({
+                await adminCall('branches.update', b.id, {
                     phone: edit.phone,
                     whatsapp: edit.whatsapp,
                     hours: edit.hours || null,
-                }).eq('id', b.id)
-                if (bErr) throw bErr
+                })
             }
 
             // Upsert all settings via API route to bypass client-side RLS table restrictions
@@ -161,12 +160,13 @@ export default function AdminSettingsPage() {
                 throw new Error(errData.error || 'Failed to save settings via API')
             }
 
+            clearDeliverySettingsCache()
             setSaved(true)
             setTimeout(() => setSaved(false), 3000)
         } catch (err) {
             const error = err as Error
             console.error(error)
-            alert('Save failed: ' + error.message)
+            toast.error('Save failed: ' + error.message)
         } finally {
             setSaving(false)
         }

@@ -11,85 +11,97 @@ interface Customer {
   totalOrders:   number
 }
 
+interface ApiCustomer {
+  id: string
+  phone: string
+  name: string
+  loyalty_points: number
+  tier: Customer['tier']
+  referral_code: string
+  total_orders: number
+}
+
+export type LookupResult =
+  | { verified: true; isNew: boolean; customer: Customer }
+  | { verified: false; exists: boolean }
+
 interface AuthStore {
+  // Display copy of the customer. The source of truth is the httpOnly device
+  // session cookie — the server decides who is signed in, not localStorage.
   customer:        Customer | null
   isAuthenticated: boolean
 
-  // Called at checkout Step 1 on phone blur
-  lookupOrCreateCustomer: (phone: string, name: string) => Promise<Customer>
-
-  // Called after order is placed successfully
-  refreshCustomer: (phone: string) => Promise<void>
-
-  // Called from account page or sign out button
+  /** Checkout phone step. Signs in only if this device is verified (or the number is new). */
+  lookupOrCreateCustomer: (phone: string, name: string) => Promise<LookupResult>
+  /** Re-sync points/tier with the server session. */
+  refreshCustomer: () => Promise<void>
   signOut: () => void
-
-  // Update name locally after profile edit
   updateName: (name: string) => void
 }
 
+const mapCustomer = (c: ApiCustomer): Customer => ({
+  id:            c.id,
+  phone:         c.phone,
+  name:          c.name,
+  loyaltyPoints: c.loyalty_points ?? 0,
+  tier:          c.tier ?? 'bronze',
+  referralCode:  c.referral_code,
+  totalOrders:   c.total_orders ?? 0,
+})
+
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       customer:        null,
       isAuthenticated: false,
 
       lookupOrCreateCustomer: async (phone, name) => {
-        // Format phone to +92 format
-        const formatted = phone
-          .replace(/\s/g, '')
-          .replace(/^0/, '+92')
-          .replace(/^\+?92/, '+92')
-
         const res = await fetch('/api/auth/lookup-customer', {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ phone: formatted, name }),
+          body:    JSON.stringify({ phone, name }),
         })
+        if (!res.ok) throw new Error('Failed to look up customer')
+        const body = await res.json()
 
-        if (!res.ok) throw new Error('Failed to lookup customer')
-        const { customer } = await res.json()
+        if (!body.verified) return { verified: false, exists: !!body.exists }
 
-        const mapped: Customer = {
-          id:            customer.id,
-          phone:         customer.phone,
-          name:          customer.name,
-          loyaltyPoints: customer.loyalty_points,
-          tier:          customer.tier,
-          referralCode:  customer.referral_code,
-          totalOrders:   customer.total_orders,
+        const customer = mapCustomer(body.customer)
+        set({ customer, isAuthenticated: true })
+        return { verified: true, isNew: !!body.isNew, customer }
+      },
+
+      refreshCustomer: async () => {
+        const res = await fetch('/api/auth/me', { cache: 'no-store' })
+        if (res.ok) {
+          const { customer } = await res.json()
+          set({ customer: mapCustomer(customer), isAuthenticated: true })
+          return
         }
+        if (res.status !== 401) return // network/server hiccup — keep what we have
 
-        set({ customer: mapped, isAuthenticated: true })
-        return mapped
+        // Signed in before device sessions existed: exchange the stored id+phone
+        // for a session cookie once. If that fails, this device isn't verified.
+        const legacy = get().customer
+        if (legacy?.id && legacy.phone) {
+          const claim = await fetch('/api/auth/claim', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ customerId: legacy.id, phone: legacy.phone }),
+          })
+          if (claim.ok) {
+            const { customer } = await claim.json()
+            set({ customer: mapCustomer(customer), isAuthenticated: true })
+            return
+          }
+        }
+        set({ customer: null, isAuthenticated: false })
       },
 
-      refreshCustomer: async (phone) => {
-        const formatted = phone
-          .replace(/\s/g, '')
-          .replace(/^0/, '+92')
-          .replace(/^\+?92/, '+92')
-
-        const res = await fetch('/api/auth/lookup-customer', {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ phone: formatted, name: '' }),
-        })
-
-        if (!res.ok) return
-        const { customer } = await res.json()
-
-        set(state => ({
-          customer: state.customer ? {
-            ...state.customer,
-            loyaltyPoints: customer.loyalty_points,
-            tier:          customer.tier,
-            totalOrders:   customer.total_orders,
-          } : null
-        }))
+      signOut: () => {
+        set({ customer: null, isAuthenticated: false })
+        fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
       },
-
-      signOut: () => set({ customer: null, isAuthenticated: false }),
 
       updateName: (name) => set(state => ({
         customer: state.customer ? { ...state.customer, name } : null
@@ -98,6 +110,7 @@ export const useAuthStore = create<AuthStore>()(
     {
       name:    'zaitoon-customer',
       storage: createJSONStorage(() => localStorage),
+      skipHydration: true,
       partialize: (state) => ({
         customer:        state.customer,
         isAuthenticated: state.isAuthenticated,

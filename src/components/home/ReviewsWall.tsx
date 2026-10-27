@@ -1,75 +1,71 @@
 'use client'
 
-import * as React from 'react'
 import { motion } from 'framer-motion'
-import { Star, Quote } from 'lucide-react'
-import { AdminReview } from '@/lib/api/reviews'
+import { Star } from 'lucide-react'
+import type { AdminReview } from '@/lib/api/reviews'
 
 export default function ReviewsWall({ reviews }: { reviews: AdminReview[] }) {
-    if (!reviews || reviews.length === 0) return null
+    const withText = (reviews ?? []).filter(r => r.comment?.trim())
+    if (withText.length === 0) return null
+
+    const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
 
     return (
-        <section className="py-20 relative overflow-hidden bg-[var(--parchment)] dark:bg-[var(--background)]">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div className="text-center mb-16">
-                    <motion.h2
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
-                        className="font-display text-4xl md:text-5xl font-[700] text-[var(--green-darkest)] dark:text-[var(--foreground)] mb-4"
-                    >
-                        What Our Customers Say
-                    </motion.h2>
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: 0.1 }}
-                        className="text-lg text-[var(--stone)] max-w-2xl mx-auto"
-                    >
-                        Real reviews from our amazing customers across Lahore.
-                    </motion.p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {reviews.map((review, i) => (
-                        <motion.div
-                            key={review.id}
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: i * 0.1 }}
-                            className="bg-[var(--cream)] dark:bg-[var(--muted)] p-6 rounded-2xl shadow-card-sm border border-[rgba(106,126,63,0.1)] relative"
-                        >
-                            <Quote className="absolute top-6 right-6 w-8 h-8 text-[var(--orange-pale)] opacity-50" />
-                            <div className="flex gap-1 mb-4">
-                                {[...Array(5)].map((_, idx) => (
-                                    <Star
-                                        key={idx}
-                                        className={`w-4 h-4 ${idx < review.rating ? 'text-[var(--gold-bright)] fill-current' : 'text-gray-300'}`}
-                                    />
+        <section aria-labelledby="reviews-title" className="border-y border-line bg-paper-2/60 py-20 lg:py-28">
+            <div className="container-page">
+                <div className="mb-12 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <span className="section-label">From our guests</span>
+                        <h2 id="reviews-title">Lahore keeps coming back.</h2>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <span className="font-display text-5xl font-medium tabular">{avg.toFixed(1)}</span>
+                        <div>
+                            <div className="flex gap-0.5" aria-hidden="true">
+                                {[1, 2, 3, 4, 5].map(i => (
+                                    <Star key={i} className={`h-4 w-4 ${i <= Math.round(avg) ? 'fill-saffron text-saffron' : 'text-line-strong'}`} />
                                 ))}
                             </div>
-                            <p className="text-[var(--charcoal)] dark:text-[var(--foreground)] text-[15px] leading-relaxed mb-6 italic">
-                                &quot;{review.comment}&quot;
-                            </p>
-                            <div className="flex items-center gap-3 mt-auto">
-                                <div className="w-10 h-10 rounded-full bg-[var(--green-light)] flex items-center justify-center text-white font-bold text-sm">
-                                    {review.customers?.name?.charAt(0).toUpperCase() || 'A'}
-                                </div>
-                                <div>
-                                    <p className="font-bold text-[14px] text-[var(--green-darkest)] dark:text-[var(--foreground)]">
-                                        {review.customers?.name || 'Anonymous'}
-                                    </p>
-                                    <p className="text-[12px] text-[var(--stone)]">
-                                        Verified Buyer
-                                    </p>
-                                </div>
-                            </div>
-                        </motion.div>
-                    ))}
+                            <p className="mt-1 text-sm text-ink-2">from {reviews.length} verified order{reviews.length === 1 ? '' : 's'}</p>
+                        </div>
+                    </div>
                 </div>
+
+                <ul className="columns-1 gap-5 sm:columns-2 lg:columns-3">
+                    {withText.slice(0, 9).map((review, i) => {
+                        const name = review.customers?.name?.trim() || 'Zaitoon guest'
+                        return (
+                            <motion.li
+                                key={review.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true, margin: '-40px' }}
+                                transition={{ duration: 0.5, delay: (i % 3) * 0.08 }}
+                                className="mb-5 break-inside-avoid rounded-[24px] bg-surface p-6 shadow-[var(--shadow-soft)]"
+                            >
+                                <div className="flex gap-0.5" aria-label={`${review.rating} out of 5 stars`}>
+                                    {[1, 2, 3, 4, 5].map(s => (
+                                        <Star key={s} className={`h-4 w-4 ${s <= review.rating ? 'fill-saffron text-saffron' : 'text-line-strong'}`} />
+                                    ))}
+                                </div>
+                                <blockquote className="mt-4 font-display text-[1.1875rem] leading-snug text-ink">
+                                    &ldquo;{review.comment}&rdquo;
+                                </blockquote>
+                                <div className="mt-5 flex items-center gap-3">
+                                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-olive-100 text-sm font-semibold text-olive-700">
+                                        {name.charAt(0).toUpperCase()}
+                                    </span>
+                                    <div className="text-sm">
+                                        <p className="font-semibold text-ink">{name}</p>
+                                        <p className="text-ink-3">
+                                            {new Date(review.created_at).toLocaleDateString('en-PK', { month: 'short', year: 'numeric' })}
+                                        </p>
+                                    </div>
+                                </div>
+                            </motion.li>
+                        )
+                    })}
+                </ul>
             </div>
         </section>
     )

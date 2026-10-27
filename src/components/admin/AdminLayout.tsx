@@ -1,27 +1,35 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ClipboardList, UtensilsCrossed, BarChart3, Settings, ArrowLeft, Menu, X, LogOut, Star, FileText } from 'lucide-react'
+import { ClipboardList, UtensilsCrossed, BarChart3, Settings, ArrowLeft, Menu, X, LogOut, Star, FileText, LayoutDashboard } from 'lucide-react'
 import { useAdminRole } from '@/hooks/useAdminRole'
 
 const NAV = [
-    { label: 'Live Orders',   href: '/admin/orders',   icon: ClipboardList,   roles: ['owner', 'employee'] },
-    { label: 'Menu Manager',  href: '/admin/menu',     icon: UtensilsCrossed, roles: ['owner', 'employee'] },
-    { label: 'Content / CMS', href: '/admin/content',  icon: FileText,        roles: ['owner'] },
-    { label: 'Reviews',       href: '/admin/reviews',  icon: Star,            roles: ['owner'] },
-    { label: 'Analytics',     href: '/admin/analytics',icon: BarChart3,       roles: ['owner'] },
-    { label: 'Settings',      href: '/admin/settings', icon: Settings,        roles: ['owner'] },
+    { label: 'Dashboard', href: '/admin', icon: LayoutDashboard, roles: ['owner'] },
+    { label: 'Live orders', href: '/admin/orders', icon: ClipboardList, roles: ['owner', 'employee'] },
+    { label: 'Menu', href: '/admin/menu', icon: UtensilsCrossed, roles: ['owner', 'employee'] },
+    { label: 'Content', href: '/admin/content', icon: FileText, roles: ['owner'] },
+    { label: 'Reviews', href: '/admin/reviews', icon: Star, roles: ['owner'] },
+    { label: 'Analytics', href: '/admin/analytics', icon: BarChart3, roles: ['owner'] },
+    { label: 'Settings', href: '/admin/settings', icon: Settings, roles: ['owner'] },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname()
     const router = useRouter()
-    const { role, name } = useAdminRole()
+    const { role, name, loading } = useAdminRole()
     const [open, setOpen] = useState(false)
     const [loggingOut, setLoggingOut] = useState(false)
+
+    // Employees can't open owner-only screens, even by typing the URL
+    const current = NAV.find(n => n.href === pathname)
+    const blocked = !loading && role === 'employee' && current && !current.roles.includes('employee')
+    useEffect(() => {
+        if (blocked) router.replace('/admin/orders')
+    }, [blocked, router])
 
     const handleLogout = async () => {
         setLoggingOut(true)
@@ -35,102 +43,82 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     const sidebar = (
-        <aside aria-label="Admin sidebar" className="bg-[var(--green-mid)] h-full flex flex-col border-r-[2px] border-[var(--linen)] shadow-[4px_0_24px_rgba(0,0,0,0.2)]">
-            {/* Logo */}
-            <header className="p-6 border-b border-[rgba(253,248,240,0.1)]">
-                <div className="flex items-center gap-3">
-                    <Image src="/logo-en.png" alt="Zaitoon logo" width={120} height={32} priority className="h-8 w-auto mix-blend-screen" />
-                    <span className="bg-[var(--orange-warm)] text-[#0D2015] text-[10px] uppercase tracking-[0.1em] font-[700] px-[8px] py-[2px] rounded-sm">Admin</span>
-                </div>
-            </header>
+        <aside aria-label="Admin sidebar" className="flex h-full flex-col bg-olive-900 text-paper">
+            <div className="flex h-[72px] items-center gap-3 border-b border-white/10 px-6">
+                <Image src="/logo-light.png" alt="Zaitoon" width={583} height={220} priority className="h-8 w-auto" />
+                <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-paper/80">Admin</span>
+            </div>
 
-            {/* Nav */}
-            <nav aria-label="Admin navigation" className="flex-1 p-4 space-y-2">
-                {NAV.filter(item => item.roles.includes(role ?? '')).map(item => {
-                    const Icon = item.icon
-                    const isActive = pathname === item.href
+            <nav aria-label="Admin navigation" className="flex-1 space-y-1 overflow-y-auto p-3">
+                {NAV.filter(item => role && item.roles.includes(role)).map(item => {
+                    const active = pathname === item.href
                     return (
                         <Link
                             key={item.href}
                             href={item.href}
                             onClick={() => setOpen(false)}
-                            aria-current={isActive ? 'page' : undefined}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-[6px] text-[14px] font-[600] transition-colors border-l-[3px] ${isActive
-                                ? 'bg-[#0D2015] text-[var(--cream)] border-[var(--orange-warm)] shadow-inner'
-                                : 'border-transparent text-[rgba(253,248,240,0.88)] hover:text-[var(--cream)] hover:bg-[var(--green-dark)]'
-                                }`}
+                            aria-current={active ? 'page' : undefined}
+                            className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors ${active
+                                ? 'bg-paper text-ink'
+                                : 'text-paper/70 hover:bg-white/5 hover:text-paper'}`}
                         >
-                            <Icon className="w-[18px] h-[18px]" />
+                            <item.icon className={`h-[18px] w-[18px] ${active ? 'text-ember-600' : ''}`} />
                             {item.label}
                         </Link>
                     )
                 })}
+                {loading && [0, 1, 2, 3].map(i => <div key={i} className="mx-1 h-10 animate-pulse rounded-xl bg-white/5" />)}
             </nav>
 
-            {/* Footer — logout + back to site */}
-            <footer className="p-5 border-t border-[rgba(253,248,240,0.1)] space-y-2">
+            <div className="space-y-1 border-t border-white/10 p-3">
                 {role && (
-                    <div className="flex items-center gap-2 mb-4 px-2 py-1.5 rounded-md bg-white/5">
-                        <span className="text-[18px]">👤</span>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-[13px] font-bold text-white truncate">{name}</p>
-                            <span className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-sm font-bold ${role === 'owner' ? 'bg-[var(--orange-warm)] text-[#0D2015]' : 'bg-[var(--green-pale)] text-[var(--cream)]'}`}>
-                                {role}
-                            </span>
+                    <div className="mb-2 flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2.5">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-paper text-sm font-semibold text-olive-800">
+                            {(name || '?').charAt(0).toUpperCase()}
+                        </span>
+                        <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold">{name}</p>
+                            <p className="text-xs capitalize text-paper/55">{role}</p>
                         </div>
                     </div>
                 )}
+                <Link href="/" className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-paper/70 hover:bg-white/5 hover:text-paper">
+                    <ArrowLeft className="h-4 w-4" /> View website
+                </Link>
                 <button
                     onClick={handleLogout}
                     disabled={loggingOut}
-                    className="flex items-center gap-2 text-[13px] text-red-300 hover:text-red-200 font-[600] transition-colors w-full justify-center py-2 rounded-[4px] hover:bg-red-900/20 disabled:opacity-50"
-                    aria-label="Sign out of admin panel"
+                    className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#F4A78E] hover:bg-white/5 disabled:opacity-50"
                 >
-                    <LogOut className="w-4 h-4" />
-                    {loggingOut ? 'Signing out&hellip;' : 'Sign Out'}
+                    <LogOut className="h-4 w-4" /> {loggingOut ? 'Signing out…' : 'Sign out'}
                 </button>
-
-                <Link
-                    href="/"
-                    className="flex items-center gap-2 text-[13px] text-[rgba(251,246,246,0.9)] hover:text-[var(--orange-pale)] font-[500] transition-colors border border-transparent hover:border-[var(--orange-pale)] w-full justify-center py-2 rounded-[4px]"
-                >
-                    <ArrowLeft className="w-4 h-4" /> Back to Application
-                </Link>
-
-            </footer>
+            </div>
         </aside>
     )
 
     return (
-        <div className="flex h-screen bg-[#0D2015] overflow-hidden">
-            {/* Desktop sidebar */}
-            <div className="hidden lg:block w-[260px] shrink-0 h-full">{sidebar}</div>
+        <div className="flex h-[100dvh] overflow-hidden bg-paper text-ink">
+            <div className="hidden w-[248px] shrink-0 lg:block">{sidebar}</div>
 
-            {/* Mobile top bar */}
-            <header className="lg:hidden fixed top-0 left-0 right-0 z-50 h-[60px] bg-[var(--green-mid)] border-b border-[var(--linen)] flex items-center justify-between px-4">
+            <header className="fixed inset-x-0 top-0 z-50 flex h-[60px] items-center justify-between border-b border-line bg-paper/90 px-3 backdrop-blur-xl lg:hidden">
                 <button
                     onClick={() => setOpen(true)}
                     aria-label="Open admin menu"
-                    className="text-[var(--cream)] hover:text-[var(--orange-warm)] p-2 transition-colors"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-full text-ink hover:bg-paper-2"
                 >
-                    <Menu className="w-6 h-6" />
+                    <Menu className="h-5 w-5" />
                 </button>
-                <div className="flex items-center gap-2">
-                    <span className="font-display text-[18px] text-[var(--orange-pale)] font-[700]">Admin</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={handleLogout}
-                        disabled={loggingOut}
-                        aria-label="Sign out"
-                        className="text-red-400 hover:text-red-300 p-2 transition-colors disabled:opacity-50"
-                    >
-                        <LogOut className="w-5 h-5" />
-                    </button>
-                </div>
+                <Image src="/logo-dark.png" alt="Zaitoon" width={583} height={220} className="h-7 w-auto" />
+                <button
+                    onClick={handleLogout}
+                    disabled={loggingOut}
+                    aria-label="Sign out"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-full text-danger hover:bg-paper-2 disabled:opacity-50"
+                >
+                    <LogOut className="h-5 w-5" />
+                </button>
             </header>
 
-            {/* Mobile drawer */}
             <AnimatePresence>
                 {open && (
                     <>
@@ -140,24 +128,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             exit={{ opacity: 0 }}
                             onClick={() => setOpen(false)}
                             aria-hidden="true"
-                            className="fixed inset-0 z-[60] bg-black/70 lg:hidden"
+                            className="fixed inset-0 z-[60] bg-olive-950/50 backdrop-blur-sm lg:hidden"
                         />
                         <motion.div
                             role="dialog"
-                            aria-label="Mobile admin navigation"
+                            aria-label="Admin navigation"
                             aria-modal="true"
                             initial={{ x: '-100%' }}
                             animate={{ x: 0 }}
                             exit={{ x: '-100%' }}
-                            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                            className="fixed left-0 top-0 bottom-0 z-[70] w-[260px] lg:hidden"
+                            transition={{ type: 'spring', damping: 32, stiffness: 320 }}
+                            className="fixed inset-y-0 start-0 z-[70] w-[264px] lg:hidden"
                         >
                             <button
                                 onClick={() => setOpen(false)}
                                 aria-label="Close admin menu"
-                                className="absolute top-[20px] right-[16px] text-[rgba(251,246,246,0.9)] hover:text-[var(--cream)] w-8 h-8 flex items-center justify-center bg-[#0D2015] rounded-[4px] z-10"
+                                className="absolute end-3 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full text-paper/80 hover:bg-white/10"
                             >
-                                <X className="w-5 h-5" />
+                                <X className="h-5 w-5" />
                             </button>
                             {sidebar}
                         </motion.div>
@@ -165,9 +153,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 )}
             </AnimatePresence>
 
-            {/* Main content */}
-            <main role="main" className="flex-1 overflow-y-auto pt-[60px] lg:pt-0">
-                {children}
+            <main id="main" className="flex-1 overflow-y-auto pt-[60px] lg:pt-0">
+                {blocked ? null : children}
             </main>
         </div>
     )

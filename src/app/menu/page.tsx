@@ -1,31 +1,36 @@
 "use client";
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, X, SlidersHorizontal, Info, SearchX, ShoppingCart, ArrowRight } from "lucide-react";
+import { Search, X, SearchX, ArrowRight, Info, RotateCw, ShoppingBag } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import MobileCartBar from "@/components/layout/MobileCartBar";
 import MenuItemCard from "@/components/menu/MenuItemCard";
 import { MenuCardSkeleton } from "@/components/menu/LoadingSkeleton";
-import { getMenuItems, getCategories } from "@/lib/api/menu";
+import { getMenuItems, getCategories, getSiteContent } from "@/lib/api/menu";
 import { BBQ_ACCOMPANIMENTS } from "@/lib/mock/data";
 import { useLanguageStore } from "@/store/useLanguageStore";
-import { translations } from "@/lib/translations";
-import type { ItemTag, MenuItem, Category } from "@/types";
 import { useCartStore } from "@/store/useCartStore";
+import { useHydrated } from "@/store/hydration";
+import { translations } from "@/lib/translations";
 import { formatPrice } from "@/lib/payment";
+import { SITE } from "@/lib/site";
+import type { ItemTag, MenuItem, Category } from "@/types";
 
 type SortOption = "default" | "price-asc" | "price-desc" | "rating";
 type FilterTag = "all" | ItemTag;
 
+const OTHER_ID = "__other";
+
+const effectivePrice = (i: MenuItem) => i.price ?? i.item_variants?.[0]?.price ?? 0;
 
 export default function MenuPage() {
   const router = useRouter();
-  const { language, isRTL } = useLanguageStore();
+  const hydrated = useHydrated();
+  const { language } = useLanguageStore();
   const t = translations[language];
   const cartCount = useCartStore((s) => s.itemCount());
-  const cartTotal = useCartStore((s) => s.total());
   const cartSubtotal = useCartStore((s) => s.subtotal());
 
   const FILTER_CHIPS: { label: string; value: FilterTag }[] = [
@@ -40,418 +45,325 @@ export default function MenuPage() {
   const [sort, setSort] = useState<SortOption>("default");
   const [categories, setCategories] = useState<Category[]>([]);
   const [allItems, setAllItems] = useState<MenuItem[]>([]);
+  const [content, setContent] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+  const chipRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const railRef = useRef<HTMLDivElement>(null);
+  const clickScrolling = useRef(false);
 
-  useEffect(() => {
+  const fetchMenu = useCallback(() => {
     Promise.all([getCategories(), getMenuItems()])
       .then(([cats, items]) => {
         setCategories(cats);
         setAllItems(items);
         if (cats.length > 0) setActiveCategory(cats[0].id);
       })
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   }, []);
 
-  const handleCategoryClick = (catId: string) => {
-    setActiveCategory(catId);
-    sectionRefs.current[catId]?.scrollIntoView({ behavior: "smooth", block: "start" });
+  useEffect(() => {
+    fetchMenu();
+    getSiteContent().then(setContent).catch(() => {});
+  }, [fetchMenu]);
+
+  const retry = () => {
+    setLoading(true);
+    setLoadError(false);
+    fetchMenu();
   };
 
+  // Items whose category is inactive/missing still need a home on the page
+  const sections = useMemo(() => {
+    const known = new Set(categories.map((c) => c.id));
+    const hasOrphans = allItems.some((i) => !i.category_id || !known.has(i.category_id));
+    return hasOrphans
+      ? [...categories, { id: OTHER_ID, label: "More", icon: null, display_order: 999 }]
+      : categories;
+  }, [categories, allItems]);
+
   const filteredItems = useMemo(() => {
-    let items = [...allItems];
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      items = allItems.filter(
-        (i) =>
-          i.name.toLowerCase().includes(q) ||
-          i.description?.toLowerCase().includes(q)
+    let items = allItems;
+    const q = search.trim().toLowerCase();
+    if (q) {
+      items = items.filter(
+        (i) => i.name.toLowerCase().includes(q) || i.description?.toLowerCase().includes(q)
       );
     }
-    if (activeFilter !== "all")
-      items = items.filter((i) => (i.tags ?? []).includes(activeFilter as ItemTag));
+    if (activeFilter !== "all") items = items.filter((i) => (i.tags ?? []).includes(activeFilter));
     switch (sort) {
-      case "price-asc":  return [...items].sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
-      case "price-desc": return [...items].sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
-      case "rating":     return [...items].sort((a, b) => b.rating - a.rating);
-      default:           return items;
+      case "price-asc": return [...items].sort((a, b) => effectivePrice(a) - effectivePrice(b));
+      case "price-desc": return [...items].sort((a, b) => effectivePrice(b) - effectivePrice(a));
+      case "rating": return [...items].sort((a, b) => b.rating - a.rating);
+      default: return items;
     }
   }, [search, activeFilter, sort, allItems]);
 
-  const groupedFilteredItems = useMemo(() => {
-    const grouped: Record<string, MenuItem[]> = {};
-    categories.forEach((cat) => { grouped[cat.id] = []; });
+  const grouped = useMemo(() => {
+    const known = new Set(categories.map((c) => c.id));
+    const out: Record<string, MenuItem[]> = {};
     filteredItems.forEach((item) => {
-      if (!item.category_id) return;
-      if (!grouped[item.category_id]) grouped[item.category_id] = [];
-      grouped[item.category_id].push(item);
+      const key = item.category_id && known.has(item.category_id) ? item.category_id : OTHER_ID;
+      (out[key] ??= []).push(item);
     });
-    return grouped;
+    return out;
   }, [filteredItems, categories]);
 
+  const countFor = (catId: string) =>
+    catId === OTHER_ID
+      ? allItems.filter((i) => !categories.some((c) => c.id === i.category_id)).length
+      : allItems.filter((i) => i.category_id === catId).length;
 
+  const handleCategoryClick = (catId: string) => {
+    setActiveCategory(catId);
+    clickScrolling.current = true;
+    sectionRefs.current[catId]?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => { clickScrolling.current = false; }, 900);
+  };
+
+  // Scroll-spy: highlight the category currently in view
   useEffect(() => {
-    if (categories.length === 0) return;
+    if (sections.length === 0) return;
     const observer = new IntersectionObserver(
       (entries) => {
+        if (clickScrolling.current) return;
         const visible = entries
           .filter((e) => e.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-        if (visible[0]?.target?.id) setActiveCategory(visible[0].target.id);
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible[0]?.target?.id) setActiveCategory(visible[0].target.id.replace("cat-", ""));
       },
-      { rootMargin: "-140px 0px -55% 0px", threshold: [0.2, 0.4, 0.7] }
+      { rootMargin: "-200px 0px -55% 0px" }
     );
-    categories.forEach((cat) => {
+    sections.forEach((cat) => {
       const el = sectionRefs.current[cat.id];
       if (el) observer.observe(el);
     });
     return () => observer.disconnect();
-  }, [categories, groupedFilteredItems]);
+  }, [sections, grouped]);
+
+  // Keep the active chip visible in the horizontal category rail. Scroll only the
+  // rail (scrollIntoView would also move the page) and only once the user has
+  // moved past the first category, so the filter chips stay visible on load.
+  useEffect(() => {
+    const rail = railRef.current;
+    const chip = chipRefs.current[activeCategory];
+    if (!rail || !chip || activeCategory === sections[0]?.id) return;
+    const target = chip.offsetLeft - rail.clientWidth / 2 + chip.clientWidth / 2;
+    rail.scrollTo({ left: target, behavior: "smooth" });
+  }, [activeCategory, sections]);
+
+  const announcement = content["announcement_active"] === "true" ? content["announcement_text"]?.trim() : "";
+  const showCartPanel = hydrated && cartCount > 0;
 
   return (
     <>
       <Navbar />
 
-      <motion.main
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        role="main"
-        className="pb-16 w-full pt-[60px] lg:pt-[68px]"
-        style={{ background: "var(--cream)", fontFamily: "var(--font-body)" }}
-      >
-        <section className="w-full max-w-7xl mx-auto px-4 lg:px-8 pt-7 pb-4">
-          <div
-            className="relative overflow-hidden rounded-[20px] px-6 py-8 md:px-8 md:py-10"
-            style={{
-              backgroundImage: `
-                linear-gradient(125deg, rgba(251,246,246,0.94) 0%, rgba(244,237,237,0.95) 45%, rgba(229,218,218,0.88) 100%),
-                url("https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1400&q=80")
-              `,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              border: "1px solid rgba(184,98,94,0.30)",
-              boxShadow: "0 18px 40px rgba(76,92,45,0.10)",
-            }}
-          >
-            <p className="section-label mb-3">Explore Our Signature Menu</p>
-            <h1 className="text-[var(--charcoal)]" style={{ fontFamily: "var(--font-body)", fontWeight: 700, letterSpacing: "-0.01em" }}>{t.menu}</h1>
-            <p className="text-[14px] md:text-[15px] text-[var(--stone)] mt-3 max-w-2xl">
-              Freshly prepared Lebanese-inspired favorites with clear categories, quick filters, and a smooth ordering flow.
-            </p>
+      <main id="main" className="pt-nav min-h-screen pb-24">
+        {/* Intro */}
+        <section className="container-page pb-6 pt-10 lg:pt-14">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <span className="section-label">Charcoal grill · Lebanese kitchen</span>
+              <h1>{language === "en" ? "The menu" : t.menu}</h1>
+              <p className="mt-4 max-w-xl text-[1.0625rem] leading-relaxed text-ink-2">
+                Shawarma rolled to order, platters straight off the coals, and everything you need on the side.
+                Minimum order {formatPrice(SITE.minOrder)}.
+              </p>
+            </div>
+            {announcement && (
+              <p className="flex max-w-md items-start gap-3 rounded-2xl border border-ember-100 bg-ember-100/60 px-4 py-3 text-sm text-ember-700">
+                <Info className="mt-0.5 h-4 w-4 shrink-0" /> {announcement}
+              </p>
+            )}
           </div>
         </section>
 
-        {/* ── STICKY HEADER BAR ── */}
-        <div
-          className="sticky top-[60px] lg:top-[68px] z-40 w-full px-4 lg:px-8"
-          style={{
-            background: "transparent",
-          }}
-        >
-          <div
-            className="max-w-7xl mx-auto flex flex-col rounded-[16px] overflow-hidden"
-            style={{
-              background: "linear-gradient(180deg, rgba(251,246,246,0.98) 0%, rgba(244,237,237,0.98) 100%)",
-              border: "1px solid rgba(229,218,218,0.95)",
-              boxShadow: "0 10px 30px rgba(76,92,45,0.12)",
-            }}
-          >
-
-            {/* Row 1: Search + Filters */}
-            <div className="w-full flex flex-col md:flex-row items-center gap-3 px-4 lg:px-8 py-3"
-              style={{ borderBottom: "1px solid rgba(229,218,218,0.95)" }}>
-
-              {/* Search */}
-              <div className="relative w-full md:max-w-[320px] shrink-0">
-                <Search className={`absolute ${isRTL ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 w-4 h-4`}
-                  style={{ color: "rgba(111,106,98,0.65)" }} />
+        {/* Sticky toolbar */}
+        <div className="top-nav sticky z-30 border-y border-line bg-paper/92 backdrop-blur-xl">
+          <div className="container-page flex flex-col gap-3 py-3 lg:flex-row lg:items-center">
+            <div className="flex items-center gap-2 lg:order-2 lg:ms-auto">
+              <div className="relative min-w-0 flex-1 lg:w-64 lg:flex-none">
+                <Search className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
                 <input
+                  type="search"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder={t.searchMenu}
                   aria-label={t.searchMenu}
-                  className={`w-full rounded-[10px] text-[var(--charcoal)] text-[14px] transition-all ${isRTL ? "pr-9 pl-10" : "pl-9 pr-10"} py-2.5`}
-                  style={{
-                    background: "rgba(255,255,255,0.9)",
-                    border: "1px solid rgba(184,98,94,0.30)",
-                    outline: "none",
-                  }}
-                  onFocus={e => {
-                    e.currentTarget.style.borderColor = "rgba(184,98,94,0.65)";
-                    e.currentTarget.style.background = "#fff";
-                  }}
-                  onBlur={e => {
-                    e.currentTarget.style.borderColor = "rgba(184,98,94,0.30)";
-                    e.currentTarget.style.background = "rgba(255,255,255,0.9)";
-                  }}
+                  className="field !min-h-11 !rounded-full ps-10 pe-10"
                 />
                 {search && (
                   <button
                     onClick={() => setSearch("")}
-                    className={`absolute ${isRTL ? "left-3" : "right-3"} top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full transition-colors hover:bg-white/10`}
-                    style={{ color: "rgba(111,106,98,0.65)" }}
+                    aria-label="Clear search"
+                    className="absolute end-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-ink-2 hover:bg-paper-2"
                   >
-                    <X className="w-3 h-3" />
+                    <X className="h-3.5 w-3.5" />
                   </button>
                 )}
               </div>
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value as SortOption)}
+                aria-label="Sort items"
+                className="field !min-h-11 !w-auto shrink-0 !rounded-full !py-0 !ps-3.5 pe-8 text-sm font-medium"
+              >
+                <option value="default">Sort</option>
+                <option value="price-asc">Price ↑</option>
+                <option value="price-desc">Price ↓</option>
+                <option value="rating">Top rated</option>
+              </select>
+            </div>
 
-              {/* Filter chips */}
-              <div role="radiogroup" aria-label="Filter items"
-                className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-0.5 w-full">
-                {FILTER_CHIPS.map((chip) => {
-                  const active = activeFilter === chip.value;
+            <div ref={railRef} className="relative -mx-5 flex min-w-0 items-center gap-2 overflow-x-auto px-5 scrollbar-hide lg:order-1 lg:mx-0 lg:flex-1 lg:px-0">
+              <div role="radiogroup" aria-label="Filter items" className="flex shrink-0 items-center gap-1.5 border-e border-line pe-3">
+                {FILTER_CHIPS.map((chip) => (
+                  <button
+                    key={chip.value}
+                    role="radio"
+                    aria-checked={activeFilter === chip.value}
+                    onClick={() => setActiveFilter(chip.value)}
+                    className="chip"
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+              <div role="tablist" aria-label="Menu categories" className="flex items-center gap-1">
+                {sections.map((cat) => {
+                  const active = activeCategory === cat.id;
                   return (
                     <button
-                      key={chip.value}
-                      role="radio"
-                      aria-checked={active}
-                      onClick={() => setActiveFilter(chip.value)}
-                      className="shrink-0 rounded-[20px] px-4 py-[6px] text-[12px] font-[700] tracking-wide transition-all duration-200"
-                      style={{
-                        background: active
-                          ? "linear-gradient(135deg, #B8625E, #A6524F)"
-                          : "rgba(184,98,94,0.14)",
-                        color: active ? "#fff" : "var(--charcoal)",
-                        border: active ? "none" : "1px solid rgba(184,98,94,0.24)",
-                        boxShadow: active ? "0 6px 16px rgba(184,98,94,0.30)" : "none",
-                        transform: active ? "scale(1.02)" : "scale(1)",
-                      }}
+                      key={cat.id}
+                      ref={(el) => { chipRefs.current[cat.id] = el; }}
+                      role="tab"
+                      aria-selected={active}
+                      onClick={() => handleCategoryClick(cat.id)}
+                      className={`relative shrink-0 rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${active ? "text-ink" : "text-ink-2 hover:text-ink"}`}
                     >
-                      {chip.label}
+                      {active && (
+                        <motion.span layoutId="cat-pill" className="absolute inset-0 rounded-full bg-surface shadow-[var(--shadow-soft)] ring-1 ring-line" transition={{ type: "spring", stiffness: 420, damping: 34 }} />
+                      )}
+                      <span className="relative whitespace-nowrap">
+                        {cat.label} <span className="tabular text-ink-3">{countFor(cat.id)}</span>
+                      </span>
                     </button>
                   );
                 })}
-
-                {/* Sort */}
-                <div className="flex items-center gap-1.5 ml-auto shrink-0">
-                  <SlidersHorizontal className="w-3.5 h-3.5" style={{ color: "rgba(111,106,98,0.65)" }} />
-                  <select
-                    value={sort}
-                    onChange={(e) => setSort(e.target.value as SortOption)}
-                    aria-label="Sort items"
-                    className="rounded-[8px] text-[12px] font-[600] px-2 py-1.5 transition-colors cursor-pointer"
-                    style={{
-                      background: "rgba(255,255,255,0.9)",
-                      border: "1px solid rgba(184,98,94,0.28)",
-                      color: "var(--charcoal)",
-                      outline: "none",
-                    }}
-                  >
-                    <option value="default">Default</option>
-                    <option value="price-asc">Price ↑</option>
-                    <option value="price-desc">Price ↓</option>
-                    <option value="rating">Top Rated</option>
-                  </select>
-                </div>
               </div>
-            </div>
-
-            {/* Row 2: Categories */}
-            <div className="w-full overflow-x-auto scrollbar-hide px-4 lg:px-8 py-2.5">
-              <ul role="tablist" aria-label="Menu categories" className="flex items-center gap-2">
-                {categories.map((cat) => {
-                  const active = activeCategory === cat.id;
-                  const itemCount = allItems.filter((i) => i.category_id === cat.id).length;
-                  return (
-                    <li key={cat.id} className="shrink-0">
-                      <button
-                        role="tab"
-                        onClick={() => handleCategoryClick(cat.id)}
-                        aria-selected={active}
-                        className="flex items-center gap-2 whitespace-nowrap transition-all duration-250 rounded-[10px] px-4 py-2"
-                        style={{
-                          background: active
-                            ? "linear-gradient(135deg, #B8625E, #A6524F)"
-                            : "rgba(184,98,94,0.14)",
-                          color: active ? "#fff" : "var(--charcoal)",
-                          fontWeight: active ? 700 : 600,
-                          fontSize: 13,
-                          boxShadow: active ? "0 6px 16px rgba(184,98,94,0.30)" : "none",
-                          border: active ? "none" : "1px solid rgba(184,98,94,0.22)",
-                          transform: active ? "scale(1.02)" : "scale(1)",
-                        }}
-                      >
-                        {cat.label}
-                        <span
-                          className="text-[10px] px-1.5 py-0.5 rounded-full font-[700]"
-                          style={{
-                            background: active ? "rgba(255,255,255,0.20)" : "rgba(184,98,94,0.14)",
-                            color: active ? "rgba(255,255,255,0.92)" : "rgba(36,33,28,0.70)",
-                          }}
-                        >
-                          {itemCount}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
             </div>
           </div>
         </div>
 
-        {/* ── MENU ITEMS ── */}
-        <section aria-label="Menu items" className="w-full max-w-7xl mx-auto px-4 lg:px-8 py-8 min-h-screen">
-          {/* Grid / Sections */}
-          <AnimatePresence mode="wait">
-            {loading ? (
-              <motion.ul
-                role="list"
-                key="skeleton"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5"
-              >
-                {[...Array(8)].map((_, i) => <MenuCardSkeleton key={i} />)}
-              </motion.ul>
-            ) : filteredItems.length === 0 ? (
-              <motion.div
-                key="empty"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                role="status"
-                aria-live="polite"
-                className="flex flex-col items-center justify-center py-28 text-center"
-              >
-                <SearchX className="w-14 h-14 mb-5 text-[var(--stone)] opacity-60" />
-                <h3 className="text-[var(--charcoal)] mb-2">{t.noItemsFound}</h3>
-                <p className="text-[var(--stone)] mb-8">{t.tryDifferent}</p>
-                <button
-                  onClick={() => { setSearch(""); setActiveFilter("all"); }}
-                  aria-label={t.clearFilters}
-                  className="btn-primary"
-                >
-                  {t.clearFilters}
-                </button>
-              </motion.div>
-            ) : (
-              <div className="space-y-12">
-                {categories.map((cat) => {
-                  const items = groupedFilteredItems[cat.id] ?? [];
-                  if (items.length === 0) return null;
-                  const isBBQSection = cat.label === "BBQ Rolls";
-                  return (
-                    <section
-                      key={cat.id}
-                      id={cat.id}
-                      ref={(el) => { sectionRefs.current[cat.id] = el; }}
-                      className="scroll-mt-[170px]"
-                    >
-                      <div className="mb-6">
-                        <h2 className={`text-[var(--green-dark)] flex items-baseline gap-3 ${isRTL ? "flex-row-reverse" : ""}`} style={{ fontFamily: "var(--font-body)", fontWeight: 700 }}>
-                          {cat.label}
-                          <span className="text-[13px] text-[var(--stone)] font-[500]">
-                            ({items.length} {t.itemsCount})
-                          </span>
-                        </h2>
-                        <div
-                          style={{
-                            transformOrigin: isRTL ? "right" : "left",
-                            height: 3,
-                            background: "linear-gradient(90deg, var(--orange-warm), var(--green-base))",
-                            width: 64,
-                            marginTop: 10,
-                            borderRadius: 99,
-                            marginLeft: isRTL ? "auto" : 0,
-                          }}
-                        />
-                      </div>
-
-                      {/* Accompaniments — shown per-item from DB, fallback to global BBQ_ACCOMPANIMENTS */}
-                      {isBBQSection && !search && (() => {
-                        // Collect unique non-empty accompaniments from items in this section
-                        const perItemAccompaniments = items
-                          .filter(i => i.accompaniments)
-                          .map(i => i.accompaniments as string)
-                        // Show first non-empty accompaniments found, or the global fallback
-                        const accompanimentText = perItemAccompaniments[0] ?? BBQ_ACCOMPANIMENTS
-                        return (
-                          <div
-                            className="flex items-start gap-3 mb-5 p-4 rounded-[12px]"
-                            style={{ background: "white", border: "1.5px solid var(--linen)" }}
-                          >
-                            <Info className="w-4 h-4 mt-0.5 text-[var(--orange-rich)]" />
-                            <p className="text-[13px] text-[var(--stone)] leading-relaxed">
-                              <strong className="text-[var(--charcoal)] font-[700] uppercase tracking-wider text-[11px] block mb-1">
-                                {t.accompaniments}
-                              </strong>
-                              {accompanimentText}
-                            </p>
-                          </div>
-                        )
-                      })()}
-
-                      <motion.ul
-                        role="list"
-                        variants={{ hidden: {}, show: { transition: { staggerChildren: 0.05 } } }}
-                        initial="hidden"
-                        whileInView="show"
-                        viewport={{ once: true, margin: "-40px" }}
-                        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6"
-                      >
-                        {items.map((item) => (
-                          <motion.li
-                            key={item.id}
-                            variants={{
-                              hidden: { opacity: 0, y: 24 },
-                              show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } },
-                            }}
-                          >
-                            <MenuItemCard item={item} />
-                          </motion.li>
-                        ))}
-                      </motion.ul>
-                    </section>
-                  );
-                })}
+        {/* Items */}
+        <section aria-label="Menu items" className="container-page min-h-[60vh] py-10">
+          {loading ? (
+            <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 8 }, (_, i) => <li key={i}><MenuCardSkeleton /></li>)}
+            </ul>
+          ) : loadError ? (
+            <div role="alert" className="mx-auto flex max-w-md flex-col items-center py-24 text-center">
+              <h2 className="text-2xl">We couldn&apos;t load the menu</h2>
+              <p className="mt-2 text-ink-2">Check your connection and try again.</p>
+              <button onClick={retry} className="btn-outline-dark mt-6"><RotateCw className="h-4 w-4" /> Try again</button>
+            </div>
+          ) : filteredItems.length === 0 ? (
+            <div role="status" className="mx-auto flex max-w-md flex-col items-center py-24 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-[22px] bg-paper-2">
+                <SearchX className="h-7 w-7 text-ink-3" />
               </div>
-            )}
-          </AnimatePresence>
+              <h2 className="mt-5 text-2xl">{t.noItemsFound}</h2>
+              <p className="mt-2 text-ink-2">{t.tryDifferent}</p>
+              <button onClick={() => { setSearch(""); setActiveFilter("all"); }} className="btn-outline-dark mt-6">
+                {t.clearFilters}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-16">
+              {sections.map((cat) => {
+                const items = grouped[cat.id] ?? [];
+                if (items.length === 0) return null;
+                const isBBQ = /bbq/i.test(cat.label);
+                const isDips = /dip|sauce/i.test(cat.label);
+                const accompaniment = items.find((i) => i.accompaniments)?.accompaniments ?? content["bbq_accompaniments"] ?? BBQ_ACCOMPANIMENTS;
+                return (
+                  <section
+                    key={cat.id}
+                    id={`cat-${cat.id}`}
+                    ref={(el) => { sectionRefs.current[cat.id] = el; }}
+                    className="scroll-mt-[calc(var(--nav-h)+140px)] lg:scroll-mt-[calc(var(--nav-h)+90px)]"
+                  >
+                    <header className="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-3 border-b border-line pb-4">
+                      <h2 className="text-[clamp(1.75rem,3vw,2.25rem)]">
+                        {cat.label}
+                        <span className="tabular ms-3 align-middle font-sans text-sm font-medium text-ink-3">{items.length}</span>
+                      </h2>
+                      {isBBQ && !search && (
+                        <p className="text-sm text-ink-2">
+                          <span className="font-semibold text-ink">{t.accompaniments}:</span> {accompaniment}
+                        </p>
+                      )}
+                      {isDips && content["dips_note"] && (
+                        <p className="text-sm text-ink-2">{content["dips_note"]}</p>
+                      )}
+                    </header>
+
+                    <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                      {items.map((item, i) => (
+                        <motion.li
+                          key={item.id}
+                          initial={{ opacity: 0, y: 16 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true, margin: "-40px" }}
+                          transition={{ duration: 0.45, delay: Math.min(i, 6) * 0.04, ease: [0.16, 1, 0.3, 1] }}
+                        >
+                          <MenuItemCard item={item} />
+                        </motion.li>
+                      ))}
+                    </ul>
+                  </section>
+                );
+              })}
+            </div>
+          )}
         </section>
 
+        {/* Desktop cart summary */}
         <AnimatePresence>
-          {cartCount > 0 && (
+          {showCartPanel && (
             <motion.aside
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 30 }}
-              className="hidden lg:block fixed right-6 bottom-6 z-40 w-[320px] rounded-[16px] p-4"
-              style={{
-                background: "rgba(251,246,246,0.97)",
-                border: "1px solid rgba(184,98,94,0.22)",
-                boxShadow: "0 14px 36px rgba(76,92,45,0.16)",
-                backdropFilter: "blur(12px)",
-              }}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 24 }}
+              className="fixed bottom-6 end-6 z-40 hidden w-[340px] rounded-[24px] bg-ink p-4 text-paper shadow-[var(--shadow-float)] lg:block"
             >
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-[13px] font-[700] text-[var(--charcoal)] inline-flex items-center gap-2">
-                  <ShoppingCart className="w-4 h-4" /> {cartCount} items in cart
-                </p>
-                <p className="text-[12px] font-[700]" style={{ color: "var(--green-dark)" }}>
-                  {formatPrice(cartSubtotal)}
-                </p>
+              <div className="mb-3 flex items-center justify-between px-1 text-sm">
+                <span className="inline-flex items-center gap-2 text-paper/75">
+                  <ShoppingBag className="h-4 w-4" /> {cartCount} item{cartCount === 1 ? "" : "s"}
+                </span>
+                {cartSubtotal < SITE.minOrder && (
+                  <span className="text-paper/60">{formatPrice(SITE.minOrder - cartSubtotal)} to minimum</span>
+                )}
               </div>
               <button
                 onClick={() => router.push("/checkout")}
-                className="w-full rounded-[12px] px-4 py-3 text-white text-[13px] font-[700] uppercase tracking-[0.08em] inline-flex items-center justify-between"
-                style={{
-                  background: "linear-gradient(135deg, #B8625E, #A6524F)",
-                  boxShadow: "0 8px 20px rgba(184,98,94,0.34)",
-                }}
+                disabled={cartSubtotal < SITE.minOrder}
+                className="btn-primary w-full justify-between"
               >
-                <span>Proceed to Checkout</span>
-                <span className="inline-flex items-center gap-1">
-                  {formatPrice(cartTotal)} <ArrowRight className="w-4 h-4" />
+                <span>Checkout</span>
+                <span className="flex items-center gap-2">
+                  <span className="tabular">{formatPrice(cartSubtotal)}</span>
+                  <ArrowRight className="h-4 w-4 rtl:rotate-180" />
                 </span>
               </button>
             </motion.aside>
           )}
         </AnimatePresence>
-      </motion.main>
+      </main>
 
       <Footer />
       <MobileCartBar />

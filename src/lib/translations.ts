@@ -9,7 +9,7 @@ export const translations = {
     signOut: 'Sign Out',
     myAccount: 'My Account',
     loyaltyPoints: 'Loyalty Points',
-    cart: 'CART',
+    cart: 'Cart',
     orderNow: 'Order Now',
     whatsappUs: 'WhatsApp Us',
     itemsInCart: 'items in cart',
@@ -28,10 +28,10 @@ export const translations = {
 
     // Sections
     ourSignatures: 'Our Signatures',
-    fanFavourites: 'Fan Favourites',
-    viewAll: 'View All →',
+    fanFavourites: 'Fan favourites',
+    viewAll: 'View all',
     simpleProcess: 'Simple Process',
-    howItWorks: 'How It Works',
+    howItWorks: 'How ordering works',
 
     // How it works
     step1Title: 'Pick Location',
@@ -45,29 +45,29 @@ export const translations = {
     footerDesc: 'Lahore\'s finest Lebanese shawarma & BBQ. Authentic recipes, fresh ingredients.',
     quickLinks: 'Quick Links',
     allRights: 'All rights reserved.',
-    madeWith: 'Made with ❤️ in Lahore, Pakistan',
+    madeWith: 'Made in Lahore, Pakistan',
     aboutUs: 'About Us',
     contact: 'Contact',
     fullMenu: 'Full Menu',
 
     // Menu
-    searchMenu: 'Search menu items...',
+    searchMenu: 'Search the menu',
     allItems: 'All Items',
-    bestsellers: '⭐ Bestsellers',
-    newTitle: '✨ New',
+    bestsellers: 'Bestsellers',
+    newTitle: 'New',
     noItemsFound: 'No items found',
     tryDifferent: 'Try a different search or category filter.',
-    clearFilters: 'Clear Filters',
+    clearFilters: 'Clear filters',
     itemsCount: 'items',
-    accompaniments: 'Accompaniments included:',
+    accompaniments: 'Served with',
     addToCart: 'Add to Cart',
-    soldOut: 'SOLD OUT',
-    add: 'ADD',
+    soldOut: 'Sold out',
+    add: 'Add',
     smallSize: 'Small',
     largeSize: 'Large',
     askPrice: 'Ask for price',
     bestsellerLabel: 'Best Seller',
-    newLabel: 'New!',
+    newLabel: 'New',
 
     // Checkout
     contactDetails: 'Contact Details',
@@ -134,7 +134,7 @@ export const translations = {
     // Sections
     ourSignatures: 'ہمارے خاص آئٹمز',
     fanFavourites: 'سب کی پسند',
-    viewAll: 'سب دیکھیں ←',
+    viewAll: 'سب دیکھیں',
     simpleProcess: 'آسان طریقہ',
     howItWorks: 'یہ کیسے کام کرتا ہے',
 
@@ -150,7 +150,7 @@ export const translations = {
     footerDesc: 'لاہور کا بہترین لبنانی شوارما اور بی بی کیو۔ اصلی ترکیبیں، تازہ اجزاء۔',
     quickLinks: 'فوری لنکس',
     allRights: 'تمام حقوق محفوظ ہیں۔',
-    madeWith: 'لاہور، پاکستان میں ❤️ کے ساتھ بنایا گیا۔',
+    madeWith: 'لاہور، پاکستان میں تیار کردہ',
     aboutUs: 'ہمارے بارے میں',
     contact: 'رابطہ کریں',
     fullMenu: 'پورا مینیو',
@@ -158,8 +158,8 @@ export const translations = {
     // Menu
     searchMenu: 'کھانا تلاش کریں...',
     allItems: 'تمام اشیاء',
-    bestsellers: '⭐ سب سے زیادہ فروخت',
-    newTitle: '✨ نیا',
+    bestsellers: 'سب سے زیادہ فروخت',
+    newTitle: 'نیا',
     noItemsFound: 'کوئی چیز نہیں ملی',
     tryDifferent: 'مختلف تلاش یا زمرہ آزمائیں۔',
     clearFilters: 'فلٹرز ختم کریں',
@@ -172,7 +172,7 @@ export const translations = {
     largeSize: 'بڑا',
     askPrice: 'قیمت پوچھیں',
     bestsellerLabel: 'سب سے زیادہ چلنے والا',
-    newLabel: 'نیا!',
+    newLabel: 'نیا',
 
     // Checkout
     contactDetails: 'رابطے کی تفصیلات',

@@ -1,127 +1,81 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ShoppingCart, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { useCartStore } from '@/store/useCartStore'
-import { formatPrice } from '@/lib/payment'
 import { useLanguageStore } from '@/store/useLanguageStore'
+import { useHydrated } from '@/store/hydration'
+import { formatPrice } from '@/lib/payment'
 import { translations } from '@/lib/translations'
-
-const MIN_ORDER = 800
+import { SITE } from '@/lib/site'
 
 export default function MobileCartBar() {
-    const { language, isRTL } = useLanguageStore()
+    const { language } = useLanguageStore()
     const t = translations[language]
     const router = useRouter()
-    const count    = useCartStore(s => s.itemCount())
-    const total    = useCartStore(s => s.total())
+    const hydrated = useHydrated()
+    const count = useCartStore(s => s.itemCount())
     const subtotal = useCartStore(s => s.subtotal())
-    const [mounted, setMounted] = useState(false)
-    const [minOrderError, setMinOrderError] = useState(false)
+    const [nudge, setNudge] = useState(false)
 
-    useEffect(() => { requestAnimationFrame(() => setMounted(true)) }, [])
-    useEffect(() => { 
-        if (subtotal >= MIN_ORDER) {
-            requestAnimationFrame(() => setMinOrderError(false))
-        }
-    }, [subtotal])
+    const remaining = Math.max(0, SITE.minOrder - subtotal)
+    const progressPct = Math.min(100, (subtotal / SITE.minOrder) * 100)
 
     const handleCheckout = () => {
-        if (subtotal < MIN_ORDER) { setMinOrderError(true); return }
-        setMinOrderError(false)
+        if (remaining > 0) {
+            setNudge(true)
+            setTimeout(() => setNudge(false), 2400)
+            return
+        }
         router.push('/checkout')
     }
 
-    const progressPct = Math.min(100, (subtotal / MIN_ORDER) * 100)
-
     return (
         <AnimatePresence>
-            {mounted && count > 0 && (
+            {hydrated && count > 0 && (
                 <motion.div
-                    initial={{ y: 100, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: 100, opacity: 0 }}
-                    transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-                    className="fixed bottom-0 left-0 right-0 z-40 lg:hidden"
-                    dir={isRTL ? 'rtl' : 'ltr'}
+                    initial={{ y: 120 }}
+                    animate={{ y: 0 }}
+                    exit={{ y: 120 }}
+                    transition={{ type: 'spring', damping: 30, stiffness: 340 }}
+                    className="fixed inset-x-0 bottom-0 z-40 px-3 pb-safe lg:hidden"
                 >
-                    <div
-                        className="px-4 pb-safe pt-2"
-                        style={{
-                            background: 'rgba(250,243,224,0.97)',
-                            backdropFilter: 'blur(20px)',
-                            WebkitBackdropFilter: 'blur(20px)',
-                            borderTop: '1px solid rgba(46,204,113,0.25)',
-                            boxShadow: '0 -8px 32px rgba(0,0,0,0.12)'
-                        }}
-                    >
-                        {/* Min order progress bar */}
-                        {subtotal < MIN_ORDER && (
-                            <div className="mb-2">
-                                <div className="flex justify-between text-[10px] font-[600] mb-1"
-                                    style={{ color: 'var(--stone)' }}>
-                                    <span>Min. order Rs. {MIN_ORDER}</span>
-                                    <span style={{ color: 'var(--orange-warm)' }}>
-                                        Rs. {MIN_ORDER - subtotal} more
+                    <div className="overflow-hidden rounded-[22px] bg-ink text-paper shadow-[var(--shadow-float)]">
+                        {remaining > 0 && (
+                            <div className="px-4 pt-3">
+                                <div className="flex justify-between text-xs">
+                                    <span className={nudge ? 'font-semibold text-ember-100' : 'text-paper/65'}>
+                                        {nudge ? `Minimum order is ${formatPrice(SITE.minOrder)}` : `Add ${formatPrice(remaining)} more to checkout`}
                                     </span>
+                                    <span className="tabular text-paper/65">{formatPrice(subtotal)} / {formatPrice(SITE.minOrder)}</span>
                                 </div>
-                                <div className="w-full h-[3px] rounded-full overflow-hidden"
-                                    style={{ background: 'var(--linen)' }}>
+                                <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
                                     <motion.div
-                                        className="h-full rounded-full"
-                                        style={{ background: 'linear-gradient(90deg, var(--orange-warm), var(--green-base))' }}
+                                        className="h-full rounded-full bg-ember-500"
                                         animate={{ width: `${progressPct}%` }}
                                         transition={{ duration: 0.4 }}
                                     />
                                 </div>
                             </div>
                         )}
-
-                        {/* Error */}
-                        <AnimatePresence>
-                            {minOrderError && (
-                                <motion.p
-                                    initial={{ opacity: 0, y: 4 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: 4 }}
-                                    role="alert"
-                                    className="text-center text-[11px] font-[700] mb-1.5"
-                                    style={{ color: '#DC2626' }}
-                                >
-                                    ⚠ Minimum order is Rs. 800 — add Rs. {MIN_ORDER - subtotal} more
-                                </motion.p>
-                            )}
-                        </AnimatePresence>
-
-                        {/* Checkout button */}
                         <motion.button
-                            whileTap={{ scale: 0.97 }}
                             onClick={handleCheckout}
-                            className="w-full py-4 rounded-[14px] flex items-center justify-between px-5 font-[700] text-[14px] mb-1 relative overflow-hidden"
-                            style={{
-                                background: 'linear-gradient(135deg, var(--orange-warm) 0%, #D08B05 100%)',
-                                color: '#fff',
-                                boxShadow: '0 6px 20px rgba(243,156,18,0.40)',
-                            }}
+                            animate={nudge ? { x: [0, -6, 6, -4, 4, 0] } : {}}
+                            transition={{ duration: 0.4 }}
+                            className="flex w-full items-center justify-between gap-3 px-4 py-3.5"
                         >
-                            {/* Shine overlay */}
-                            <div className="absolute inset-0 pointer-events-none"
-                                style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%)' }} />
-                            <span className={`flex items-center gap-2.5 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                                <span className="w-8 h-8 rounded-[10px] flex items-center justify-center"
-                                    style={{ background: 'rgba(255,255,255,0.15)' }}>
-                                    <ShoppingCart className="w-4 h-4" />
+                            <span className="flex items-center gap-3">
+                                <span className="tabular inline-flex h-8 min-w-8 items-center justify-center rounded-full bg-ember-500 px-2 text-sm font-bold text-white">
+                                    {count}
                                 </span>
-                                <span>
-                                    {language === 'en'
-                                        ? `${count} item${count !== 1 ? 's' : ''} in cart`
-                                        : `${count} ${t.itemsInCart}`}
+                                <span className="text-sm font-medium">
+                                    {language === 'en' ? `item${count === 1 ? '' : 's'} · View order` : t.itemsInCart}
                                 </span>
                             </span>
-                            <span className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                                <span className="font-display text-[17px] font-[800]">{formatPrice(total)}</span>
-                                <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+                            <span className="flex items-center gap-2 text-[0.9375rem] font-semibold">
+                                <span className="tabular">{formatPrice(subtotal)}</span>
+                                <ArrowRight className="h-4 w-4 rtl:rotate-180" />
                             </span>
                         </motion.button>
                     </div>

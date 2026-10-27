@@ -113,7 +113,7 @@ export function buildWhatsAppMessage(payload: WhatsAppPayload): string {
 
     lines.push(``)
     lines.push(`*💵 TOTAL:   Rs. ${payload.total.toLocaleString()}*`)
-    lines.push(`💳 ${payload.paymentMethod === 'jazzcash' ? 'JazzCash' : 'Cash on Delivery'}`)
+    lines.push(`💳 ${payload.paymentMethod === 'jazzcash' ? 'JazzCash' : payload.orderType === 'delivery' ? 'Cash on Delivery' : 'Cash at counter'}`)
 
     if ((payload.pointsEarned ?? 0) > 0)
         lines.push(`🌟 Points earned: +${payload.pointsEarned}`)
@@ -126,10 +126,11 @@ export function buildWhatsAppMessage(payload: WhatsAppPayload): string {
 
 /** Build a wa.me URL from an order payload */
 export function buildWhatsAppURL(
-    whatsappNumber: string,
+    whatsappNumber: string | null | undefined,
     payload: WhatsAppPayload
 ): string {
-    let clean = whatsappNumber.replace(/\D/g, '')
+    // Fall back to the main line if a branch has no WhatsApp number configured
+    let clean = (whatsappNumber || '923291330234').replace(/\D/g, '')
     if (clean.startsWith('0')) clean = '92' + clean.slice(1)
     const message = buildWhatsAppMessage(payload)
     return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`

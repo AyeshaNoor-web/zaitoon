@@ -1,41 +1,48 @@
-import type { Metadata } from 'next'
-import { Lora, Montserrat, Noto_Sans_Arabic } from 'next/font/google'
+import type { Metadata, Viewport } from 'next'
+import { Fraunces, Figtree, Noto_Sans_Arabic } from 'next/font/google'
+import { Toaster } from 'sonner'
+import { Analytics } from '@vercel/analytics/next'
+import RestaurantSchema from '@/components/seo/RestaurantSchema'
+import { ClientLocalizationWrapper } from '@/components/layout/ClientLocalizationWrapper'
+import { StoreHydrator } from '@/store/hydration'
 import './globals.css'
 
-const lora = Lora({
+const fraunces = Fraunces({
   subsets: ['latin'],
-  weight: ['500', '600', '700'],
-  variable: '--font-lora',
+  axes: ['opsz', 'SOFT'],
+  variable: '--font-fraunces',
   display: 'swap',
 })
 
-const montserrat = Montserrat({
+const figtree = Figtree({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-montserrat',
+  variable: '--font-figtree',
   display: 'swap',
 })
 
 const notoUrdu = Noto_Sans_Arabic({
   subsets: ['arabic'],
-  weight: ['300', '400', '500', '600', '700', '800', '900'],
+  weight: ['400', '500', '600', '700'],
   variable: '--font-noto-urdu',
   display: 'swap',
 })
 
+export const viewport: Viewport = {
+  themeColor: '#20251A',
+}
+
 export const metadata: Metadata = {
-  metadataBase: new URL('https://zaitoon.pk'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://zaitoon.pk'),
   title: {
     default: 'Zaitoon – House of Shawarma & BBQ | Lahore',
     template: '%s | Zaitoon Lahore',
   },
-  description: 'Order authentic Lebanese shawarma, BBQ platters, and burgers online. Fast delivery from Wapda Town and Cantonment branches across Lahore. 30-minute delivery guaranteed.',
+  description: 'Order Lebanese shawarma, charcoal BBQ platters and burgers online. Delivery from our Wapda Town and Cantonment branches across Lahore.',
   keywords: [
     'shawarma lahore', 'shawarma delivery lahore', 'bbq lahore',
-    'zaitoon restaurant', 'ziatoon lahore', 'lebanese food lahore',
-    'chicken shawarma lahore', 'bbq delivery lahore', 'wapda town food',
-    'cantonment restaurant lahore', 'online food order lahore',
-    'best shawarma lahore', 'arabic food lahore', 'kabab lahore',
+    'zaitoon restaurant', 'lebanese food lahore', 'chicken shawarma lahore',
+    'bbq delivery lahore', 'wapda town food', 'cantonment restaurant lahore',
+    'online food order lahore', 'arabic food lahore',
   ],
   authors: [{ name: 'Zaitoon Restaurant' }],
   creator: 'Zaitoon',
@@ -48,47 +55,46 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_PK',
-    url: 'https://zaitoon.pk',
     siteName: 'Zaitoon – House of Shawarma & BBQ',
-    title: 'Zaitoon – Lahore\'s Finest Shawarma & BBQ',
-    description: 'Authentic Lebanese shawarma & BBQ delivered hot to your door in 30 minutes. Two branches in Lahore.',
-    images: [{
-      url: '/og-image.jpg',
-      width: 1200,
-      height: 630,
-      alt: 'Zaitoon – House of Shawarma & BBQ Lahore',
-    }],
+    title: 'Zaitoon – Shawarma & charcoal BBQ in Lahore',
+    description: 'Lebanese shawarma and charcoal BBQ, delivered hot across Lahore.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Zaitoon – Lahore\'s Finest Shawarma & BBQ',
-    description: 'Order authentic shawarma & BBQ online. 30-min delivery across Lahore.',
-    images: ['/og-image.jpg'],
-  },
-  verification: {
-    google: 'ADD_YOUR_GOOGLE_SEARCH_CONSOLE_CODE_HERE',
+    title: 'Zaitoon – Shawarma & charcoal BBQ in Lahore',
+    description: 'Order shawarma and BBQ online for delivery across Lahore.',
   },
 }
 
-import { Toaster } from 'sonner'
-import RestaurantSchema from '@/components/seo/RestaurantSchema'
-import { ClientLocalizationWrapper } from '@/components/layout/ClientLocalizationWrapper'
-import { ThemeProvider } from '@/components/ThemeProvider'
-import { Analytics } from '@vercel/analytics/next'
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${lora.variable} ${montserrat.variable} ${notoUrdu.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${fraunces.variable} ${figtree.variable} ${notoUrdu.variable}`} suppressHydrationWarning>
       <head>
         <RestaurantSchema />
       </head>
       <body>
-        <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false} disableTransitionOnChange>
-          <ClientLocalizationWrapper>
-            {children}
-          </ClientLocalizationWrapper>
-          <Toaster position="top-right" />
-        </ThemeProvider>
+        <StoreHydrator />
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[200] focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:text-paper"
+        >
+          Skip to content
+        </a>
+        <ClientLocalizationWrapper>
+          {children}
+        </ClientLocalizationWrapper>
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            style: {
+              fontFamily: 'var(--font-body)',
+              borderRadius: '14px',
+              border: '1px solid var(--color-line)',
+              background: 'var(--color-surface)',
+              color: 'var(--color-ink)',
+            },
+          }}
+        />
         <Analytics />
       </body>
     </html>

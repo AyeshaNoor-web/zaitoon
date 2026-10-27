@@ -1,28 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { NextResponse } from 'next/server'
+import { getSessionCustomer, publicCustomer } from '@/lib/server/customerSession'
 
-const adminSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url)
-  const phone = searchParams.get('phone')
-  
-  if (!phone) {
-    return NextResponse.json({ error: 'Missing phone number' }, { status: 400 })
-  }
-
-  const { data: customer, error } = await adminSupabase
-    .from('customers')
-    .select('*')
-    .eq('phone', phone)
-    .single()
-
-  if (error || !customer) {
-    return NextResponse.json({ error: 'Customer not found' }, { status: 404 })
-  }
-
-  return NextResponse.json({ customer })
+/** GET /api/auth/me — the customer this device is verified for. */
+export async function GET() {
+  const customer = await getSessionCustomer()
+  if (!customer) return NextResponse.json({ customer: null }, { status: 401 })
+  return NextResponse.json({ customer: publicCustomer(customer) })
 }

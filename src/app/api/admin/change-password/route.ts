@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
-import { hashPassword } from '@/lib/utils/password'
+import { adminSupabase } from '@/lib/supabase/admin'
+import { getAdminSession } from '@/lib/adminSession'
+import { hashPassword, verifyPassword, isPlainText } from '@/lib/utils/password'
 
 /**
  * POST /api/admin/change-password
@@ -10,40 +10,39 @@ import { hashPassword } from '@/lib/utils/password'
  */
 export async function POST(req: NextRequest) {
   try {
-    // ── Validate session ───────────────────────────────────────────
-    const cookieStore = await cookies()
-    const sessionToken = cookieStore.get('admin_session')?.value
-
-    if (!sessionToken) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const adminSupabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
-
-    const { data: session, error: sessionError } = await adminSupabase
-      .from('admin_sessions')
-      .select('admin_id, expires_at')
-      .eq('token', sessionToken)
-      .single()
-
-    if (sessionError || !session || new Date(session.expires_at) < new Date()) {
+    const session = await getAdminSession()
+    if (!session) {
       return NextResponse.json({ error: 'Invalid or expired session' }, { status: 401 })
     }
 
-    // ── Validate input ─────────────────────────────────────────────
-    const { newPassword } = await req.json()
+    const { currentPassword, newPassword } = await req.json()
 
+    if (!currentPassword || typeof currentPassword !== 'string') {
+      return NextResponse.json({ error: 'Current password is required' }, { status: 400 })
+    }
     if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
-      return NextResponse.json(
-        { error: 'New password must be at least 8 characters' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'New password must be at least 8 characters' }, { status: 400 })
     }
 
-    // ── Hash and save new password ─────────────────────────────────
+    // A stolen session cookie alone must not be enough to take over the account
+    const { data: user, error: userError } = await adminSupabase
+      .from('admin_users')
+      .select('password')
+      .eq('id', session.admin_id)
+      .single()
+
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Account not found' }, { status: 404 })
+    }
+
+    const currentOk = isPlainText(user.password)
+      ? user.password === currentPassword
+      : await verifyPassword(currentPassword, user.password)
+
+    if (!currentOk) {
+      return NextResponse.json({ error: 'Current password is incorrect' }, { status: 403 })
+    }
+
     const hashed = await hashPassword(newPassword)
     const { error: updateError } = await adminSupabase
       .from('admin_users')
@@ -56,7 +55,6 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true, message: 'Password updated successfully' })
-
   } catch (err) {
     console.error('Change password error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

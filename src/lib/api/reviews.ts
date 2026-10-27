@@ -1,40 +1,4 @@
-import { createClient } from '@/lib/supabase/client'
-
-const supabase = createClient()
-
-export interface ReviewPayload {
-    customerId: string
-    orderId: string
-    rating: number
-    comment?: string
-}
-
-export async function submitReview(data: ReviewPayload): Promise<void> {
-    const { error } = await supabase.from('reviews').insert({
-        customer_id: data.customerId,
-        order_id: data.orderId,
-        rating: data.rating,
-        comment: data.comment?.trim() || null,
-        is_approved: true, // auto-approve; admin can reject via the Reviews panel
-    })
-    if (error) throw new Error(error.message)
-}
-
-export async function hasCustomerReviewed(
-    customerId: string,
-    orderId: string
-): Promise<boolean> {
-    // Bypass RLS approved-only filter by selecting from anon but checking existence
-    const { data, error } = await supabase
-        .from('reviews')
-        .select('id')
-        .eq('customer_id', customerId)
-        .eq('order_id', orderId)
-        .maybeSingle()
-
-    if (error) return false
-    return !!data
-}
+import { adminCall } from '@/lib/api/adminClient'
 
 export interface AdminReview {
     id: string
@@ -42,53 +6,37 @@ export interface AdminReview {
     comment: string | null
     is_approved: boolean
     created_at: string
-    customers: { name: string; phone: string }
-    orders: { order_number: string }
+    customers: { name: string; phone?: string }
+    orders?: { order_number: string }
 }
 
+/** Review a delivered order. Only works from the device the order was placed on. */
+export async function submitReview(data: { orderId: string; rating: number; comment?: string }): Promise<void> {
+    const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    })
+    if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error ?? 'Could not save your review.')
+    }
+}
+
+export async function hasCustomerReviewed(orderId: string): Promise<boolean> {
+    const res = await fetch(`/api/reviews?orderId=${encodeURIComponent(orderId)}`)
+    if (!res.ok) return false
+    return !!(await res.json()).reviewed
+}
+
+/** Public — approved reviews, first names only. */
 export async function getApprovedReviews(): Promise<AdminReview[]> {
-    const { data, error } = await supabase
-        .from('reviews')
-        .select(`
-            id, rating, comment, is_approved, created_at,
-            customers ( name, phone ),
-            orders ( order_number )
-        `)
-        .eq('is_approved', true)
-        .order('created_at', { ascending: false })
-        .limit(20)
-
-    if (error) throw new Error(error.message)
-    return (data as unknown as AdminReview[]) ?? []
+    const res = await fetch('/api/reviews')
+    if (!res.ok) throw new Error('Could not load reviews')
+    return (await res.json()).reviews ?? []
 }
 
-// ── Admin-only (uses service key — only called from admin pages) ──────────────
-export async function getAllReviews(): Promise<AdminReview[]> {
-    const { data, error } = await supabase
-        .from('reviews')
-        .select(`
-            id, rating, comment, is_approved, created_at,
-            customers ( name, phone ),
-            orders ( order_number )
-        `)
-        .order('created_at', { ascending: false })
-
-    if (error) throw new Error(error.message)
-    return (data as unknown as AdminReview[]) ?? []
-}
-
-export async function approveReview(id: string): Promise<void> {
-    const { error } = await supabase
-        .from('reviews')
-        .update({ is_approved: true })
-        .eq('id', id)
-    if (error) throw new Error(error.message)
-}
-
-export async function rejectReview(id: string): Promise<void> {
-    const { error } = await supabase
-        .from('reviews')
-        .delete()
-        .eq('id', id)
-    if (error) throw new Error(error.message)
-}
+// ── Admin ────────────────────────────────────────────────────────────────────
+export const getAllReviews = () => adminCall<AdminReview[]>('reviews.list')
+export const approveReview = (id: string) => adminCall('reviews.approve', id)
+export const rejectReview = (id: string) => adminCall('reviews.delete', id)

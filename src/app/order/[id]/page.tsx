@@ -2,453 +2,321 @@
 import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Check, MessageCircle, MapPin, ChevronRight, ShoppingBag, Star, X } from 'lucide-react'
+import { Check, MessageCircle, MapPin, Star, X, ArrowLeft, Clock, Search } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import ReviewModal from '@/components/ReviewModal'
-import { getOrderByNumber, subscribeToOrder } from '@/lib/api/orders'
+import { getOrderByNumber } from '@/lib/api/orders'
 import { hasCustomerReviewed } from '@/lib/api/reviews'
 import { buildWhatsAppURL } from '@/lib/whatsapp'
 import { formatPrice } from '@/lib/payment'
+import { titleCase } from '@/lib/site'
 import { useAuthStore } from '@/store/useAuthStore'
+import { useHydrated } from '@/store/hydration'
 import type { Order, OrderItem } from '@/types'
 
 const STATUSES = ['pending', 'confirmed', 'preparing', 'out_for_delivery', 'delivered'] as const
 
-const STATUS_LABELS: Record<string, { label: string; desc: string }> = {
-    pending: { label: 'Order Placed', desc: 'We received your order &mdash; thank you!' },
-    confirmed: { label: 'Confirmed', desc: 'Restaurant confirmed your order ✅' },
-    preparing: { label: 'Preparing', desc: 'Chef is preparing your food 🔥' },
-    out_for_delivery: { label: 'Out for Delivery', desc: 'Rider is on the way! 🛵' },
-    delivered: { label: 'Delivered', desc: 'Enjoy your warm meal! 🎉' },
+function stepsFor(orderType: Order['order_type']) {
+    const delivery = orderType === 'delivery'
+    return [
+        { key: 'pending', label: 'Order placed', desc: 'We have your order.' },
+        { key: 'confirmed', label: 'Confirmed', desc: 'The branch accepted your order.' },
+        { key: 'preparing', label: 'On the grill', desc: 'The kitchen is cooking it now.' },
+        { key: 'out_for_delivery', label: delivery ? 'Out for delivery' : 'Ready', desc: delivery ? 'Your rider is on the way.' : 'Ready at the counter.' },
+        { key: 'delivered', label: delivery ? 'Delivered' : 'Collected', desc: 'Enjoy your meal.' },
+    ]
 }
 
+const timeFmt = (d: Date) => d.toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit' })
+
 export default function OrderTrackingPage({ params }: { params: Promise<{ id: string }> }) {
-    // Next.js 15+ requires params to be awaited
     const { id } = use(params)
+    const hydrated = useHydrated()
     const { customer, isAuthenticated } = useAuthStore()
 
     const [order, setOrder] = useState<Order | null>(null)
     const [loading, setLoading] = useState(true)
-    const [notFound, setNotFound] = useState(false)
-    const [statusIdx, setStatusIdx] = useState(0)
-    const [timeLeft, setTimeLeft] = useState(35 * 60)
     const [reviewOpen, setReviewOpen] = useState(false)
     const [alreadyReviewed, setAlreadyReviewed] = useState(false)
 
+    const [isOwner, setIsOwner] = useState(false)
+    const [loadError, setLoadError] = useState(false)
+
+    // Poll while the order is in progress. (Realtime would need the public key to
+    // read every order in the database, so the server endpoint is polled instead.)
     useEffect(() => {
-        let channel: { unsubscribe: () => void } | undefined
+        let cancelled = false
+        let timer: ReturnType<typeof setTimeout> | undefined
 
-        const fetchOrder = async () => {
+        const load = async () => {
             try {
-                const data = await getOrderByNumber(id)
-                if (!data) return
-                setOrder(data)
-                setStatusIdx(Math.max(0, STATUSES.indexOf(data.status as typeof STATUSES[number])))
-
-                // Subscribe to realtime status changes
-                // IMPORTANT: callback re-fetches the full order (with joins) instead of
-                // using payload.new which is just the raw row with no order_items/branches
-                channel = subscribeToOrder(data.id, async () => {
-                    try {
-                        const refreshed = await getOrderByNumber(id)
-                        if (!refreshed) return
-                        setOrder(refreshed)
-                        setStatusIdx(Math.max(0, STATUSES.indexOf(refreshed.status as typeof STATUSES[number])))
-                    } catch { /* ignore */ }
-                })
+                const res = await getOrderByNumber(id)
+                if (cancelled) return
+                setLoadError(false)
+                if (res) {
+                    setOrder(res.order)
+                    setIsOwner(res.isOwner)
+                    if (['delivered', 'cancelled'].includes(res.order.status)) return
+                }
             } catch {
-                setNotFound(true)
-            } finally {
-                setLoading(false)
+                // Keep the last known state; only surface the error if we have nothing to show
+                if (!cancelled) setLoadError(true)
             }
+            finally { if (!cancelled) setLoading(false) }
+            if (!cancelled) timer = setTimeout(load, 15000)
         }
+        load()
 
-        fetchOrder()
-        return () => { channel?.unsubscribe() }
+        return () => { cancelled = true; if (timer) clearTimeout(timer) }
     }, [id])
 
-    // Check if already reviewed once order is delivered & customer is logged in
+    const signedIn = hydrated && isAuthenticated && !!customer
+    const orderId = order?.id
+    const delivered = order?.status === 'delivered'
     useEffect(() => {
-        if (order?.status === 'delivered' && isAuthenticated && customer?.id) {
-            hasCustomerReviewed(customer.id, order.id).then(setAlreadyReviewed)
-        }
-    }, [order?.status, order?.id, isAuthenticated, customer?.id])
+        if (delivered && isOwner && orderId) hasCustomerReviewed(orderId).then(setAlreadyReviewed)
+    }, [delivered, isOwner, orderId])
 
-    // Countdown timer
-    useEffect(() => {
-        const t = setInterval(() => setTimeLeft(s => Math.max(0, s - 1)), 1000)
-        return () => clearInterval(t)
-    }, [])
+    if (loading) {
+        return (
+            <>
+                <Navbar />
+                <main id="main" className="pt-nav min-h-screen">
+                    <div className="container-page max-w-3xl space-y-5 py-12" role="status" aria-busy="true">
+                        <div className="skeleton h-10 w-64 rounded-full" />
+                        <div className="skeleton h-[280px] rounded-[28px]" />
+                        <div className="skeleton h-[320px] rounded-[28px]" />
+                    </div>
+                </main>
+            </>
+        )
+    }
 
-    const mins = Math.floor(timeLeft / 60)
-    const secs = String(timeLeft % 60).padStart(2, '0')
+    if (!order && loadError) {
+        return (
+            <>
+                <Navbar />
+                <main id="main" className="pt-nav min-h-screen">
+                    <div role="alert" className="container-page flex max-w-md flex-col items-center py-28 text-center">
+                        <h1 className="text-4xl">We couldn&apos;t load this order</h1>
+                        <p className="mt-3 text-ink-2">Check your connection and try again in a moment.</p>
+                        <button onClick={() => window.location.reload()} className="btn-outline-dark mt-8">Try again</button>
+                    </div>
+                </main>
+            </>
+        )
+    }
 
-    // ── Loading ───────────────────────────────────────────────
-    if (loading) return (
-        <>
-            <Navbar />
-            <main role="main" className="min-h-screen bg-[#0D2015] pt-[120px] pb-16 px-4 flex items-center justify-center">
-                <div role="status" aria-busy="true" className="flex flex-col items-center gap-4">
-                    <div className="w-10 h-10 border-[3px] border-[var(--orange-warm)] border-t-transparent rounded-full animate-spin" />
-                    <p className="font-[600] text-[var(--orange-pale)]">Loading order details&hellip;</p>
-                </div>
-            </main>
-            <Footer />
-        </>
-    )
+    if (!order) {
+        return (
+            <>
+                <Navbar />
+                <main id="main" className="pt-nav min-h-screen">
+                    <div className="container-page flex max-w-md flex-col items-center py-28 text-center">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-[22px] bg-paper-2">
+                            <Search className="h-7 w-7 text-ink-3" />
+                        </div>
+                        <h1 className="mt-6 text-4xl">Order not found</h1>
+                        <p className="mt-3 text-ink-2">
+                            We couldn&apos;t find an order numbered <span className="font-semibold text-ink">#{id}</span>. Check the number and try again.
+                        </p>
+                        <Link href="/order" className="btn-outline-dark mt-8">Try another number</Link>
+                    </div>
+                </main>
+                <Footer />
+            </>
+        )
+    }
 
-    // ── Not found ─────────────────────────────────────────────
-    if (notFound || !order) return (
-        <>
-            <Navbar />
-            <main role="main" className="min-h-screen bg-[#0D2015] pt-[120px] pb-16 px-4 flex items-center justify-center">
-                <div className="text-center space-y-4">
-                    <p className="text-5xl">🔍</p>
-                    <h1 className="text-[22px] font-display font-[700] text-[var(--orange-pale)]">Order not found</h1>
-                    <p className="text-white/75 text-sm">
-                        No order found with number <span className="font-mono text-white/85">#{id}</span>
-                    </p>
-                    <Link
-                        href="/order"
-                        className="inline-block mt-4 text-[var(--orange-pale)] border border-[var(--orange-warm)] px-6 py-3 rounded-xl text-sm font-semibold hover:bg-[var(--orange-warm)]/10 transition-colors"
-                    >
-                        ← Try another order
-                    </Link>
-                </div>
-            </main>
-            <Footer />
-        </>
-    )
-
-    // ── Data ──────────────────────────────────────────────────
+    const steps = stepsFor(order.order_type)
+    const statusIdx = Math.max(0, STATUSES.indexOf(order.status as typeof STATUSES[number]))
+    const cancelled = order.status === 'cancelled'
+    const finished = order.status === 'delivered'
+    const placedAt = new Date(order.created_at)
+    const eta = new Date(placedAt.getTime() + (order.order_type === 'delivery' ? 45 : 25) * 60_000)
     const branch = order.branches
-    const progressPct = STATUSES.length <= 1 ? 0 : (statusIdx / (STATUSES.length - 1)) * 100
 
-    // Build WhatsApp URL only if branch has a whatsapp number
     const waURL = branch?.whatsapp
         ? buildWhatsAppURL(branch.whatsapp, {
-            orderNumber: id,
+            orderNumber: order.order_number,
             customerName: order.customer_name ?? '',
             customerPhone: order.customer_phone ?? '',
             orderType: order.order_type,
             deliveryAddress: order.delivery_address ?? undefined,
             branchName: branch.name ?? 'Zaitoon',
             items: (order.order_items ?? []).map((i: OrderItem) => ({
-                name: i.name,
-                size: i.size ?? null,
-                quantity: i.quantity,
-                unitPrice: i.unit_price,
-                subtotal: i.subtotal,
+                name: i.name, size: i.size ?? null, quantity: i.quantity, unitPrice: i.unit_price, subtotal: i.subtotal,
             })),
             subtotal: order.subtotal ?? 0,
             deliveryFee: order.delivery_fee ?? 0,
             loyaltyDiscount: order.loyalty_discount ?? 0,
+            tierDiscount: order.tier_discount ?? 0,
             total: order.total ?? 0,
             paymentMethod: order.payment_method ?? 'cod',
         })
         : null
 
-    // ── Render ────────────────────────────────────────────────
     return (
         <>
             <Navbar />
 
-            <main role="main" className="min-h-screen pt-[100px] pb-[80px] px-4"
-                style={{ background: 'linear-gradient(180deg, #0D2015 0%, #1e2b12 100%)' }}>
-                {/* ambient glow */}
-                <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] pointer-events-none opacity-10"
-                    style={{ background: 'radial-gradient(circle, var(--orange-warm) 0%, transparent 70%)' }} />
+            <main id="main" className="pt-nav min-h-screen pb-24">
+                <div className="container-page max-w-3xl py-10 lg:py-14">
+                    <Link href="/order" className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-2 hover:text-ink">
+                        <ArrowLeft className="h-4 w-4 rtl:rotate-180" /> Track another order
+                    </Link>
 
-                <div className="max-w-[600px] mx-auto space-y-5 relative z-10">
-
-                    {/* Header */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, ease: [0.16,1,0.3,1] }}
-                        className="text-center pt-2 pb-2"
-                    >
-                        <span className="text-[11px] font-[700] uppercase tracking-[0.18em] mb-2 block" style={{ color: 'var(--orange-warm)', opacity: 0.8 }}>
-                            Zaitoon Connect
-                        </span>
-                        <h1 className="text-white font-display text-[32px] font-[800]">Order #{id}</h1>
-                    </motion.div>
-
-                    {/* Status Tracker */}
-                    {order.status === 'cancelled' ? (
-                        <motion.section
-                            aria-label="Order status"
-                            initial={{ opacity: 0, y: 24 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.55, delay: 0.1, ease: [0.16,1,0.3,1] }}
-                            className="rounded-[16px] p-6 text-center"
-                            style={{
-                                background: 'rgba(239, 68, 68, 0.05)',
-                                backdropFilter: 'blur(16px)',
-                                WebkitBackdropFilter: 'blur(16px)',
-                                border: '1px solid rgba(239, 68, 68, 0.2)',
-                                boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
-                            }}
-                        >
-                            <div className="w-16 h-16 mx-auto bg-red-500/20 rounded-full flex items-center justify-center mb-4 border border-red-500/30">
-                                <X className="w-8 h-8 text-red-400" />
-                            </div>
-                            <h2 className="text-[22px] font-display font-[700] text-red-400 mb-2">
-                                Order Cancelled
-                            </h2>
-                            <p className="text-white/80 text-[14px]">
-                                Your order has been cancelled. Please contact us if you need help.
+                    <header className="mt-4 flex flex-wrap items-end justify-between gap-4">
+                        <div>
+                            <h1 className="text-[clamp(2.25rem,5vw,3.25rem)]">Order #{order.order_number}</h1>
+                            <p className="mt-2 text-ink-2">
+                                {titleCase(order.order_type)} · placed {placedAt.toLocaleString('en-PK', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}
                             </p>
-                        </motion.section>
-                    ) : (
-                        <motion.section
-                            aria-label="Order status"
-                            initial={{ opacity: 0, y: 24 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.55, delay: 0.1, ease: [0.16,1,0.3,1] }}
-                            className="rounded-[16px] p-6"
-                            style={{
-                                background: 'rgba(253,248,240,0.04)',
-                                backdropFilter: 'blur(16px)',
-                                WebkitBackdropFilter: 'blur(16px)',
-                                border: '1px solid rgba(253,248,240,0.10)',
-                                boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
-                            }}
-                        >
-                            <div className="flex items-center justify-between mb-5 pb-3"
-                                style={{ borderBottom: '1px solid rgba(253,248,240,0.08)' }}>
-                                <h2 className="text-[20px] font-display font-[700] text-white">
-                                    Status Tracker
-                                </h2>
-                                {statusIdx < STATUSES.length - 1 && (
-                                    <span className="flex items-baseline gap-1 px-3 py-1 rounded-full text-[13px] font-[700]"
-                                        style={{ background: 'rgba(217,119,6,0.15)', color: 'var(--orange-pale)', border: '1px solid rgba(217,119,6,0.25)' }}>
-                                        <span className="text-[18px] leading-none">{mins}</span>m
-                                        <span>{secs}s</span>
-                                        <span className="text-[11px] font-[400] ml-0.5" style={{ color: 'rgba(253,248,240,0.8)' }}>est.</span>
-                                    </span>
-                                )}
-                            </div>
+                        </div>
+                        {!cancelled && !finished && (
+                            <p className="inline-flex items-center gap-2 rounded-full bg-surface px-4 py-2 text-sm font-medium text-ink shadow-[var(--shadow-soft)] ring-1 ring-line">
+                                <Clock className="h-4 w-4 text-ember-600" />
+                                {order.order_type === 'delivery' ? 'Arriving' : 'Ready'} around <span className="tabular font-semibold">{timeFmt(eta)}</span>
+                            </p>
+                        )}
+                    </header>
 
-                            {/* Gradient Progress bar */}
-                            <div className="w-full h-[6px] rounded-full mb-8 overflow-hidden" style={{ background: 'rgba(253,248,240,0.08)' }} aria-hidden="true">
-                                <motion.div
-                                    className="h-full rounded-full"
-                                    style={{ background: 'linear-gradient(90deg, var(--orange-warm), var(--orange-bright))' }}
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${progressPct}%` }}
-                                    transition={{ duration: 1.2, ease: [0.16,1,0.3,1] }}
-                                />
+                    {/* Status */}
+                    <motion.section
+                        aria-label="Order status"
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                        className="panel mt-8 p-6 sm:p-8"
+                    >
+                        {cancelled ? (
+                            <div className="flex items-start gap-4">
+                                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-danger/10 text-danger">
+                                    <X className="h-6 w-6" />
+                                </span>
+                                <div>
+                                    <h2 className="text-2xl">This order was cancelled</h2>
+                                    <p className="mt-1.5 text-ink-2">If you didn&apos;t expect this, message the branch and we&apos;ll sort it out.</p>
+                                </div>
                             </div>
-
-                            <ul role="list" aria-label="Tracking timeline" className="space-y-6">
-                                {STATUSES.map((s, i) => {
-                                    const isDone = i <= statusIdx
-                                    const isActive = i === statusIdx
-                                    const info = STATUS_LABELS[s]
+                        ) : (
+                            <ol aria-label="Tracking timeline">
+                                {steps.map((s, i) => {
+                                    const done = i < statusIdx || finished
+                                    const active = i === statusIdx && !finished
+                                    const last = i === steps.length - 1
                                     return (
-                                        <li key={s} className="flex gap-4 relative" aria-current={isActive ? 'step' : undefined}>
-                                            <div className="relative pt-[2px]">
-                                                {/* Connector line */}
-                                                {i < STATUSES.length - 1 && (
-                                                    <div
-                                                        className="absolute top-[28px] left-[13px] w-[2px] h-[36px]"
-                                                        style={{ backgroundColor: isDone ? 'var(--orange-warm)' : 'var(--linen)' }}
-                                                        aria-hidden="true"
-                                                    />
-                                                )}
-
-                                                <div
-                                                    className="w-[28px] h-[28px] rounded-full flex items-center justify-center border-[2px] shrink-0 z-10 bg-white"
-                                                    style={{
-                                                        borderColor: isDone ? 'var(--orange-warm)' : 'var(--linen)',
-                                                        color: isDone ? 'var(--orange-warm)' : 'var(--linen)',
-                                                    }}
-                                                >
-                                                    {isDone && <Check className="w-[14px] h-[14px]" strokeWidth={3} />}
-                                                </div>
-
-                                                {/* Pulse ring on active step */}
-                                                {isActive && i < STATUSES.length - 1 && (
-                                                    <motion.div
-                                                        className="absolute top-[2px] left-0 w-[28px] h-[28px] rounded-full border-[2px] border-[var(--orange-warm)]"
-                                                        initial={{ opacity: 0.8, scale: 1 }}
-                                                        animate={{ opacity: 0, scale: 1.6 }}
-                                                        transition={{ repeat: Infinity, duration: 1.5, ease: 'easeOut' }}
-                                                        aria-hidden="true"
-                                                    />
-                                                )}
-                                            </div>
-
-                                            <div className="flex-1 pt-[2px]">
-                                                <div className={`font-[700] text-[15px] ${isActive ? 'text-[var(--green-base)]' : isDone ? 'text-[var(--charcoal)]' : 'text-[var(--stone)]'}`}>
-                                                    {info.label}
-                                                </div>
-                                                <div className="text-[13px] text-[var(--stone)] mt-1 font-[400]">
-                                                    {info.desc}
-                                                </div>
+                                        <li key={s.key} className="relative flex gap-4 pb-7 last:pb-0" aria-current={active ? 'step' : undefined}>
+                                            {!last && (
+                                                <span aria-hidden="true" className={`absolute start-[15px] top-8 h-[calc(100%-32px)] w-0.5 rounded-full ${done ? 'bg-olive-600' : 'bg-line'}`} />
+                                            )}
+                                            <span className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 ${done
+                                                ? 'border-olive-600 bg-olive-600 text-white'
+                                                : active ? 'border-ember-500 bg-surface' : 'border-line bg-surface'}`}>
+                                                {done && <Check className="h-4 w-4" strokeWidth={3} />}
+                                                {active && <span className="h-2.5 w-2.5 rounded-full bg-ember-500 animate-ember-pulse" />}
+                                            </span>
+                                            <div className="pt-1">
+                                                <p className={`font-semibold ${active ? 'text-ink' : done ? 'text-ink' : 'text-ink-3'}`}>{s.label}</p>
+                                                <p className={`mt-0.5 text-sm ${active ? 'text-ink-2' : 'text-ink-3'}`}>{s.desc}</p>
                                             </div>
                                         </li>
                                     )
                                 })}
-                            </ul>
+                            </ol>
+                        )}
+                    </motion.section>
 
-                            {/* Dev helper to advance status without touching DB */}
-                            {process.env.NODE_ENV === 'development' && (
-                                <button
-                                    onClick={() => setStatusIdx(i => Math.min(i + 1, STATUSES.length - 1))}
-                                    className="mt-6 text-[11px] text-[var(--stone)] underline"
-                                >
-                                    [Dev] Advance status locally
-                                </button>
-                            )}
-                        </motion.section>
+                    {/* Confirm on WhatsApp — only useful while the branch hasn't confirmed yet */}
+                    {waURL && isOwner && order.status === 'pending' && (
+                        <a
+                            href={waURL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-5 flex items-center justify-between gap-4 rounded-[24px] bg-olive-800 px-6 py-5 text-paper transition-colors hover:bg-olive-900"
+                        >
+                            <span className="flex items-center gap-4">
+                                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10">
+                                    <MessageCircle className="h-5 w-5" />
+                                </span>
+                                <span>
+                                    <span className="block font-semibold">Confirm on WhatsApp</span>
+                                    <span className="block text-sm text-paper/70">Send the order to {branch?.name ?? 'the branch'} so they can start cooking.</span>
+                                </span>
+                            </span>
+                            <ArrowLeft className="h-5 w-5 shrink-0 rotate-180 rtl:rotate-0" />
+                        </a>
+                    )}
+
+                    {finished && signedIn && isOwner && !alreadyReviewed && (
+                        <div className="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-[24px] bg-ember-100/70 px-6 py-5">
+                            <div>
+                                <p className="font-semibold text-ink">How was everything?</p>
+                                <p className="text-sm text-ink-2">A quick rating helps the kitchen.</p>
+                            </div>
+                            <button onClick={() => setReviewOpen(true)} className="btn-primary !min-h-11">
+                                <Star className="h-4 w-4 fill-current" /> Rate your order
+                            </button>
+                        </div>
                     )}
 
                     {/* Receipt */}
-                    <motion.section
-                        aria-label="Order Receipt"
-                        initial={{ opacity: 0, y: 24 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.55, delay: 0.2, ease: [0.16,1,0.3,1] }}
-                        className="rounded-[16px] p-6"
-                        style={{
-                            background: 'rgba(253,248,240,0.05)',
-                            backdropFilter: 'blur(16px)',
-                            WebkitBackdropFilter: 'blur(16px)',
-                            border: '1px solid rgba(253,248,240,0.1)',
-                            boxShadow: '0 8px 32px rgba(0,0,0,0.15)'
-                        }}
-                    >
-                        <h2 className="text-[18px] mb-4 font-display font-[700] text-white flex items-center gap-2">
-                            <ShoppingBag className="w-5 h-5" style={{ color: 'var(--orange-warm)' }} /> Receipt
-                        </h2>
+                    <section aria-labelledby="receipt-title" className="panel mt-5 p-6 sm:p-8">
+                        <h2 id="receipt-title" className="text-2xl">Receipt</h2>
 
-                        <ul role="list" aria-label="Items ordered" className="space-y-3 mb-4">
+                        <ul className="mt-5 space-y-3">
                             {(order.order_items ?? []).map((item: OrderItem) => (
-                                <li key={item.id} className="flex justify-between items-start text-[14px]">
-                                    <div className="flex gap-2">
-                                        <span className="font-[600]" style={{ color: 'rgba(253,248,240,0.8)' }}>{item.quantity}×</span>
-                                        <span>
-                                            <span className="font-[500] text-white">{item.name}</span>
-                                            {item.size && (
-                                                <span className="text-[12px] capitalize block" style={{ color: 'rgba(253,248,240,0.8)' }}>
-                                                    ({item.size})
-                                                </span>
-                                            )}
-                                        </span>
+                                <li key={item.id} className="flex items-start justify-between gap-4 text-[0.9375rem]">
+                                    <div className="flex gap-3">
+                                        <span className="tabular flex h-6 min-w-6 items-center justify-center rounded-md bg-paper-2 px-1.5 text-xs font-semibold">{item.quantity}</span>
+                                        <div>
+                                            <p className="font-medium text-ink">{item.name}</p>
+                                            {item.size && <p className="text-[0.8125rem] text-ink-2">{item.size === 'small' ? 'Regular' : 'Large'}</p>}
+                                        </div>
                                     </div>
-                                    <span className="font-[700] shrink-0" style={{ color: 'var(--orange-pale)' }}>
-                                        {formatPrice(item.subtotal)}
-                                    </span>
+                                    <span className="price shrink-0">{formatPrice(item.subtotal)}</span>
                                 </li>
                             ))}
                         </ul>
 
-                        <div className="my-4 h-[1px]" style={{ background: 'rgba(253,248,240,0.08)' }} aria-hidden="true" />
-
-                        <div className="space-y-2 mb-4">
-                            <div className="flex justify-between text-[13px]" style={{ color: 'rgba(253,248,240,0.8)' }}>
-                                <span>Subtotal</span>
-                                <span className="text-white font-[600]">{formatPrice(order.subtotal)}</span>
-                            </div>
-                            <div className="flex justify-between text-[13px]" style={{ color: 'rgba(253,248,240,0.8)' }}>
-                                <span>Delivery Fee</span>
-                                <span className="text-white font-[600]">{(order.delivery_fee ?? 0) > 0 ? formatPrice(order.delivery_fee) : 'Free'}</span>
-                            </div>
-                            {(order.loyalty_discount ?? 0) > 0 && (
-                                <div className="flex justify-between text-[13px] font-[700]" style={{ color: 'var(--orange-warm)' }}>
-                                    <span>Loyalty Redeem</span>
-                                    <span>−{formatPrice(order.loyalty_discount)}</span>
+                        <dl className="mt-5 space-y-2 border-t border-line pt-5 text-[0.9375rem]">
+                            <div className="flex justify-between"><dt className="text-ink-2">Subtotal</dt><dd className="price">{formatPrice(order.subtotal)}</dd></div>
+                            {order.order_type === 'delivery' && (
+                                <div className="flex justify-between">
+                                    <dt className="text-ink-2">Delivery</dt>
+                                    <dd className="price">{(order.delivery_fee ?? 0) > 0 ? formatPrice(order.delivery_fee) : 'Free'}</dd>
                                 </div>
                             )}
+                            {(order.tier_discount ?? 0) > 0 && (
+                                <div className="flex justify-between text-success"><dt>Member discount</dt><dd className="price">−{formatPrice(order.tier_discount)}</dd></div>
+                            )}
+                            {(order.loyalty_discount ?? 0) > 0 && (
+                                <div className="flex justify-between text-success"><dt>Loyalty points</dt><dd className="price">−{formatPrice(order.loyalty_discount)}</dd></div>
+                            )}
+                        </dl>
+                        <div className="mt-4 flex items-baseline justify-between border-t border-line pt-4">
+                            <span className="font-semibold">Total</span>
+                            <span className="price text-[1.75rem]">{formatPrice(order.total)}</span>
                         </div>
-
-                        <div className="my-4 h-[1px]" style={{ background: 'rgba(253,248,240,0.12)' }} aria-hidden="true" />
-
-                        <div className="flex justify-between items-baseline mb-4">
-                            <span className="text-[15px] font-[700] text-white">Total</span>
-                            <span className="font-display font-[800] text-[28px]" style={{ color: 'var(--orange-pale)' }}>
-                                {formatPrice(order.total)}
-                            </span>
-                        </div>
+                        <p className="mt-1 text-end text-[0.8125rem] text-ink-3">
+                            {order.payment_method === 'jazzcash' ? 'JazzCash' : order.order_type === 'delivery' ? 'Cash on delivery' : 'Pay at the counter'}
+                        </p>
 
                         {order.delivery_address && (
-                            <div className="flex items-start gap-3 p-4 rounded-[10px]" style={{ background: 'rgba(253,248,240,0.05)', border: '1px solid rgba(253,248,240,0.08)' }}>
-                                <MapPin className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--orange-warm)' }} />
-                                <div className="text-[13px] leading-snug">
-                                    <strong className="text-white block mb-[2px]">Delivery Address</strong>
-                                    <span style={{ color: 'rgba(253,248,240,0.82)' }}>{order.delivery_address}</span>
+                            <div className="mt-6 flex items-start gap-3 rounded-2xl bg-paper p-4">
+                                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-olive-600" />
+                                <div className="text-sm">
+                                    <p className="font-semibold text-ink">Delivering to</p>
+                                    <p className="mt-0.5 text-ink-2">{order.delivery_address}</p>
                                 </div>
                             </div>
                         )}
-                    </motion.section>
+                    </section>
 
-                    {/* Review prompt — only when delivered, logged in, not yet reviewed */}
-                    {order.status === 'delivered' && isAuthenticated && customer && !alreadyReviewed && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 12 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                            className="bg-[var(--orange-warm)]/10 border-[2px] border-[var(--orange-warm)] rounded-[8px] p-5 flex items-center justify-between gap-4"
-                        >
-                            <div>
-                                <p className="font-[700] text-[var(--orange-pale)] text-[15px] leading-snug">
-                                    How was your meal? ⭐
-                                </p>
-                                <p className="text-[var(--orange-pale)]/90 text-[13px] mt-0.5">
-                                    Leave a review &mdash; let us know!
-                                </p>
-                            </div>
-                            <button
-                                onClick={() => setReviewOpen(true)}
-                                className="shrink-0 flex items-center gap-2 bg-[var(--orange-warm)] text-[#0D2015] font-[700] text-[13px] px-4 py-2.5 rounded-[6px] hover:bg-[var(--orange-bright)] transition-colors"
-                            >
-                                <Star className="w-4 h-4" fill="currentColor" />
-                                Rate Now
-                            </button>
-                        </motion.div>
-                    )}
-
-                    {/* WhatsApp CTA */}
-                    {waURL && (
-                        <motion.a
-                            href={waURL}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            whileHover={{ y: -3 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="flex items-center justify-between px-6 py-4 rounded-[16px] text-white block"
-                            style={{
-                                background: 'linear-gradient(135deg, #25D366, #20bd5a)',
-                                boxShadow: '0 8px 24px rgba(37,211,102,0.35)'
-                            }}
-                            aria-label="Confirm and send order to WhatsApp"
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-[10px] flex items-center justify-center"
-                                    style={{ background: 'rgba(255,255,255,0.15)' }}>
-                                    <MessageCircle className="w-5 h-5" />
-                                </div>
-                                <div className="text-left">
-                                    <span className="font-[700] text-[16px] block mb-[2px] leading-tight">Confirm on WhatsApp</span>
-                                    <span className="font-[400] text-[13px]" style={{ color: 'rgba(255,255,255,0.8)' }}>Send order to restaurant instantly.</span>
-                                </div>
-                            </div>
-                            <ChevronRight className="w-6 h-6" style={{ color: 'rgba(255,255,255,0.7)' }} />
-                        </motion.a>
-                    )}
-
-                    <div className="text-center pt-4">
-                        <Link
-                            href="/menu"
-                            className="text-[14px] font-[600] transition-colors"
-                            style={{ color: 'rgba(253,248,240,0.82)' }}
-                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--orange-pale)' }}
-                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(253,248,240,0.82)' }}
-                        >
-                            ← Return to Menu
+                    <div className="mt-8 text-center">
+                        <Link href="/menu" className="btn-quiet">
+                            <ArrowLeft className="h-4 w-4 rtl:rotate-180" /> Back to the menu
                         </Link>
                     </div>
                 </div>
@@ -456,17 +324,12 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
 
             <Footer />
 
-            {/* Review Modal */}
-            {order && customer && (
+            {customer && (
                 <ReviewModal
                     isOpen={reviewOpen}
-                    onClose={() => {
-                        setReviewOpen(false)
-                        setAlreadyReviewed(true)
-                    }}
+                    onClose={() => { setReviewOpen(false); setAlreadyReviewed(true) }}
                     orderId={order.id}
-                    customerId={customer.id}
-                    orderNumber={id}
+                    orderNumber={order.order_number}
                 />
             )}
         </>

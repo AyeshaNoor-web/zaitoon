@@ -4,257 +4,210 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ShoppingCart, Menu, X, Phone, MapPin } from 'lucide-react'
+import { ShoppingBag, Menu, X, Phone, MapPin, MessageCircle, User, Star, LogOut, ChevronDown, ArrowRight } from 'lucide-react'
 import { useCartStore } from '@/store/useCartStore'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useLocationStore } from '@/store/useLocationStore'
-import CartDrawer from '@/components/cart/CartDrawer'
 import { useLanguageStore } from '@/store/useLanguageStore'
+import { useHydrated } from '@/store/hydration'
 import { translations } from '@/lib/translations'
-import { MessageCircle } from 'lucide-react'
+import { SITE, titleCase } from '@/lib/site'
+import CartDrawer from '@/components/cart/CartDrawer'
 import LocationModal from '@/components/LocationModal'
-import { User, Star, Languages, ChevronRight } from 'lucide-react'
-import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 export default function Navbar() {
+    const pathname = usePathname()
+    const hydrated = useHydrated()
     const [drawerOpen, setDrawerOpen] = useState(false)
     const [cartOpen, setCartOpen] = useState(false)
-    const [badgeBounce, setBadgeBounce] = useState(false)
-    const [mounted, setMounted] = useState(false)
     const [scrolled, setScrolled] = useState(false)
-    const pathname = usePathname()
+    const [dropdownOpen, setDropdownOpen] = useState(false)
+    const [locationModalOpen, setLocationModalOpen] = useState(false)
+    const dropdownRef = useRef<HTMLDivElement>(null)
+
     const itemCount = useCartStore(s => s.itemCount())
     const { nearestBranchName, locationSet } = useLocationStore()
-    const prevCount = useRef(itemCount)
     const { customer, isAuthenticated, signOut, refreshCustomer } = useAuthStore()
-    const [dropdownOpen, setDropdownOpen] = useState(false)
-    const dropdownRef = useRef<HTMLDivElement>(null)
-    const { language, setLanguage, isRTL } = useLanguageStore()
-    const [locationModalOpen, setLocationModalOpen] = useState(false)
+    const { language, setLanguage } = useLanguageStore()
     const t = translations[language]
+
+    const overHero = pathname === '/' && !scrolled && !drawerOpen
+    const count = hydrated ? itemCount : 0
+    const signedIn = hydrated && isAuthenticated && !!customer
 
     const NAV_LINKS = [
         { label: t.menu, href: '/menu' },
         { label: t.branches, href: '/#branches' },
         { label: t.trackOrder, href: '/order' },
         { label: t.loyalty, href: '/loyalty' },
+        { label: t.aboutUs, href: '/about' },
     ]
 
-    useEffect(() => {
-        const handleClick = (e: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-                setDropdownOpen(false)
-            }
-        }
-        document.addEventListener('mousedown', handleClick)
-        return () => document.removeEventListener('mousedown', handleClick)
-    }, [])
+    const isActive = (href: string) =>
+        !href.startsWith('/#') && (pathname === href || pathname.startsWith(`${href}/`))
 
     useEffect(() => {
-        if (isAuthenticated && mounted && customer?.phone) refreshCustomer(customer.phone)
-    }, [isAuthenticated, mounted, refreshCustomer, customer?.phone])
-
-    useEffect(() => {
-        requestAnimationFrame(() => setMounted(true))
-    }, [])
-
-    useEffect(() => {
-        const onScroll = () => setScrolled(window.scrollY > 20)
+        const onScroll = () => setScrolled(window.scrollY > 24)
+        onScroll()
         window.addEventListener('scroll', onScroll, { passive: true })
         return () => window.removeEventListener('scroll', onScroll)
     }, [])
 
     useEffect(() => {
-        if (itemCount > prevCount.current) {
-            requestAnimationFrame(() => setBadgeBounce(true))
-            setTimeout(() => setBadgeBounce(false), 550)
+        const onClick = (e: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setDropdownOpen(false)
         }
-        prevCount.current = itemCount
-    }, [itemCount])
+        document.addEventListener('mousedown', onClick)
+        return () => document.removeEventListener('mousedown', onClick)
+    }, [])
 
-    const navListVariants = {
-        hidden: {},
-        show: { transition: { staggerChildren: 0.06 } }
+    // Keep points/tier fresh once per session start
+    const phone = customer?.phone
+    useEffect(() => {
+        if (hydrated && isAuthenticated && phone) refreshCustomer()
+    }, [hydrated, isAuthenticated, phone, refreshCustomer])
+
+    // Escape closes overlays; lock page scroll while the mobile menu is open
+    useEffect(() => {
+        if (!drawerOpen) return
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setDrawerOpen(false) }
+        document.addEventListener('keydown', onKey)
+        const prev = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+        return () => {
+            document.removeEventListener('keydown', onKey)
+            document.body.style.overflow = prev
+        }
+    }, [drawerOpen])
+
+    const handleAnchor = (e: React.MouseEvent, href: string) => {
+        if (href === '/#branches' && pathname === '/') {
+            e.preventDefault()
+            document.getElementById('branches')?.scrollIntoView({ behavior: 'smooth' })
+        }
     }
 
-    const navItemVariants = {
-        hidden: { opacity: 0, y: 16 },
-        show: { opacity: 1, y: 0 }
-    }
+    const toggleLanguage = () => setLanguage(language === 'en' ? 'ur' : 'en')
+
+    const linkTone = overHero ? 'text-white/80 hover:text-white' : 'text-ink-2 hover:text-ink'
+    const iconBtn = `inline-flex h-11 items-center justify-center rounded-full transition-colors ${overHero
+        ? 'text-white hover:bg-white/10'
+        : 'text-ink hover:bg-paper-2'}`
 
     return (
+        <>
         <header
-            role="banner"
-            className={`fixed top-0 left-0 right-0 z-50 h-[66px] lg:h-[76px] border-b border-[rgba(106,126,63,0.30)] transition-all duration-300 ${
-                scrolled
-                    ? 'shadow-[0_10px_36px_rgba(76,92,45,0.30)]'
-                    : ''
-            }`}
-            style={{
-                background: 'rgb(76, 92, 45)',
-            }}
+            className={`fixed inset-x-0 top-0 z-50 h-[var(--nav-h)] transition-[background-color,box-shadow,border-color] duration-300 border-b ${overHero
+                ? 'bg-transparent border-transparent'
+                : 'bg-paper/90 backdrop-blur-xl border-line shadow-[0_1px_0_rgba(255,255,255,0.6)_inset]'}`}
         >
-            <nav aria-label="Main navigation" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
-
+            <nav aria-label="Main navigation" className="container-page flex h-full items-center gap-4">
                 {/* Logo */}
-                <Link href="/" aria-label="Zaitoon &mdash; go to homepage" className="shrink-0 flex items-center h-full">
-                    <Image src="/logo-en.png" alt="Zaitoon logo" width={164} height={46} priority className="h-[34px] sm:h-[42px] w-auto" style={{ mixBlendMode: 'screen' }} />
+                <Link href="/" aria-label="Zaitoon home" className="relative flex h-full shrink-0 items-center">
+                    <Image
+                        src={overHero ? '/logo-light.png' : '/logo-dark.png'}
+                        alt="Zaitoon"
+                        width={583}
+                        height={220}
+                        priority
+                        className="h-9 w-auto lg:h-10"
+                    />
                 </Link>
 
-                {/* Desktop Nav Links */}
-                <ul role="list" className="hidden lg:flex items-center gap-8 h-full">
+                {/* Desktop links */}
+                <ul className="mx-auto hidden items-center gap-1 lg:flex">
                     {NAV_LINKS.map(link => {
-                        const active = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href) && !link.href.startsWith('/#'))
-                        const isBranchesLink = link.href === '/#branches'
+                        const active = isActive(link.href)
                         return (
-                            <li key={link.href} className="h-full flex items-center">
+                            <li key={link.href}>
                                 <Link
                                     href={link.href}
+                                    onClick={e => handleAnchor(e, link.href)}
                                     aria-current={active ? 'page' : undefined}
-                                    onClick={isBranchesLink ? (e) => {
-                                        if (pathname === '/') {
-                                            e.preventDefault()
-                                            document.getElementById('branches')?.scrollIntoView({ behavior: 'smooth' })
-                                        }
-                                    } : undefined}
-                                    className={`relative px-1 text-[12px] font-[600] tracking-[0.1em] uppercase transition-all duration-300 flex items-center h-full border-b-2 ${
-                                        active
-                                        ? 'text-[var(--green-light)] border-[var(--green-base)]'
-                                        : 'text-[rgba(251,246,246,0.75)] hover:text-[var(--cream)] border-transparent hover:border-[var(--green-light)]'
-                                    }`}
+                                    className={`relative rounded-full px-3.5 py-2 text-[0.9375rem] font-medium transition-colors ${active
+                                        ? overHero ? 'text-white' : 'text-ink'
+                                        : linkTone}`}
                                 >
                                     {link.label}
+                                    {active && (
+                                        <motion.span
+                                            layoutId="nav-active"
+                                            className="absolute inset-x-3.5 -bottom-0.5 h-[2px] rounded-full bg-ember-500"
+                                        />
+                                    )}
                                 </Link>
                             </li>
                         )
                     })}
                 </ul>
 
-                {/* Right Actions */}
-                <div className="flex items-center gap-4 relative">
-                    {/* Location Display */}
-                    {mounted && (
-                        <button
-                            onClick={() => setLocationModalOpen(true)}
-                            aria-label={locationSet ? 'Change delivery location' : 'Set delivery location'}
-                            className={`hidden md:flex items-center gap-1.5 text-[12px] font-[600] px-3 py-2 rounded-lg border border-[rgba(251,246,246,0.35)] transition-all hover:bg-[rgba(251,246,246,0.15)] ${locationSet ? 'text-[var(--cream)]' : 'text-[rgba(251,246,246,0.8)]'}`}
-                            title="Set your delivery location"
-                        >
-                            <MapPin className="w-4 h-4" />
-                            <span className="truncate max-w-[130px]">
-                                {locationSet && nearestBranchName ? nearestBranchName : 'Set Location'}
-                            </span>
-                        </button>
-                    )}
-
-                    {/* WhatsApp Button */}
-                    <a
-                        href="https://wa.me/923291330234"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hidden md:flex items-center gap-2 bg-[rgba(251,246,246,0.18)] text-[var(--cream)] px-4 py-2 rounded-full text-[13px] font-bold hover:bg-[rgba(251,246,246,0.28)] transition-all shadow-md group"
-                    >
-                        <MessageCircle className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                        <span>{t.whatsappUs}</span>
-                    </a>
-
-                    {/* Language Toggle */}
+                {/* Right actions */}
+                <div className="ms-auto flex items-center gap-1.5 lg:ms-0">
                     <button
-                        onClick={() => setLanguage(language === 'en' ? 'ur' : 'en')}
-                        className="w-[38px] h-[38px] rounded-full border border-[rgba(251,246,246,0.35)] text-[12px] font-bold text-[var(--cream)] hover:bg-[rgba(251,246,246,0.18)] transition-colors flex items-center justify-center"
+                        onClick={() => setLocationModalOpen(true)}
+                        aria-label={locationSet ? 'Change delivery location' : 'Set delivery location'}
+                        className={`hidden h-11 max-w-[200px] items-center gap-2 rounded-full px-3.5 text-sm font-medium transition-colors md:inline-flex ${overHero
+                            ? 'text-white/90 hover:bg-white/10'
+                            : 'text-ink-2 hover:bg-paper-2 hover:text-ink'}`}
+                    >
+                        <MapPin className="h-4 w-4 shrink-0" />
+                        <span className="truncate">
+                            {hydrated && locationSet && nearestBranchName ? nearestBranchName : 'Set location'}
+                        </span>
+                    </button>
+
+                    <button
+                        onClick={toggleLanguage}
+                        className={`${iconBtn} hidden w-11 text-[0.8125rem] font-semibold sm:inline-flex`}
+                        aria-label={language === 'en' ? 'اردو میں دیکھیں' : 'Switch to English'}
                         title={language === 'en' ? 'اردو میں دیکھیں' : 'Switch to English'}
                     >
                         {language === 'en' ? 'اردو' : 'EN'}
                     </button>
 
-                    {mounted && isAuthenticated && customer && (
-                        <div className="relative" ref={dropdownRef}>
+                    {signedIn && customer && (
+                        <div className="relative hidden sm:block" ref={dropdownRef}>
                             <button
-                                onClick={() => setDropdownOpen(!dropdownOpen)}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 8,
-                                    padding: '6px 12px',
-                                    backgroundColor: 'rgba(251,246,246,0.18)',
-                                    border: '1px solid rgba(251,246,246,0.35)',
-                                    borderRadius: 6,
-                                    cursor: 'pointer',
-                                    color: 'var(--cream)',
-                                    fontSize: 13,
-                                    fontWeight: 600,
-                                }}
+                                onClick={() => setDropdownOpen(o => !o)}
+                                aria-expanded={dropdownOpen}
+                                aria-haspopup="menu"
+                                className={`${iconBtn} gap-2 ps-1.5 pe-3`}
                             >
-                                {/* Avatar circle */}
-                                <span style={{
-                                    width: 32, height: 32,
-                                    borderRadius: '50%',
-                                    background: 'linear-gradient(135deg, var(--green-dark), var(--green-base))',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: 'white',
-                                    fontSize: 14,
-                                    fontWeight: 700,
-                                    flexShrink: 0,
-                                }}>
+                                <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-olive-600 text-sm font-semibold text-white">
                                     {customer.name.charAt(0).toUpperCase()}
                                 </span>
-                                <span className="hidden sm:inline">{customer.name.split(' ')[0]}</span>
-                                <span style={{ fontSize: 10 }}>▾</span>
+                                <span className="hidden text-sm font-medium xl:inline">{customer.name.split(' ')[0]}</span>
+                                <ChevronDown className={`h-4 w-4 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
                             </button>
 
-                            {/* Dropdown */}
                             <AnimatePresence>
                                 {dropdownOpen && (
                                     <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 10 }}
-                                        style={{
-                                            position: 'absolute',
-                                            top: '100%',
-                                            right: 0,
-                                            marginTop: 8,
-                                            backgroundColor: '#FAFFF8',
-                                            border: '1px solid rgba(156,175,136,0.35)',
-                                            borderRadius: 10,
-                                            padding: 8,
-                                            minWidth: 180,
-                                            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                                            zIndex: 1000,
-                                        }}
+                                        role="menu"
+                                        initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                                        transition={{ duration: 0.16 }}
+                                        className="absolute end-0 top-[calc(100%+8px)] w-60 origin-top-right rounded-2xl border border-line bg-surface p-1.5 shadow-[var(--shadow-lift)]"
                                     >
-                                        {/* Points summary */}
-                                        <div style={{
-                                            padding: '8px 12px',
-                                            borderBottom: '1px solid rgba(156,175,136,0.30)',
-                                            marginBottom: 4,
-                                        }}>
-                                            <p style={{ fontSize: 12, color: '#78716C', margin: 0 }}>
-                                                <Star className="w-3.5 h-3.5 inline mr-1" />{customer.loyaltyPoints} points
-                                            </p>
-                                            <p style={{ fontSize: 11, color: '#78716C', margin: '2px 0 0' }}>
-                                                {customer.tier.charAt(0).toUpperCase() + customer.tier.slice(1)} member
+                                        <div className="mb-1 rounded-xl bg-paper px-3 py-2.5">
+                                            <p className="text-sm font-semibold text-ink">{customer.name}</p>
+                                            <p className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-2">
+                                                <Star className="h-3 w-3 fill-saffron text-saffron" />
+                                                <span className="tabular">{customer.loyaltyPoints.toLocaleString()}</span> pts · {titleCase(customer.tier)}
                                             </p>
                                         </div>
-
-                                        <Link href="/account" onClick={() => setDropdownOpen(false)} className="block px-3 py-2 text-[13px] font-[600] text-[var(--charcoal)] hover:bg-[var(--cream)] rounded transition-colors">
-                                            <User className="w-3.5 h-3.5 inline mr-1" />{t.myAccount}
+                                        <Link role="menuitem" href="/account" onClick={() => setDropdownOpen(false)}
+                                            className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-ink hover:bg-paper">
+                                            <User className="h-4 w-4 text-ink-2" />{t.myAccount}
                                         </Link>
-                                        <Link href="/loyalty" onClick={() => setDropdownOpen(false)} className="block px-3 py-2 text-[13px] font-[600] text-[var(--charcoal)] hover:bg-[var(--cream)] rounded transition-colors">
-                                            <Star className="w-3.5 h-3.5 inline mr-1" />{t.loyaltyPoints}
+                                        <Link role="menuitem" href="/loyalty" onClick={() => setDropdownOpen(false)}
+                                            className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-ink hover:bg-paper">
+                                            <Star className="h-4 w-4 text-ink-2" />{t.loyaltyPoints}
                                         </Link>
-                                        <button
-                                            onClick={() => { signOut(); setDropdownOpen(false) }}
-                                            style={{
-                                                width: '100%', border: 'none',
-                                                backgroundColor: 'transparent', cursor: 'pointer',
-                                                color: '#B91C1C', textAlign: (isRTL ? 'right' : 'left'),
-                                                padding: '8px 12px', fontSize: 13, fontWeight: 600
-                                            }}
-                                        >
-                                            {t.signOut}
+                                        <button role="menuitem" onClick={() => { signOut(); setDropdownOpen(false) }}
+                                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-start text-sm font-medium text-danger hover:bg-paper">
+                                            <LogOut className="h-4 w-4" />{t.signOut}
                                         </button>
                                     </motion.div>
                                 )}
@@ -262,195 +215,154 @@ export default function Navbar() {
                         </div>
                     )}
 
-                    {/* Cart Button */}
-                    <motion.button
-                        whileTap={{ scale: 0.95 }}
-                        transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                        onClick={() => setCartOpen(!cartOpen)}
-                        aria-label={`Shopping cart, ${mounted ? itemCount : 0} items`}
+                    {/* Cart */}
+                    <button
+                        onClick={() => setCartOpen(true)}
+                        aria-label={`Open cart, ${count} item${count === 1 ? '' : 's'}`}
                         aria-expanded={cartOpen}
                         aria-controls="cart-drawer"
-                        className="relative rounded-[10px] px-4 py-2.5 font-[700] text-[13px] tracking-[0.06em] flex items-center gap-2 transition-all min-h-[46px] overflow-hidden"
-                        style={{
-                            background: 'linear-gradient(135deg, #B8625E 0%, #A6524F 100%)',
-                            color: '#fff',
-                            boxShadow: '0 6px 18px rgba(184,98,94,0.36)',
-                        }}
+                        className={`relative inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors ${overHero
+                            ? 'bg-white text-ink hover:bg-paper'
+                            : 'bg-ink text-paper hover:bg-olive-800'}`}
                     >
-                        <ShoppingCart className="w-5 h-5" />
+                        <ShoppingBag className="h-[18px] w-[18px]" />
                         <span className="hidden sm:inline">{t.cart}</span>
-                        {mounted && itemCount > 0 && (
-                            <motion.span
-                                key={itemCount}
-                                initial={{ scale: 1 }}
-                                animate={badgeBounce ? { scale: [1, 1.6, 0.85, 1.1, 1] } : { scale: 1 }}
-                                transition={{ duration: 0.35, times: [0, 0.25, 0.5, 0.75, 1] }}
-                                aria-live="polite"
-                                className="font-[700]"
-                            >
-                                ({itemCount})
-                            </motion.span>
-                        )}
-                        {mounted && itemCount === 0 && <span>(0)</span>}
-                    </motion.button>
+                        <AnimatePresence initial={false}>
+                            {count > 0 && (
+                                <motion.span
+                                    key={count}
+                                    initial={{ scale: 0.4, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    transition={{ type: 'spring', stiffness: 520, damping: 22 }}
+                                    aria-live="polite"
+                                    className="tabular inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-ember-500 px-1.5 text-[11px] font-bold text-white"
+                                >
+                                    {count}
+                                </motion.span>
+                            )}
+                        </AnimatePresence>
+                    </button>
 
-                    {/* Mobile Hamburger */}
-                    <motion.button
-                        whileTap={{ scale: 0.95 }}
-                        transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                    {/* Mobile menu */}
+                    <button
                         onClick={() => setDrawerOpen(true)}
                         aria-label="Open menu"
                         aria-expanded={drawerOpen}
-                        className="lg:hidden w-[44px] h-[44px] flex items-center justify-center rounded-[10px] border border-[rgba(255,255,255,0.35)] hover:opacity-90 transition-opacity"
-                        style={{ background: 'rgb(45, 55, 28)', color: '#fff' }}
+                        className={`${iconBtn} w-11 lg:hidden`}
                     >
-                        <Menu className="w-6 h-6" />
-                    </motion.button>
+                        <Menu className="h-6 w-6" />
+                    </button>
                 </div>
             </nav>
+        </header>
 
-            {/* Mobile Drawer */}
+            {/* Mobile sheet — rendered outside <header> so its backdrop-filter
+                doesn't become the containing block for these fixed overlays */}
             <AnimatePresence>
                 {drawerOpen && (
                     <>
-                        {/* Backdrop */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setDrawerOpen(false)}
                             aria-hidden="true"
-                            className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
+                            className="fixed inset-0 z-[60] bg-olive-950/50 backdrop-blur-sm lg:hidden"
                         />
-
-                        {/* Drawer */}
                         <motion.div
                             role="dialog"
-                            aria-label="Mobile navigation"
+                            aria-label="Site navigation"
                             aria-modal="true"
-                            initial={{ x: -280 }}
+                            initial={{ x: '100%' }}
                             animate={{ x: 0 }}
-                            exit={{ x: -280 }}
-                            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                            className="fixed left-0 top-0 bottom-0 z-[70] w-[280px] shadow-2xl flex flex-col pt-4 border-t-[3px] border-[var(--green-base)]"
-                            style={{ background: '#24271F' }}
+                            exit={{ x: '100%' }}
+                            transition={{ type: 'spring', damping: 32, stiffness: 320 }}
+                            className="fixed inset-y-0 end-0 z-[70] flex w-[min(88vw,380px)] flex-col bg-paper shadow-[var(--shadow-float)] lg:hidden"
                         >
-                            {/* Header */}
-                            <div className="flex items-center justify-between px-5 py-2 mb-4">
-                                <Image src="/logo-en.png" alt="Zaitoon logo" width={140} height={38} priority style={{ mixBlendMode: 'screen', height: '36px', width: 'auto' }} />
-                                <button onClick={() => setDrawerOpen(false)}
+                            <div className="flex h-[var(--nav-h)] items-center justify-between border-b border-line px-5">
+                                <Image src="/logo-dark.png" alt="Zaitoon" width={583} height={220} className="h-8 w-auto" />
+                                <button
+                                    onClick={() => setDrawerOpen(false)}
                                     aria-label="Close menu"
-                                    className="w-[44px] h-[44px] flex items-center justify-center text-[var(--cream)] border border-[rgba(156,175,136,0.30)] rounded-[8px] hover:bg-[rgba(156,175,136,0.15)] transition-colors">
-                                    <X className="w-5 h-5" />
+                                    className="inline-flex h-11 w-11 items-center justify-center rounded-full text-ink hover:bg-paper-2"
+                                >
+                                    <X className="h-5 w-5" />
                                 </button>
                             </div>
 
-                            {/* Links */}
-                            <motion.ul
-                                role="list"
-                                variants={navListVariants}
-                                initial="hidden"
-                                animate="show"
-                                className="flex-1 px-4 space-y-2 overflow-y-auto"
-                            >
-                                {[{ label: 'Home', href: '/' }, ...NAV_LINKS].map((link) => {
-                                    const active = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href) && !link.href.startsWith('/#'))
-                                    const isBranchesLink = link.href === '/#branches'
+                            <ul className="flex-1 overflow-y-auto px-3 py-4">
+                                {[{ label: 'Home', href: '/' }, ...NAV_LINKS].map((link, i) => {
+                                    const active = link.href === '/' ? pathname === '/' : isActive(link.href)
                                     return (
-                                        <motion.li key={link.href} variants={navItemVariants}>
+                                        <motion.li
+                                            key={link.href}
+                                            initial={{ opacity: 0, x: 16 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: 0.04 * i + 0.05 }}
+                                        >
                                             <Link
                                                 href={link.href}
-                                                onClick={(e) => {
-                                                    setDrawerOpen(false)
-                                                    if (isBranchesLink && pathname === '/') {
-                                                        e.preventDefault()
-                                                        document.getElementById('branches')?.scrollIntoView({ behavior: 'smooth' })
-                                                    }
-                                                }}
+                                                onClick={e => { handleAnchor(e, link.href); setDrawerOpen(false) }}
                                                 aria-current={active ? 'page' : undefined}
-                                                className={`flex items-center min-h-[48px] px-4 font-[600] text-[14px] uppercase tracking-[0.05em] transition-all border-l-[3px] rounded-r-[8px] ${active
-                                                    ? 'bg-[rgba(156,175,136,0.22)] text-[var(--green-light)] border-[var(--green-base)]'
-                                                    : 'text-[rgba(250,243,224,0.60)] border-transparent hover:bg-[rgba(156,175,136,0.12)] hover:text-[var(--cream)]'
-                                                    }`}
+                                                className={`flex min-h-[52px] items-center justify-between rounded-2xl px-4 font-display text-[1.375rem] font-medium transition-colors ${active ? 'bg-surface text-ink' : 'text-ink-2 hover:bg-surface hover:text-ink'}`}
                                             >
                                                 {link.label}
+                                                {active && <span className="h-1.5 w-1.5 rounded-full bg-ember-500" />}
                                             </Link>
                                         </motion.li>
                                     )
                                 })}
-                                {/* Mobile WhatsApp */}
-                                <motion.li variants={navItemVariants}>
-                                    <a
-                                        href="https://wa.me/923291330234"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-3 min-h-[48px] px-4 font-[600] text-[var(--green-light)]"
-                                    >
-                                        <MessageCircle className="w-5 h-5" />
-                                        {t.whatsappUs}
-                                    </a>
-                                </motion.li>
-                                {/* Mobile Language Switcher */}
-                                <motion.li variants={navItemVariants}>
-                                    <button
-                                        onClick={() => setLanguage(language === 'en' ? 'ur' : 'en')}
-                                        className="flex items-center gap-3 min-h-[48px] px-4 font-[600] text-[14px] text-[var(--green-light)] w-full text-left"
-                                    >
-                                        <Languages className="w-5 h-5" /> {language === 'en' ? 'اردو میں دیکھیں' : 'Switch to English'}
-                                    </button>
-                                </motion.li>
-                                {/* Mobile Dark Mode Toggle */}
-                                <motion.li variants={navItemVariants} className="px-4 py-2">
-                                    <ThemeToggle />
-                                </motion.li>
-                            </motion.ul>
-
-                            {/* Bottom */}
-                            <div className="p-5 border-t border-[rgba(156,175,136,0.24)] space-y-4">
-                                {mounted && (
-                                    <button
-                                        onClick={() => { setDrawerOpen(false); setLocationModalOpen(true) }}
-                                        className="flex items-center justify-center gap-2 text-[14px] font-[600] text-[rgba(250,243,224,0.8)] py-4 border-b border-[rgba(156,175,136,0.24)] mb-2 text-center w-full"
-                                    >
-                                        <MapPin className="w-4 h-4 text-[var(--green-base)]" />
-                                        <span>{locationSet && nearestBranchName ? `Nearest: ${nearestBranchName}` : 'Set Location'}</span>
-                                    </button>
-                                )}
-                                {mounted && isAuthenticated && customer ? (
-                                    <div className="flex flex-col gap-2 mb-2">
-                                        <Link href="/account" onClick={() => setDrawerOpen(false)} className="text-[14px] font-[600] text-[var(--green-light)] hover:text-white text-center py-2">
+                                {signedIn && (
+                                    <li>
+                                        <Link href="/account" onClick={() => setDrawerOpen(false)}
+                                            className="flex min-h-[52px] items-center rounded-2xl px-4 font-display text-[1.375rem] font-medium text-ink-2 hover:bg-surface hover:text-ink">
                                             {t.myAccount}
                                         </Link>
-                                        <button onClick={() => { setDrawerOpen(false); signOut() }} className="text-[14px] text-[rgba(250,243,224,0.6)] hover:text-red-400 text-center pb-2">
-                                            {t.signOut}
-                                        </button>
-                                    </div>
-                                ) : null}
+                                    </li>
+                                )}
+                            </ul>
 
-                                <Link href="/menu" onClick={() => setDrawerOpen(false)}
-                                    className="btn-primary w-full text-center py-3">
-                                    <span className="inline-flex items-center gap-1">{t.orderNow}<ChevronRight className="w-4 h-4" /></span>
+                            <div className="space-y-3 border-t border-line p-5">
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        onClick={() => { setDrawerOpen(false); setLocationModalOpen(true) }}
+                                        className="flex min-h-11 items-center gap-2 rounded-xl border border-line bg-surface px-3 text-sm font-medium text-ink"
+                                    >
+                                        <MapPin className="h-4 w-4 shrink-0 text-olive-600" />
+                                        <span className="truncate">{hydrated && locationSet && nearestBranchName ? nearestBranchName : 'Set location'}</span>
+                                    </button>
+                                    <button
+                                        onClick={toggleLanguage}
+                                        className="flex min-h-11 items-center justify-center rounded-xl border border-line bg-surface px-3 text-sm font-medium text-ink"
+                                    >
+                                        {language === 'en' ? 'اردو میں دیکھیں' : 'English'}
+                                    </button>
+                                </div>
+                                <Link href="/menu" onClick={() => setDrawerOpen(false)} className="btn-primary w-full">
+                                    {t.orderNow} <ArrowRight className="h-4 w-4 rtl:rotate-180" />
                                 </Link>
-                                <a href="tel:+923291330234"
-                                    className="flex items-center justify-center gap-2 text-[rgba(250,243,224,0.6)] hover:text-[var(--orange-warm)] font-[600] min-h-[44px]">
-                                    <Phone className="w-4 h-4" /> 0329-1330234
-                                </a>
+                                <div className="flex items-center justify-between pt-1 text-sm">
+                                    <a href={SITE.phoneHref} className="inline-flex items-center gap-2 font-medium text-ink-2 hover:text-ink">
+                                        <Phone className="h-4 w-4" /> {SITE.phoneDisplay}
+                                    </a>
+                                    <a href={SITE.whatsappHref} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 font-medium text-olive-700 hover:text-ink">
+                                        <MessageCircle className="h-4 w-4" /> WhatsApp
+                                    </a>
+                                </div>
+                                {signedIn && (
+                                    <button onClick={() => { setDrawerOpen(false); signOut() }} className="w-full pt-1 text-center text-sm font-medium text-danger">
+                                        {t.signOut}
+                                    </button>
+                                )}
                             </div>
                         </motion.div>
                     </>
                 )}
             </AnimatePresence>
 
-            {/* CartDrawer */}
-            {<CartDrawer open={cartOpen} onClose={() => setCartOpen(!cartOpen)} />}
+            <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
 
-            {/* Location Modal */}
-            {locationModalOpen && (
-                <LocationModal 
-                    onClose={() => setLocationModalOpen(false)} 
-                    forceOpen={false} 
-                />
-            )}
-        </header>
+            {locationModalOpen && <LocationModal onClose={() => setLocationModalOpen(false)} />}
+        </>
     )
 }

@@ -245,7 +245,7 @@ export default function AdminAnalyticsPage() {
                                 <h2 className="font-display text-xl font-bold text-[#18181B] mb-2 self-start">How Customers Order</h2>
                                 <ResponsiveContainer width="100%" height={240}>
                                     <PieChart>
-                                        <Pie data={chartData.orderSplit} dataKey="count" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={90} label={(entry: any) => `${entry.name} ${entry.percentage}%`} labelLine={false} stroke="none">
+                                        <Pie data={chartData.orderSplit} dataKey="count" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={90} label={(entry: { name?: string; percentage?: number }) => `${entry.name} ${entry.percentage}%`} labelLine={false} stroke="none">
                                             {chartData.orderSplit.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
                                         </Pie>
                                         <Tooltip formatter={(v, n, p) => [`${v} orders (${p.payload.percentage}%)`, n]} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
@@ -258,7 +258,7 @@ export default function AdminAnalyticsPage() {
                                 <h2 className="font-display text-xl font-bold text-[#18181B] mb-2 self-start">Earnings by Order Channel</h2>
                                 <ResponsiveContainer width="100%" height={240}>
                                     <PieChart>
-                                        <Pie data={chartData.revenueSplit} dataKey="revenue" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={90} label={(entry: any) => `${entry.name} ${entry.percentage}%`} labelLine={false} stroke="none">
+                                        <Pie data={chartData.revenueSplit} dataKey="revenue" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={90} label={(entry: { name?: string; percentage?: number }) => `${entry.name} ${entry.percentage}%`} labelLine={false} stroke="none">
                                             {chartData.revenueSplit.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
                                         </Pie>
                                         <Tooltip formatter={(v, n, p) => [`Rs. ${Number(v).toLocaleString()} (${p.payload.percentage}%)`, n]} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />

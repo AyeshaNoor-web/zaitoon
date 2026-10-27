@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
-
-const adminSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { adminSupabase } from '@/lib/supabase/admin'
+import { getAdminSession } from '@/lib/adminSession'
 
 export async function POST(req: NextRequest) {
-  const token = (await cookies()).get('admin_session')?.value
-  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!(await getAdminSession())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { menuItemId, imageUrl } = await req.json()
   if (!menuItemId) {

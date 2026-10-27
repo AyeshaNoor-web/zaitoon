@@ -2,6 +2,7 @@
 'use client'
 import { useEffect, useRef } from 'react'
 import type { Branch } from '@/types'
+import 'leaflet/dist/leaflet.css'
 
 interface Props {
     customerCoords: { lat: number; lng: number } | null
@@ -33,13 +34,13 @@ export default function LeafletCheckoutMap({ customerCoords, branches, onCustome
 
             // Branch pins
             const branchIcon = L.divIcon({
-                html: `<div style="width:20px;height:20px;background:#1B4332;border:2.5px solid #C9920A;border-radius:50%;"></div>`,
+                html: `<div style="width:20px;height:20px;background:#3E4A2A;border:3px solid #F6F1E7;box-shadow:0 1px 4px rgba(0,0,0,0.35);border-radius:50%;"></div>`,
                 iconSize: [20, 20], iconAnchor: [10, 10], className: '',
             })
             branches.forEach(b => L.marker([b.lat, b.lng], { icon: branchIcon }).bindPopup(b.name).addTo(map))
 
             const custIcon = L.divIcon({
-                html: `<div style="width:22px;height:22px;background:#C9920A;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4)"></div>`,
+                html: `<div style="width:22px;height:22px;background:#D3561F;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4)"></div>`,
                 iconSize: [22, 22], iconAnchor: [11, 11], className: '',
             })
 
@@ -64,7 +65,7 @@ export default function LeafletCheckoutMap({ customerCoords, branches, onCustome
                         markerRef.current.setLatLng([lat, lng])
                     } else {
                         const custIconClick = L.divIcon({
-                            html: `<div style="width:22px;height:22px;background:#C9920A;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4)"></div>`,
+                            html: `<div style="width:22px;height:22px;background:#D3561F;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4)"></div>`,
                             iconSize: [22, 22], iconAnchor: [11, 11], className: '',
                         })
                         const m = L.marker([lat, lng], { icon: custIconClick, draggable: true })
@@ -97,7 +98,7 @@ export default function LeafletCheckoutMap({ customerCoords, branches, onCustome
         } else {
             // Create new marker
             const custIcon = L.divIcon({
-                html: `<div style="width:22px;height:22px;background:#C9920A;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4)"></div>`,
+                html: `<div style="width:22px;height:22px;background:#D3561F;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4)"></div>`,
                 iconSize: [22, 22], iconAnchor: [11, 11], className: '',
             })
             const m = L.marker([lat, lng], { icon: custIcon, draggable: !readOnly })

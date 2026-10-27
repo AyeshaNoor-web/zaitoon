@@ -1,7 +1,11 @@
 import { createClient } from '@/lib/supabase/client'
+import { adminCall } from '@/lib/api/adminClient'
 import type { MenuItem, Category, MenuItemVariant } from '@/types'
 
 const supabase = createClient()
+
+// Public catalog reads use the anon key. Every write and admin-only read goes
+// through /api/admin/rpc, which checks the admin session on the server.
 
 // ── Categories ──────────────────────────────────────────────────────────────
 
@@ -34,148 +38,23 @@ export async function getMenuItems(categoryId?: string): Promise<MenuItem[]> {
     return (data || []) as MenuItem[]
 }
 
-// Admin-facing — all items including unavailable ones
-export async function getAllMenuItemsAdmin(): Promise<MenuItem[]> {
-    const { data, error } = await supabase
-        .from('menu_items')
-        .select(`*, categories(label, icon), item_variants(id, label, price, display_order)`)
-        .order('display_order')
+// ── Admin ────────────────────────────────────────────────────────────────────
 
-    if (error) throw error
-    return (data || []) as MenuItem[]
-}
+export const getAllMenuItemsAdmin = () => adminCall<MenuItem[]>('menu.listAll')
+export const updateMenuItemAvailability = (id: string, isAvailable: boolean) => adminCall('menu.setAvailability', id, isAvailable)
+export const updateMenuItem = (id: string, updates: Record<string, unknown>) => adminCall<MenuItem>('menu.update', id, updates)
+export const createMenuItem = (item: Record<string, unknown>) => adminCall<MenuItem>('menu.create', item)
+export const deleteMenuItem = (id: string) => adminCall('menu.delete', id)
 
-export async function getMenuItemById(id: string): Promise<MenuItem | null> {
-    const { data, error } = await supabase
-        .from('menu_items')
-        .select('*')
-        .eq('id', id)
-        .single()
+export const createCategory = (payload: { label: string; icon?: string; display_order?: number }) =>
+    adminCall<Category>('categories.create', payload)
+export const updateCategory = (id: string, updates: { label?: string; icon?: string; display_order?: number }) =>
+    adminCall<Category>('categories.update', id, updates)
+export const deleteCategory = (id: string) => adminCall('categories.delete', id)
 
-    if (error) throw error
-    return data as MenuItem | null
-}
-
-export async function searchMenuItems(query: string) {
-    const { data, error } = await supabase
-        .from('menu_items')
-        .select('*')
-        .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
-        .eq('is_available', true)
-
-    if (error) throw error
-    return data
-}
-
-// ── Admin Menu Item CRUD ─────────────────────────────────────────────────────
-
-export async function updateMenuItemAvailability(id: string, isAvailable: boolean) {
-    const { error } = await supabase
-        .from('menu_items')
-        .update({ is_available: isAvailable })
-        .eq('id', id)
-
-    if (error) throw error
-}
-
-export async function updateMenuItem(id: string, updates: Record<string, unknown>) {
-    const { data, error } = await supabase
-        .from('menu_items')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single()
-
-    if (error) throw error
-    return data
-}
-
-export async function createMenuItem(item: Record<string, unknown>) {
-    const { data, error } = await supabase
-        .from('menu_items')
-        .insert(item)
-        .select()
-        .single()
-
-    if (error) throw error
-    return data
-}
-
-export async function deleteMenuItem(id: string) {
-    const { error } = await supabase
-        .from('menu_items')
-        .delete()
-        .eq('id', id)
-
-    if (error) throw error
-}
-
-// ── Category Admin CRUD ─────────────────────────────────────────────────────
-
-export async function createCategory(payload: { label: string; icon?: string; display_order?: number }) {
-    const { data, error } = await supabase
-        .from('categories')
-        .insert({ ...payload, is_active: true })
-        .select()
-        .single()
-    if (error) throw error
-    return data
-}
-
-export async function updateCategory(id: string, updates: { label?: string; icon?: string; display_order?: number }) {
-    const { data, error } = await supabase
-        .from('categories')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single()
-    if (error) throw error
-    return data
-}
-
-export async function deleteCategory(id: string) {
-    const { error } = await supabase
-        .from('categories')
-        .update({ is_active: false })
-        .eq('id', id)
-    if (error) throw error
-}
-
-// ── Item Variants ───────────────────────────────────────────────────────────
-
-export async function getItemVariants(menuItemId: string): Promise<MenuItemVariant[]> {
-    const { data, error } = await supabase
-        .from('item_variants')
-        .select('*')
-        .eq('menu_item_id', menuItemId)
-        .order('display_order')
-    if (error) throw error
-    return (data || []) as MenuItemVariant[]
-}
-
-export async function upsertItemVariants(
-    menuItemId: string,
-    variants: { id?: string; label: string; price: number }[]
-) {
-    // Delete existing rows for this item, then re-insert fresh
-    const { error: delErr } = await supabase
-        .from('item_variants')
-        .delete()
-        .eq('menu_item_id', menuItemId)
-    if (delErr) throw delErr
-
-    if (variants.length === 0) return []
-
-    const rows = variants.map((v, i) => ({
-        menu_item_id: menuItemId,
-        label: v.label,
-        price: v.price,
-        display_order: i,
-    }))
-    const { data, error } = await supabase.from('item_variants').insert(rows).select()
-    if (error) throw error
-    return data
-}
+export const getItemVariants = (menuItemId: string) => adminCall<MenuItemVariant[]>('variants.list', menuItemId)
+export const upsertItemVariants = (menuItemId: string, variants: { id?: string; label: string; price: number }[]) =>
+    adminCall<MenuItemVariant[]>('variants.replace', menuItemId, variants)
 
 // ── Site Content (CMS) ──────────────────────────────────────────────────────
 
@@ -190,26 +69,7 @@ export async function getSiteContent(): Promise<Record<string, string>> {
     return map
 }
 
-/** Upsert a single site content value */
-export async function updateSiteContent(key: string, value: string) {
-    const { error } = await supabase
-        .from('site_content')
-        .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' })
-    if (error) throw error
-}
-
-/** Upsert multiple site content values at once */
-export async function updateSiteContentBulk(entries: Record<string, string>) {
-    const rows = Object.entries(entries).map(([key, value]) => ({
-        key,
-        value,
-        updated_at: new Date().toISOString(),
-    }))
-    const { error } = await supabase
-        .from('site_content')
-        .upsert(rows, { onConflict: 'key' })
-    if (error) throw error
-}
+export const updateSiteContentBulk = (entries: Record<string, string>) => adminCall('content.updateBulk', entries)
 
 // ── Popular Combos (CMS) ─────────────────────────────────────────────────────
 
@@ -226,41 +86,18 @@ export interface PopularCombo {
 }
 
 export async function getPopularCombos(activeOnly = true): Promise<PopularCombo[]> {
-    let query = supabase
+    if (!activeOnly) return adminCall<PopularCombo[]>('combos.list')
+    const { data, error } = await supabase
         .from('popular_combos')
         .select('*')
+        .eq('is_active', true)
         .order('display_order')
-    if (activeOnly) query = query.eq('is_active', true)
-    const { data, error } = await query
     if (error) throw error
     return (data ?? []) as PopularCombo[]
 }
 
-export async function createPopularCombo(payload: Omit<PopularCombo, 'id' | 'created_at' | 'updated_at'>) {
-    const { data, error } = await supabase
-        .from('popular_combos')
-        .insert({ ...payload, updated_at: new Date().toISOString() })
-        .select()
-        .single()
-    if (error) throw error
-    return data as PopularCombo
-}
-
-export async function updatePopularCombo(id: string, updates: Partial<Omit<PopularCombo, 'id' | 'created_at'>>) {
-    const { data, error } = await supabase
-        .from('popular_combos')
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', id)
-        .select()
-        .single()
-    if (error) throw error
-    return data as PopularCombo
-}
-
-export async function deletePopularCombo(id: string) {
-    const { error } = await supabase
-        .from('popular_combos')
-        .delete()
-        .eq('id', id)
-    if (error) throw error
-}
+export const createPopularCombo = (payload: Omit<PopularCombo, 'id' | 'created_at' | 'updated_at'>) =>
+    adminCall<PopularCombo>('combos.create', payload)
+export const updatePopularCombo = (id: string, updates: Partial<Omit<PopularCombo, 'id' | 'created_at'>>) =>
+    adminCall<PopularCombo>('combos.update', id, updates)
+export const deletePopularCombo = (id: string) => adminCall('combos.delete', id)

@@ -3,7 +3,7 @@ import { getSiteContent } from '@/lib/api/menu'
 import AboutClient from './AboutClient'
 
 export const metadata: Metadata = {
-  title: 'About Us | Zaitoon – Authentic Lebanese Cuisine',
+  title: 'About us',
   description: 'Learn about the story behind Zaitoon – our heritage, mission, and dedication to bringing authentic Lebanese flavours to Pakistan.',
 }
 

@@ -1,103 +1,98 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Plus, Minus, ArrowRight, ShoppingBag } from 'lucide-react'
+import { X, Plus, Minus, ArrowRight, ShoppingBag, Trash2, UtensilsCrossed } from 'lucide-react'
 import { useCartStore } from '@/store/useCartStore'
+import { useLocationStore } from '@/store/useLocationStore'
+import { useHydrated } from '@/store/hydration'
 import { formatPrice } from '@/lib/payment'
+import { SITE } from '@/lib/site'
 
 interface Props { open: boolean; onClose: () => void }
 
 export default function CartDrawer({ open, onClose }: Props) {
     const router = useRouter()
-    const { items, updateQuantity, removeItem, subtotal, deliveryFee, total, orderType } = useCartStore()
-    const itemCount = items.reduce((s, i) => s + i.quantity, 0)
-    const MIN_ORDER = 800
+    const hydrated = useHydrated()
+    const { items, updateQuantity, removeItem, subtotal } = useCartStore()
+    const { locationSet, deliveryFee, outOfRange } = useLocationStore()
     const [minOrderError, setMinOrderError] = useState(false)
 
-    const progressPct = Math.min(100, (subtotal() / MIN_ORDER) * 100)
-    const remaining = Math.max(0, MIN_ORDER - subtotal())
+    const list = hydrated ? items : []
+    const itemCount = list.reduce((s, i) => s + i.quantity, 0)
+    const sub = hydrated ? subtotal() : 0
+    const remaining = Math.max(0, SITE.minOrder - sub)
+    const progressPct = Math.min(100, (sub / SITE.minOrder) * 100)
+
+    useEffect(() => {
+        if (!open) return
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+        document.addEventListener('keydown', onKey)
+        const prev = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+        return () => {
+            document.removeEventListener('keydown', onKey)
+            document.body.style.overflow = prev
+        }
+    }, [open, onClose])
+
+    const checkout = () => {
+        if (remaining > 0) { setMinOrderError(true); return }
+        setMinOrderError(false)
+        onClose()
+        router.push('/checkout')
+    }
 
     return (
         <AnimatePresence>
             {open && (
                 <>
-                    {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.25 }}
+                        transition={{ duration: 0.2 }}
                         onClick={onClose}
                         aria-hidden="true"
-                        className="fixed inset-0 z-[70]"
-                        style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)' }}
+                        className="fixed inset-0 z-[70] bg-olive-950/50 backdrop-blur-sm"
                     />
 
-                    {/* Drawer */}
                     <motion.aside
                         role="dialog"
-                        aria-label="Shopping cart"
+                        aria-label="Your order"
                         aria-modal="true"
                         id="cart-drawer"
                         initial={{ x: '100%' }}
                         animate={{ x: 0 }}
                         exit={{ x: '100%' }}
-                        transition={{ type: 'spring', damping: 30, stiffness: 320 }}
-                        className="fixed right-0 top-0 bottom-0 z-[80] w-full md:w-[420px] flex flex-col"
-                        style={{
-                            background: 'linear-gradient(180deg, #0D2015 0%, #111E13 100%)',
-                            borderLeft: '2px solid rgba(46,204,113,0.30)',
-                            boxShadow: '-20px 0 60px rgba(0,0,0,0.45)',
-                        }}
+                        transition={{ type: 'spring', damping: 32, stiffness: 330 }}
+                        className="fixed inset-y-0 end-0 z-[80] flex w-full flex-col bg-paper shadow-[var(--shadow-float)] sm:w-[440px]"
                     >
-                        {/* Header */}
-                        <header className="flex items-center justify-between px-6 py-5"
-                            style={{ borderBottom: '1px solid rgba(46,204,113,0.10)' }}>
-                            <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-[10px] flex items-center justify-center"
-                                    style={{ background: 'rgba(243,156,18,0.15)', border: '1px solid rgba(243,156,18,0.30)' }}>
-                                    <ShoppingBag className="w-4 h-4" style={{ color: 'var(--orange-warm)' }} />
-                                </div>
-                                <div>
-                                    <h2 className="text-[20px] text-white font-display font-[700] leading-none">Your Order</h2>
-                                    {itemCount > 0 && (
-                                        <p className="text-[11px] mt-0.5" style={{ color: 'rgba(250,243,224,0.75)' }}>
-                                            {itemCount} item{itemCount > 1 ? 's' : ''}
-                                        </p>
-                                    )}
-                                </div>
+                        <header className="flex items-center justify-between border-b border-line px-6 py-5">
+                            <div>
+                                <h2 className="text-[1.625rem] leading-none">Your order</h2>
+                                <p className="mt-1.5 text-sm text-ink-2">
+                                    {itemCount > 0 ? `${itemCount} item${itemCount === 1 ? '' : 's'}` : 'Nothing here yet'}
+                                </p>
                             </div>
-                            <motion.button
-                                whileTap={{ scale: 0.9 }}
+                            <button
                                 onClick={onClose}
                                 aria-label="Close cart"
-                                className="w-9 h-9 rounded-[8px] flex items-center justify-center transition-all"
-                                style={{
-                                    color: 'rgba(250,243,224,0.88)',
-                                    border: '1px solid rgba(46,204,113,0.15)',
-                                    background: 'rgba(46,204,113,0.05)'
-                                }}
-                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(46,204,113,0.12)' }}
-                                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(46,204,113,0.05)' }}
+                                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface text-ink transition-colors hover:border-line-strong"
                             >
-                                <X className="w-4 h-4" />
-                            </motion.button>
+                                <X className="h-5 w-5" />
+                            </button>
                         </header>
 
-                        {/* Min order progress bar */}
-                        {items.length > 0 && subtotal() < MIN_ORDER && (
-                            <div className="px-6 py-3" style={{ borderBottom: '1px solid rgba(46,204,113,0.07)' }}>
-                                <div className="flex justify-between text-[11px] mb-1.5"
-                                    style={{ color: 'rgba(250,243,224,0.78)' }}>
-                                    <span>Min. order: Rs. {MIN_ORDER}</span>
-                                    <span style={{ color: 'var(--orange-warm)' }}>Rs. {remaining} more</span>
-                                </div>
-                                <div className="w-full h-[3px] rounded-full overflow-hidden"
-                                    style={{ background: 'rgba(250,243,224,0.08)' }}>
+                        {list.length > 0 && remaining > 0 && (
+                            <div className="border-b border-line bg-surface px-6 py-3.5">
+                                <p className="text-sm text-ink-2">
+                                    Add <strong className="tabular font-semibold text-ink">{formatPrice(remaining)}</strong> more to reach the {formatPrice(SITE.minOrder)} minimum.
+                                </p>
+                                <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-paper-2">
                                     <motion.div
-                                        className="h-full rounded-full"
-                                        style={{ background: 'linear-gradient(90deg, var(--orange-warm), var(--green-base))' }}
+                                        className="h-full rounded-full bg-olive-600"
                                         initial={{ width: 0 }}
                                         animate={{ width: `${progressPct}%` }}
                                         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
@@ -106,122 +101,80 @@ export default function CartDrawer({ open, onClose }: Props) {
                             </div>
                         )}
 
-                        {/* Items list */}
-                        <div className="flex-1 overflow-y-auto overflow-x-hidden">
-                            {items.length === 0 ? (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 16 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.1 }}
-                                    className="flex flex-col items-center justify-center h-full text-center gap-5 p-8"
-                                >
-                                    <motion.div
-                                        animate={{ y: [0, -8, 0] }}
-                                        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                                        className="text-[56px] select-none"
-                                    >
-                                        🍖
-                                    </motion.div>
-                                    <div>
-                                        <h3 className="text-white text-[20px] mb-2">Your cart is empty</h3>
-                                        <p className="text-[14px] font-[300]" style={{ color: 'rgba(250,243,224,0.78)' }}>
-                                            Add some delicious items from our menu.
-                                        </p>
+                        <div className="flex-1 overflow-y-auto overscroll-contain">
+                            {list.length === 0 ? (
+                                <div className="flex h-full flex-col items-center justify-center gap-5 p-10 text-center">
+                                    <div className="flex h-20 w-20 items-center justify-center rounded-[28px] bg-paper-2">
+                                        <ShoppingBag className="h-8 w-8 text-olive-600" />
                                     </div>
-                                    <button
-                                        onClick={() => { onClose(); router.push('/menu') }}
-                                        className="btn-primary mt-2"
-                                    >
-                                        Browse Menu
+                                    <div>
+                                        <h3 className="text-xl">Your cart is empty</h3>
+                                        <p className="mt-1.5 text-[0.9375rem] text-ink-2">Shawarma, platters and grills are a tap away.</p>
+                                    </div>
+                                    <button onClick={() => { onClose(); router.push('/menu') }} className="btn-primary">
+                                        Browse the menu
                                     </button>
-                                </motion.div>
+                                </div>
                             ) : (
-                                <ul role="list" aria-label="Cart items" className="flex flex-col">
-                                    <AnimatePresence>
-                                        {items.map(item => (
+                                <ul aria-label="Cart items" className="divide-y divide-line">
+                                    <AnimatePresence initial={false}>
+                                        {list.map(item => (
                                             <motion.li
                                                 key={item.id}
                                                 layout
-                                                initial={{ opacity: 0, x: 24 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                exit={{ opacity: 0, x: -24, height: 0, paddingTop: 0, paddingBottom: 0 }}
-                                                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                                                className="px-6 py-4"
-                                                style={{ borderBottom: '1px solid rgba(46,204,113,0.08)' }}
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0, height: 0 }}
+                                                transition={{ duration: 0.2 }}
+                                                className="flex gap-4 px-6 py-4"
                                             >
-                                                <div className="flex justify-between items-start mb-3">
-                                                    <div className="flex-1 pr-3">
-                                                        <div className="text-[15px] font-[600] text-white leading-snug">{item.name}</div>
-                                                        {item.size && (
-                                                            <div className="text-[11px] font-[400] capitalize mt-0.5"
-                                                                style={{ color: 'var(--orange-pale)', opacity: 0.7 }}>
-                                                                {item.size}
-                                                            </div>
-                                                        )}
-                                                        {/* Add-ons summary */}
-                                                        {item.addOns && item.addOns.length > 0 && (
-                                                            <div className="text-[11px] mt-1" style={{ color: 'rgba(250,243,224,0.75)' }}>
-                                                                + {item.addOns.map((a) => a.name).join(', ')}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="font-display text-[17px] font-[700] shrink-0"
-                                                        style={{ color: 'var(--orange-pale)' }}>
-                                                        {formatPrice(item.subtotal)}
-                                                    </div>
+                                                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-paper-2">
+                                                    {item.imageUrl ? (
+                                                        <Image src={item.imageUrl} alt="" fill sizes="64px" className="object-cover" />
+                                                    ) : (
+                                                        <div className="flex h-full w-full items-center justify-center">
+                                                            <UtensilsCrossed className="h-5 w-5 text-ink-3" />
+                                                        </div>
+                                                    )}
                                                 </div>
 
-                                                <div className="flex items-center justify-between">
-                                                    {/* Quantity stepper */}
-                                                    <div className="flex items-center gap-1.5 rounded-[10px] p-[3px]"
-                                                        style={{
-                                                            background: 'rgba(46,204,113,0.10)',
-                                                            border: '1.5px solid rgba(46,204,113,0.25)'
-                                                        }}>
-                                                        <button
-                                                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                                            aria-label={`Remove one ${item.name}`}
-                                                            className="w-[32px] h-[32px] flex items-center justify-center rounded-[7px] text-white transition-colors hover:bg-[rgba(46,204,113,0.20)]"
-                                                        >
-                                                            <Minus className="w-3.5 h-3.5" />
-                                                        </button>
-                                                        <span
-                                                            aria-live="polite"
-                                                            className="text-[14px] font-[700] w-[22px] text-center text-white"
-                                                        >
-                                                            {item.quantity}
-                                                        </span>
-                                                        <button
-                                                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                                            aria-label={`Add one more ${item.name}`}
-                                                            className="w-[32px] h-[32px] flex items-center justify-center rounded-[7px] text-white transition-colors hover:bg-[rgba(46,204,113,0.20)]"
-                                                        >
-                                                            <Plus className="w-3.5 h-3.5" />
-                                                        </button>
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="flex items-start justify-between gap-3">
+                                                        <div className="min-w-0">
+                                                            <p className="font-semibold leading-snug text-ink">{item.name}</p>
+                                                            {item.size && (
+                                                                <p className="mt-0.5 text-[0.8125rem] capitalize text-ink-2">{item.size === 'small' ? 'Regular' : 'Large'}</p>
+                                                            )}
+                                                        </div>
+                                                        <p className="price shrink-0 text-ink">{formatPrice(item.subtotal)}</p>
                                                     </div>
 
-                                                    {/* Remove */}
-                                                    <motion.button
-                                                        whileTap={{ scale: 0.9 }}
-                                                        onClick={() => removeItem(item.id)}
-                                                        aria-label={`Remove ${item.name} from cart`}
-                                                        className="text-[12px] font-[600] px-2.5 py-1 rounded-[6px] transition-all"
-                                                        style={{ color: 'rgba(250,243,224,0.72)', border: '1px solid transparent' }}
-                                                        onMouseEnter={e => {
-                                                            const el = e.currentTarget as HTMLElement
-                                                            el.style.color = '#F87171'
-                                                            el.style.borderColor = 'rgba(248,113,113,0.3)'
-                                                            el.style.background = 'rgba(248,113,113,0.08)'
-                                                        }}
-                                                        onMouseLeave={e => {
-                                                            const el = e.currentTarget as HTMLElement
-                                                            el.style.color = 'rgba(250,243,224,0.72)'
-                                                            el.style.borderColor = 'transparent'
-                                                            el.style.background = 'transparent'
-                                                        }}
-                                                    >
-                                                        Remove
-                                                    </motion.button>
+                                                    <div className="mt-3 flex items-center justify-between">
+                                                        <div className="flex items-center rounded-full border border-line bg-surface">
+                                                            <button
+                                                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                                aria-label={`Remove one ${item.name}`}
+                                                                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-ink transition-colors hover:bg-paper-2"
+                                                            >
+                                                                <Minus className="h-3.5 w-3.5" />
+                                                            </button>
+                                                            <span aria-live="polite" className="tabular w-7 text-center text-sm font-semibold">{item.quantity}</span>
+                                                            <button
+                                                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                                aria-label={`Add one more ${item.name}`}
+                                                                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-ink transition-colors hover:bg-paper-2"
+                                                            >
+                                                                <Plus className="h-3.5 w-3.5" />
+                                                            </button>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => removeItem(item.id)}
+                                                            aria-label={`Remove ${item.name} from cart`}
+                                                            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-ink-3 transition-colors hover:bg-ember-100 hover:text-danger"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </motion.li>
                                         ))}
@@ -230,79 +183,44 @@ export default function CartDrawer({ open, onClose }: Props) {
                             )}
                         </div>
 
-                        {/* Footer */}
-                        {items.length > 0 && (
-                            <footer className="px-6 pt-5 pb-7 shrink-0"
-                                style={{
-                                    borderTop: '1px solid rgba(46,204,113,0.10)',
-                                    background: 'rgba(0,0,0,0.20)',
-                                    boxShadow: '0 -16px 32px rgba(0,0,0,0.20)'
-                                }}>
-                                {/* Price rows */}
-                                <div className="space-y-2 mb-4">
-                                    <div className="flex justify-between text-[13px]">
-                                        <span style={{ color: 'rgba(250,243,224,0.8)' }}>Subtotal</span>
-                                        <span className="text-white font-[600]">{formatPrice(subtotal())}</span>
+                        {list.length > 0 && (
+                            <footer className="border-t border-line bg-surface px-6 pb-6 pt-5">
+                                <dl className="space-y-2 text-[0.9375rem]">
+                                    <div className="flex justify-between">
+                                        <dt className="text-ink-2">Subtotal</dt>
+                                        <dd className="price">{formatPrice(sub)}</dd>
                                     </div>
-                                    <div className="flex justify-between text-[13px]">
-                                        <span style={{ color: 'rgba(250,243,224,0.8)' }}>Delivery</span>
-                                        <span>
-                                            {orderType !== 'delivery'
-                                                ? <span style={{ color: 'rgba(250,243,224,0.75)' }}>N/A</span>
-                                                : deliveryFee > 0
-                                                    ? <span className="text-white font-[600]">{formatPrice(deliveryFee)}</span>
-                                                    : <span className="italic text-[12px]" style={{ color: 'var(--orange-warm)' }}>Calculated at checkout</span>
-                                            }
-                                        </span>
+                                    <div className="flex justify-between">
+                                        <dt className="text-ink-2">Delivery</dt>
+                                        <dd className="text-ink-2">
+                                            {hydrated && locationSet && !outOfRange
+                                                ? <span className="tabular">from {formatPrice(deliveryFee)}</span>
+                                                : 'Calculated at checkout'}
+                                        </dd>
                                     </div>
-                                </div>
+                                </dl>
 
-                                <div className="mb-5 pb-4"
-                                    style={{ borderTop: '1px solid rgba(46,204,113,0.10)', paddingTop: 16 }}>
-                                    <div className="flex items-baseline justify-between" aria-label={`Order total: Rs. ${total()}`}>
-                                        <span className="text-[15px] font-[700] text-white">Total</span>
-                                        <span className="font-display text-[30px] font-[800] leading-none"
-                                            style={{ color: 'var(--orange-pale)' }}>
-                                            {formatPrice(total())}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Min order error */}
                                 <AnimatePresence>
                                     {minOrderError && (
-                                        <motion.div
+                                        <motion.p
                                             role="alert"
-                                            initial={{ opacity: 0, y: 8 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: 8 }}
-                                            className="mb-4 p-3 rounded-[10px] text-[12px] leading-snug"
-                                            style={{
-                                                background: 'rgba(185,28,28,0.20)',
-                                                border: '1px solid rgba(248,113,113,0.35)',
-                                                color: '#FCA5A5'
-                                            }}
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            className="mt-3 rounded-xl bg-ember-100 px-3 py-2.5 text-sm text-ember-700"
                                         >
-                                            ⚠ Minimum order is Rs. 800. Add Rs. {remaining} more to proceed.
-                                        </motion.div>
+                                            The minimum order is {formatPrice(SITE.minOrder)}. Add {formatPrice(remaining)} more to continue.
+                                        </motion.p>
                                     )}
                                 </AnimatePresence>
 
-                                <motion.button
-                                    whileHover={{ scale: 1.01, y: -1 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={() => {
-                                        if (subtotal() < MIN_ORDER) { setMinOrderError(true); return }
-                                        setMinOrderError(false)
-                                        onClose()
-                                        router.push('/checkout')
-                                    }}
-                                    aria-label={`Proceed to checkout with ${itemCount} items`}
-                                    className="btn-primary w-full py-4 text-[14px] flex items-center justify-center gap-2"
-                                >
-                                    Proceed to Checkout
-                                    <ArrowRight className="w-4 h-4" />
-                                </motion.button>
+                                <button onClick={checkout} className="btn-primary mt-4 w-full justify-between">
+                                    <span>Checkout</span>
+                                    <span className="flex items-center gap-2">
+                                        <span className="tabular">{formatPrice(sub)}</span>
+                                        <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+                                    </span>
+                                </button>
                             </footer>
                         )}
                     </motion.aside>

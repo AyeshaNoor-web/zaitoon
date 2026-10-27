@@ -1,5 +1,3 @@
-import { createClient } from '@/lib/supabase/client'
-
 export interface DeliveryConfig {
     baseKm: number
     baseFee: number

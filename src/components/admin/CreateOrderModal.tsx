@@ -4,9 +4,10 @@ import { motion } from 'framer-motion'
 import { X, Plus, Minus, ShoppingBag, Printer, CheckCircle } from 'lucide-react'
 import { formatPrice } from '@/lib/payment'
 import { getMenuItems, getCategories } from '@/lib/api/menu'
-import { createOrder } from '@/lib/api/orders'
+import { createCounterOrder } from '@/lib/api/orders'
 import { getBranches } from '@/lib/api/branches'
-import type { MenuItem, CartItem, OrderType, Branch, Category, Order } from '@/types'
+import type { MenuItem, OrderType, Branch, Category, Order } from '@/types'
+import type { CartItem } from '@/store/useCartStore'
 
 
 interface Props {
@@ -34,56 +35,43 @@ export default function CreateOrderModal({ isOpen, onClose }: Props) {
     const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all')
     const [searchQuery, setSearchQuery] = useState('')
 
+    // The parent mounts this modal only while it's open, so each open starts with fresh state
     useEffect(() => {
-        if (isOpen) {
-            setLoading(true)
-            setError('')
-            Promise.all([
-                getMenuItems(),
-                getBranches(),
-                getCategories()
-            ])
+        if (!isOpen) return
+        Promise.all([getMenuItems(), getBranches(), getCategories()])
             .then(([items, branchList, categoryList]) => {
                 setMenuItems(items)
                 setBranches(branchList)
                 setCategories(categoryList)
-                if (branchList && branchList.length > 0) {
-                    setSelectedBranchId(branchList[0].id)
-                }
+                if (branchList && branchList.length > 0) setSelectedBranchId(branchList[0].id)
             })
             .catch(() => setError('Failed to load menu, branches, or categories.'))
             .finally(() => setLoading(false))
-        } else {
-            // reset state on close
-            setCart([])
-            setCustomerName('')
-            setCustomerPhone('')
-            setNotes('')
-            setOrderType('dine-in')
-            setPlacedOrder(null)
-            setSelectedCategoryId('all')
-            setSearchQuery('')
-        }
     }, [isOpen])
 
     if (!isOpen) return null
 
     const addToCart = (item: MenuItem) => {
+        // Items sold by option (e.g. Chicken / Beef) have no base price — use the first option
+        const variant = item.item_variants?.[0]
+        const unitPrice = variant?.price ?? item.price ?? 0
+        const lineKey = `${item.id}-${variant?.id ?? 'base'}`
         setCart(prev => {
-            const existing = prev.find(i => i.menuItemId === item.id)
+            const existing = prev.find(i => i.id === lineKey)
             if (existing) {
-                return prev.map(i => i.menuItemId === item.id 
-                    ? { ...i, quantity: i.quantity + 1, subtotal: (i.quantity + 1) * i.unitPrice } 
+                return prev.map(i => i.id === lineKey
+                    ? { ...i, quantity: i.quantity + 1, subtotal: (i.quantity + 1) * i.unitPrice }
                     : i)
             }
             return [...prev, {
-                id: crypto.randomUUID(),
+                id: lineKey,
                 menuItemId: item.id,
-                name: item.name,
-                size: null,
-                unitPrice: item.price ?? 0,
+                variantId: variant?.id,
+                name: variant ? `${item.name} (${variant.label})` : item.name,
+                size: item.has_sizes ? 'small' : null,
+                unitPrice,
                 quantity: 1,
-                subtotal: item.price ?? 0,
+                subtotal: unitPrice,
                 imageUrl: item.image_url ?? null,
             }]
         })
@@ -121,18 +109,13 @@ export default function CreateOrderModal({ isOpen, onClose }: Props) {
         setSubmitting(true)
         setError('')
         try {
-            const created = await createOrder({
-                customerName: customerName || 'Dine-in Guest',
-                customerPhone: customerPhone || 'N/A',
+            const created = await createCounterOrder({
+                customerName: customerName || undefined,
+                customerPhone: customerPhone || undefined,
                 branchId: selectedBranchId,
                 orderType,
-                items: cart,
-                subtotal,
-                deliveryFee: 0,
-                loyaltyDiscount: 0,
-                total,
-                paymentMethod: 'cod', // usually POS cash
-                notes
+                items: cart.map(i => ({ menuItemId: i.menuItemId, variantId: i.variantId, size: i.size, quantity: i.quantity })),
+                notes,
             })
             setPlacedOrder(created)
         } catch (err: unknown) {

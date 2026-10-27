@@ -1,8 +1,10 @@
 'use client'
 import { useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Loader2, ArrowLeft } from 'lucide-react'
 
 export default function AdminLoginPage() {
     const router = useRouter()
@@ -10,7 +12,7 @@ export default function AdminLoginPage() {
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
-    const [shake, setShake] = useState(false)
+    const [shake, setShake] = useState(0)
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -25,176 +27,102 @@ export default function AdminLoginPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password }),
             })
-
             const data = await res.json()
 
             if (!res.ok) {
                 setError(data.error || 'Login failed')
                 setPassword('')
-                setShake(true)
-                setTimeout(() => setShake(false), 500)
+                setShake(s => s + 1)
                 return
             }
 
-            document.cookie = `admin_role=${data.role}; path=/; max-age=${60 * 60 * 8}`
-            document.cookie = `admin_name=${encodeURIComponent(data.name)}; path=/; max-age=${60 * 60 * 8}`
+            document.cookie = `admin_role=${data.role}; path=/; max-age=${60 * 60 * 8}; samesite=strict`
+            document.cookie = `admin_name=${encodeURIComponent(data.name)}; path=/; max-age=${60 * 60 * 8}; samesite=strict`
 
-            if (data.role === 'owner') {
-                router.push('/admin')
-            } else {
-                router.push('/admin/orders')
-            }
+            // Return to the page the middleware bounced us from — internal admin paths only
+            const from = new URLSearchParams(window.location.search).get('from')
+            const safeFrom = from && from.startsWith('/admin') && !from.startsWith('/admin/login') && !from.includes('//') ? from : null
+            router.push(safeFrom ?? (data.role === 'owner' ? '/admin' : '/admin/orders'))
         } catch {
-            setError('Connection error. Please try again.')
+            setError('Connection failed. Please try again.')
         } finally {
             setLoading(false)
         }
     }
 
     return (
-        <main
-            role="main"
-            className="min-h-screen flex items-center justify-center px-4"
-            style={{ backgroundColor: '#1C2416' }}
-        >
-            {/* Subtle background pattern */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-                <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full opacity-5"
-                    style={{ background: 'radial-gradient(circle, #C9920A, transparent)' }} />
-                <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full opacity-5"
-                    style={{ background: 'radial-gradient(circle, #556B2F, transparent)' }} />
-            </div>
-
+        <main id="main" className="surface-dark grain flex min-h-[100svh] items-center justify-center px-5 py-12">
             <motion.div
-                role="dialog"
-                aria-label="Admin Login"
-                aria-modal="true"
-                animate={shake ? { x: [-12, 12, -10, 10, -6, 6, -3, 3, 0] } : {}}
-                transition={{ duration: 0.55 }}
-                className="relative w-full max-w-[420px] rounded-2xl border p-8 shadow-2xl"
-                style={{
-                    backgroundColor: '#253219',
-                    borderColor: 'rgba(201,146,10,0.25)',
-                }}
+                key={shake}
+                animate={shake ? { x: [-10, 10, -7, 7, -3, 3, 0] } : {}}
+                transition={{ duration: 0.45 }}
+                className="w-full max-w-[400px]"
             >
-                {/* Logo */}
-                <div className="flex justify-center mb-7">
-                    <Image
-                        src="/logo-en.png"
-                        alt="Zaitoon logo"
-                        width={200}
-                        height={60}
-                        priority
-                        className="h-16 w-auto object-contain"
-                        style={{ mixBlendMode: 'screen' }}
-                    />
+                <div className="mb-8 flex justify-center">
+                    <Image src="/logo-light.png" alt="Zaitoon" width={583} height={220} priority className="h-12 w-auto" />
                 </div>
 
-                {/* Heading */}
-                <h1
-                    className="text-center font-display text-2xl font-bold mb-1"
-                    style={{ color: '#F5EDDB' }}
-                >
-                    Admin Portal
-                </h1>
-                <p className="text-center text-sm mb-8" style={{ color: 'rgba(245,237,219,0.82)' }}>
-                    Enter credentials to access dashboard
-                </p>
+                <div className="rounded-[28px] bg-paper p-8 text-ink shadow-[var(--shadow-float)]">
+                    <h1 className="text-[2rem]">Staff sign in</h1>
+                    <p className="mt-1.5 text-sm text-ink-2">Orders, menu and settings for Zaitoon branches.</p>
 
-                <form onSubmit={handleSubmit} noValidate className="space-y-4">
-                    <div>
-                        <label htmlFor="admin-username" className="block text-sm mb-1.5" style={{ color: '#F5EDDB' }}>
-                            👤 Username
-                        </label>
-                        <input
-                            id="admin-username"
-                            type="text"
-                            value={username}
-                            onChange={e => { setUsername(e.target.value); setError('') }}
-                            placeholder="e.g. owner"
-                            autoComplete="username"
-                            className="w-full rounded-xl px-4 py-3.5 text-center text-[17px] tracking-widest font-mono outline-none transition-all border-2"
-                            style={{
-                                backgroundColor: '#1C2416',
-                                borderColor: error
-                                    ? '#ef4444'
-                                    : 'rgba(201,146,10,0.3)',
-                                color: '#F5EDDB',
-                            }}
-                            onFocus={e => {
-                                if (!error) e.currentTarget.style.borderColor = '#C9920A'
-                            }}
-                            onBlur={e => {
-                                if (!error) e.currentTarget.style.borderColor = 'rgba(201,146,10,0.3)'
-                            }}
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="admin-password" className="block text-sm mb-1.5" style={{ color: '#F5EDDB' }}>
-                            🔒 Password
-                        </label>
-                        <input
-                            id="admin-password"
-                            type="password"
-                            value={password}
-                            onChange={e => { setPassword(e.target.value); setError('') }}
-                            placeholder="••••••••••••"
-                            autoComplete="current-password"
-                            className="w-full rounded-xl px-4 py-3.5 text-center text-[17px] tracking-[0.25em] font-mono outline-none transition-all border-2"
-                            style={{
-                                backgroundColor: '#1C2416',
-                                borderColor: error
-                                    ? '#ef4444'
-                                    : 'rgba(201,146,10,0.3)',
-                                color: '#F5EDDB',
-                            }}
-                            onFocus={e => {
-                                if (!error) e.currentTarget.style.borderColor = '#C9920A'
-                            }}
-                            onBlur={e => {
-                                if (!error) e.currentTarget.style.borderColor = 'rgba(201,146,10,0.3)'
-                            }}
-                        />
+                    <form onSubmit={handleSubmit} noValidate className="mt-7 space-y-4">
+                        <div>
+                            <label htmlFor="admin-username" className="field-label">Username</label>
+                            <input
+                                id="admin-username"
+                                type="text"
+                                value={username}
+                                onChange={e => { setUsername(e.target.value); setError('') }}
+                                autoComplete="username"
+                                autoCapitalize="none"
+                                spellCheck={false}
+                                aria-invalid={!!error}
+                                className="field"
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="admin-password" className="field-label">Password</label>
+                            <input
+                                id="admin-password"
+                                type="password"
+                                value={password}
+                                onChange={e => { setPassword(e.target.value); setError('') }}
+                                autoComplete="current-password"
+                                aria-invalid={!!error}
+                                aria-describedby={error ? 'admin-login-error' : undefined}
+                                className="field"
+                            />
+                        </div>
 
                         <AnimatePresence>
                             {error && (
                                 <motion.p
+                                    id="admin-login-error"
                                     role="alert"
-                                    initial={{ opacity: 0, y: -6 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0 }}
-                                    className="mt-2 text-center text-[12px] font-semibold text-red-400"
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="text-sm font-medium text-danger"
                                 >
                                     {error}
                                 </motion.p>
                             )}
                         </AnimatePresence>
-                    </div>
 
-                    <button
-                        type="submit"
-                        disabled={loading || !username.trim() || !password.trim()}
-                        className="w-full py-3.5 rounded-xl text-[14px] font-bold uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2 cursor-pointer"
-                        style={{
-                            backgroundColor: '#C9920A',
-                            color: '#1C2416',
-                        }}
-                    >
-                        {loading ? (
-                            <>
-                                <span className="w-4 h-4 border-2 border-[#1C2416]/30 border-t-[#1C2416] rounded-full animate-spin" />
-                                Verifying…
-                            </>
-                        ) : (
-                            'Sign In'
-                        )}
-                    </button>
-                </form>
+                        <button
+                            type="submit"
+                            disabled={loading || !username.trim() || !password.trim()}
+                            className="btn-primary !mt-6 w-full"
+                        >
+                            {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Signing in…</> : 'Sign in'}
+                        </button>
+                    </form>
+                </div>
 
-                {/* Lock icon footer */}
-                <p className="mt-6 text-center text-[11px]" style={{ color: 'rgba(245,237,219,0.72)' }}>
-                    🔒 Secured • Zaitoon Admin v2
-                </p>
+                <Link href="/" className="mt-6 flex items-center justify-center gap-1.5 text-sm font-medium text-paper/60 hover:text-paper">
+                    <ArrowLeft className="h-4 w-4" /> Back to the website
+                </Link>
             </motion.div>
         </main>
     )

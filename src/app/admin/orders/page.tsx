@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Printer } from 'lucide-react'
 import AdminLayout from '@/components/admin/AdminLayout'
 import CreateOrderModal from '@/components/admin/CreateOrderModal'
-import { getAllOrders, updateOrderStatus, subscribeToAllOrders } from '@/lib/api/orders'
+import { getAllOrders, updateOrderStatus } from '@/lib/api/orders'
 import { formatPrice } from '@/lib/payment'
 import type { OrderStatus, Order } from '@/types'
 import { useAdminRole } from '@/hooks/useAdminRole'
@@ -33,6 +33,25 @@ function useIsMobile() {
     return mobile
 }
 
+// ── Notification helpers (no component state needed) ──
+function playNotification() {
+    try {
+        const audio = new Audio('/sounds/notify.mp3')
+        audio.volume = 0.6
+        audio.play().catch(() => { })
+    } catch { }
+}
+
+function flashTitle() {
+    const original = document.title
+    let i = 0
+    const flash = setInterval(() => {
+        document.title = i++ % 2 === 0 ? '🔔 NEW ORDER!' : original
+        if (i > 8) { clearInterval(flash); document.title = original }
+    }, 500)
+}
+
+
 // ── Toast type ────────────────────────────────────────────────
 interface ToastMsg { message: string; orderId: string }
 
@@ -51,55 +70,61 @@ export default function AdminOrdersPage() {
     const [selectedPrintOrder, setSelectedPrintOrder] = useState<Order | null>(null)
     const isMobile = useIsMobile()
 
-    // Keep a ref to latest orders so the realtime callback can merge correctly
+    // Latest orders, readable from the polling loop without re-subscribing
     const ordersRef = useRef<Order[]>([])
-    ordersRef.current = orders
+    useEffect(() => { ordersRef.current = orders }, [orders])
 
     // Refs for scrolling to order cards
     const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map())
 
-    // ── Initial load ─────────────────────────────────────────
+    // ── Load + poll for changes ──────────────────────────────
+    // Realtime would require the public key to read every order, so the board
+    // polls the authenticated admin API instead.
     useEffect(() => {
         if (roleLoading) return
+        let cancelled = false
+        let first = true
 
-        getAllOrders(1, PAGE_SIZE, branchId)
-            .then(({ orders: data, total }) => {
-                setOrders(data)
+        const sync = async () => {
+            try {
+                const { orders: latest, total } = await getAllOrders(1, PAGE_SIZE, branchId)
+                if (cancelled) return
+                const known = new Set(ordersRef.current.map(o => o.id))
+                const fresh = first ? [] : latest.filter(o => !known.has(o.id))
+                const latestById = new Map(latest.map(o => [o.id, o]))
+
+                setOrders(prev => {
+                    if (first) return latest
+                    const merged = prev.map(o => latestById.get(o.id) ?? o)
+                    return [...fresh, ...merged]
+                })
                 setTotalOrders(total)
-            })
-            .catch(err => {
-                console.error('Failed to load orders:', err)
-                setError('Failed to load orders. Check your connection.')
-            })
-            .finally(() => setLoading(false))
+                setError(null)
 
-        // ── Realtime subscription ─────────────────────────────
-        const channel = subscribeToAllOrders((changed) => {
-            setOrders(prev => {
-                const idx = prev.findIndex(o => o.id === changed.id)
-                if (idx >= 0) {
-                    const next = [...prev]
-                    next[idx] = { ...prev[idx], ...changed }
-                    return next
-                }
-                
-                // Do not notify admins, only employees get notifications
-                if (role === 'employee') {
+                // Owners watch the dashboard; only employees get the sound/toast
+                if (fresh.length > 0 && role === 'employee') {
                     playNotification()
                     flashTitle()
                     setToast({
-                        message: `New order from ${changed.customer_name} — Rs. ${changed.total?.toLocaleString()}`,
-                        orderId: changed.id,
+                        message: fresh.length === 1
+                            ? `New order from ${fresh[0].customer_name} — Rs. ${fresh[0].total?.toLocaleString()}`
+                            : `${fresh.length} new orders`,
+                        orderId: fresh[0].id,
                     })
                     setTimeout(() => setToast(null), 6000)
                 }
+            } catch (err) {
+                console.error('Failed to load orders:', err)
+                if (!cancelled) setError('Failed to load orders. Check your connection.')
+            } finally {
+                if (first && !cancelled) setLoading(false)
+                first = false
+            }
+        }
 
-                return [changed, ...prev]
-            })
-            setTotalOrders(t => t + 1)
-        }, branchId)
-
-        return () => { channel.unsubscribe() }
+        sync()
+        const timer = setInterval(sync, 10000)
+        return () => { cancelled = true; clearInterval(timer) }
     }, [branchId, roleLoading, role])
 
     // ── Load more ────────────────────────────────────────────
@@ -112,24 +137,6 @@ export default function AdminOrdersPage() {
             setPage(nextPage)
         } catch { /* silently fail */ }
         finally { setLoadingMore(false) }
-    }
-
-    // ── Notification helpers ──────────────────────────────────
-    function playNotification() {
-        try {
-            const audio = new Audio('/sounds/notify.mp3')
-            audio.volume = 0.6
-            audio.play().catch(() => { })
-        } catch { }
-    }
-
-    function flashTitle() {
-        const original = document.title
-        let i = 0
-        const flash = setInterval(() => {
-            document.title = i++ % 2 === 0 ? '🔔 NEW ORDER!' : original
-            if (i > 8) { clearInterval(flash); document.title = original }
-        }, 500)
     }
 
     function scrollToOrder(orderId: string) {
@@ -325,7 +332,7 @@ export default function AdminOrdersPage() {
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                             </span>
-                            Live updates
+                            Refreshes every 10s
                         </span>
                     </div>
 
@@ -552,7 +559,7 @@ export default function AdminOrdersPage() {
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.95, y: 10 }}
                                 transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-                                className="bg-white rounded-3xl shadow-xl max-w-md w-full overflow-hidden border border-[#E7E0D8] flex flex-col max-h-[85vh] my-4 print:hidden"
+                                className="bg-white rounded-3xl shadow-xl max-w-md w-full overflow-hidden border border-[#E7E0D8] flex flex-col max-h-[85vh] my-4 print:max-h-none print:overflow-visible print:shadow-none print:border-0"
                             >
                                 {/* Modal Header */}
                                 <div className="p-4 border-b border-[#E7E0D8] flex items-center justify-between bg-gradient-to-r from-[#1B4332] to-[#0A1F13] text-white shrink-0">
@@ -672,10 +679,9 @@ export default function AdminOrdersPage() {
                     )}
                 </AnimatePresence>
             </div>
-                <CreateOrderModal 
-                    isOpen={showCreateModal} 
-                    onClose={() => setShowCreateModal(false)} 
-                />
+            {showCreateModal && (
+                <CreateOrderModal isOpen onClose={() => setShowCreateModal(false)} />
+            )}
         </AdminLayout>
     )
 }

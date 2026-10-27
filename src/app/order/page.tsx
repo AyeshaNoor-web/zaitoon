@@ -2,78 +2,59 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { ArrowRight, PackageSearch } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
+import { useAuthStore } from '@/store/useAuthStore'
+import { useHydrated } from '@/store/hydration'
 
 export default function OrderIndexPage() {
     const router = useRouter()
+    const hydrated = useHydrated()
+    const { isAuthenticated } = useAuthStore()
     const [orderNumber, setOrderNumber] = useState('')
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        const trimmed = orderNumber.trim().toUpperCase()
-        if (!trimmed) return
-        // Strip leading # if user typed it
-        const clean = trimmed.startsWith('#') ? trimmed.slice(1) : trimmed
-        router.push(`/order/${clean}`)
+        const clean = orderNumber.trim().toUpperCase().replace(/^#/, '')
+        if (clean) router.push(`/order/${encodeURIComponent(clean)}`)
     }
 
     return (
         <>
             <Navbar />
-            <main
-                role="main"
-                className="min-h-screen bg-[#0D2015] pt-[110px] pb-24 px-4 flex items-center justify-center"
-            >
-                <div className="w-full max-w-sm text-center">
-                    {/* Icon */}
-                    <div className="w-20 h-20 rounded-2xl bg-[var(--orange-warm)]/20 flex items-center justify-center mx-auto mb-6">
-                        <span className="text-4xl">📦</span>
+            <main id="main" className="pt-nav flex min-h-screen items-center justify-center px-5 pb-24">
+                <div className="w-full max-w-md py-16 text-center">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] bg-olive-700 text-white">
+                        <PackageSearch className="h-7 w-7" />
                     </div>
-
-                    <h1 className="font-display text-[28px] font-[700] text-[var(--orange-pale)] mb-2">
-                        Track Your Order
-                    </h1>
-                    <p className="text-white/80 text-[14px] mb-8 leading-relaxed">
-                        Enter your order number to see live status updates.
-                        Your order number was shown after placing the order.
+                    <h1 className="mt-6 text-[clamp(2.5rem,6vw,3.5rem)]">Track your order</h1>
+                    <p className="mt-3 text-ink-2">
+                        Enter the order number from your confirmation. It starts with <span className="font-semibold text-ink">ZT-</span>.
                     </p>
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label htmlFor="order-number-input" className="sr-only">
-                                Order number
-                            </label>
-                            <input
-                                id="order-number-input"
-                                type="text"
-                                value={orderNumber}
-                                onChange={e => setOrderNumber(e.target.value)}
-                                placeholder="e.g. ZT-ON-1234"
-                                autoCapitalize="characters"
-                                className="w-full bg-white/10 border-[2px] border-white/20 rounded-xl px-5 py-4 text-white placeholder:text-white/60 text-[16px] font-mono tracking-wider text-center focus:outline-none focus:border-[var(--orange-warm)] transition-colors"
-                            />
-                        </div>
-                        <button
-                            type="submit"
-                            disabled={!orderNumber.trim()}
-                            className="w-full btn-primary py-4 text-[15px] disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                            Track Order →
+                    <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-3 sm:flex-row">
+                        <label htmlFor="order-number-input" className="sr-only">Order number</label>
+                        <input
+                            id="order-number-input"
+                            type="text"
+                            value={orderNumber}
+                            onChange={e => setOrderNumber(e.target.value)}
+                            placeholder="e.g. ZT-ON-1234"
+                            autoCapitalize="characters"
+                            autoComplete="off"
+                            className="field !h-14 flex-1 text-center font-medium uppercase tracking-wider sm:text-start"
+                        />
+                        <button type="submit" disabled={!orderNumber.trim()} className="btn-primary !h-14">
+                            Track <ArrowRight className="h-4 w-4 rtl:rotate-180" />
                         </button>
                     </form>
 
-                    <p className="mt-6 text-white/70 text-[13px]">
-                        Your order number starts with <span className="text-white/80 font-mono">ZT-ON-</span>
-                    </p>
-
-                    <div className="mt-12 pt-6 border-t border-white/10">
-                        <Link
-                            href="/menu"
-                            className="text-[var(--orange-pale)]/90 hover:text-[var(--orange-pale)] text-[14px] font-[600] transition-colors"
-                        >
-                            ← Back to Menu
-                        </Link>
-                    </div>
+                    {hydrated && isAuthenticated && (
+                        <p className="mt-8 text-sm text-ink-2">
+                            Signed in? Your recent orders are in{' '}
+                            <Link href="/account" className="font-semibold text-ink underline underline-offset-4">your account</Link>.
+                        </p>
+                    )}
                 </div>
             </main>
         </>

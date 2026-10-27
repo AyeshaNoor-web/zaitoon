@@ -1,76 +1,63 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { randomUUID } from 'crypto'
+import { adminSupabase } from '@/lib/supabase/admin'
+import { getSessionCustomerId, setCustomerSession, publicCustomer, normalizePhone } from '@/lib/server/customerSession'
 
-const adminSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
+/**
+ * POST /api/auth/lookup-customer  { phone, name }
+ *
+ * - Phone belongs to this device's verified customer → full profile.
+ * - Phone is new → account is created and this device becomes verified.
+ * - Phone belongs to someone else (or to the same person on a new device)
+ *   → { exists: true, verified: false } and nothing else. No name, no points.
+ */
 export async function POST(req: NextRequest) {
   try {
     const { phone, name } = await req.json()
-
-    if (!phone || typeof phone !== 'string') {
-      return NextResponse.json(
-        { error: 'Valid phone number required' },
-        { status: 400 }
-      )
+    const normalized = typeof phone === 'string' ? normalizePhone(phone) : null
+    if (!normalized) {
+      return NextResponse.json({ error: 'Valid Pakistani mobile number required' }, { status: 400 })
     }
 
-    let normalizedPhone = phone.trim().replace(/\D/g, '')
-    if (normalizedPhone.startsWith('0')) {
-      normalizedPhone = '+92' + normalizedPhone.slice(1)
-    } else if (normalizedPhone.startsWith('92')) {
-      normalizedPhone = '+' + normalizedPhone
-    } else if (!normalizedPhone.startsWith('+')) {
-      normalizedPhone = '+92' + normalizedPhone
-    }
-
-    // Try to find existing customer
-    const { data: existing } = await adminSupabase
+    const { data: existing, error: findError } = await adminSupabase
       .from('customers')
       .select('*')
-      .eq('phone', normalizedPhone)
-      .maybeSingle()  // Using maybeSingle to avoid errors if not found
+      .eq('phone', normalized)
+      .maybeSingle()
+    if (findError) throw findError
 
     if (existing) {
-      // Returning customer — update name if provided and different
-      if (name && name.trim() && existing.name !== name.trim()) {
-        await adminSupabase
-          .from('customers')
-          .update({ name: name.trim() })
-          .eq('id', existing.id)
-        existing.name = name.trim()
+      const sessionId = await getSessionCustomerId()
+      if (sessionId !== existing.id) {
+        return NextResponse.json({ verified: false, exists: true })
       }
-      return NextResponse.json({ customer: existing, isNew: false })
+      const cleanName = typeof name === 'string' ? name.trim().slice(0, 100) : ''
+      if (cleanName && cleanName !== existing.name) {
+        await adminSupabase.from('customers').update({ name: cleanName }).eq('id', existing.id)
+        existing.name = cleanName
+      }
+      return NextResponse.json({ verified: true, isNew: false, customer: publicCustomer(existing) })
     }
 
-    // New customer — create account silently
-    const referralCode = crypto.randomUUID().split('-')[0].toUpperCase()
-
-    const { data: newCustomer, error } = await adminSupabase
+    const { data: created, error } = await adminSupabase
       .from('customers')
       .insert({
-        phone:          normalizedPhone,
-        name:           name?.trim() || 'Customer',
-        referral_code:  referralCode,
+        phone: normalized,
+        name: (typeof name === 'string' && name.trim().slice(0, 100)) || 'Customer',
+        referral_code: randomUUID().split('-')[0].toUpperCase(),
         loyalty_points: 0,
-        tier:           'bronze',
-        total_orders:   0,
-        total_spent:    0,
+        tier: 'bronze',
+        total_orders: 0,
+        total_spent: 0,
       })
       .select()
       .single()
-
     if (error) throw error
 
-    return NextResponse.json({ customer: newCustomer, isNew: true })
-
-  } catch (err: unknown) {
+    await setCustomerSession(created.id)
+    return NextResponse.json({ verified: true, isNew: true, customer: publicCustomer(created) })
+  } catch (err) {
     console.error('Customer lookup error:', err)
-    return NextResponse.json(
-      { error: 'Something went wrong' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
 }

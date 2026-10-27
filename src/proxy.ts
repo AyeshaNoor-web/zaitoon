@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from 'next/server'
 const OWNER_ONLY = [
   '/admin/analytics',
   '/admin/settings',
+  '/admin/reviews',
+  '/admin/content',
 ]
 
 // Public admin routes (no session needed)

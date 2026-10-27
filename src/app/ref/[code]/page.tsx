@@ -1,116 +1,62 @@
 'use client'
 import { useState, useEffect, use } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-
-const supabase = createClient()
+import { Gift, Loader2 } from 'lucide-react'
 
 export default function ReferralPage({ params }: { params: Promise<{ code: string }> }) {
     const { code: rawCode } = use(params)
     const router = useRouter()
-    const [referrerName, setReferrerName] = useState('')
-    const [valid, setValid] = useState(false)
+    const [state, setState] = useState<{ status: 'checking' | 'valid' | 'invalid'; name?: string }>({ status: 'checking' })
 
     useEffect(() => {
         const code = rawCode.toUpperCase()
+        let timer: ReturnType<typeof setTimeout> | undefined
 
-        // 1. Validate the referral code exists
-        supabase
-            .from('customers')
-            .select('id, name')
-            .eq('referral_code', code)
-            .single()
-            .then(({ data: referrer }) => {
-                if (referrer) {
-                    // 2. Save to localStorage for use at checkout
-                    localStorage.setItem('zaitoon-referral-code', code)
-                    localStorage.setItem('zaitoon-referrer-name', referrer.name ?? '')
-                    setReferrerName(referrer.name ?? 'a friend')
-                    setValid(true)
-                } else {
-                    // Invalid code — redirect silently
-                    router.replace('/')
-                }
+        fetch(`/api/referral/${encodeURIComponent(code)}`)
+            .then(res => res.json())
+            .then(({ valid, name }: { valid: boolean; name: string | null }) => {
+                if (!valid) { setState({ status: 'invalid' }); return }
+                localStorage.setItem('zaitoon-referral-code', code)
+                localStorage.setItem('zaitoon-referrer-name', name ?? '')
+                setState({ status: 'valid', name: name || 'A friend' })
+                timer = setTimeout(() => router.push('/menu'), 3500)
             })
+            .catch(() => setState({ status: 'invalid' }))
 
-        // 3. Redirect to menu after 3 seconds
-        const t = setTimeout(() => router.push('/menu'), 3000)
-        return () => clearTimeout(t)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [rawCode])
-
-    if (!valid) return null
+        return () => { if (timer) clearTimeout(timer) }
+    }, [rawCode, router])
 
     return (
-        <main style={{
-            minHeight: '100vh',
-            backgroundColor: '#1C2416',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexDirection: 'column',
-            gap: 24,
-            padding: 24,
-        }}>
-            <Image
-                src="/logo-en.png"
-                alt="Zaitoon"
-                width={160}
-                height={64}
-                priority
-                style={{ height: 64, width: 'auto', mixBlendMode: 'screen' }}
-            />
+        <main id="main" className="surface-dark grain flex min-h-[100svh] flex-col items-center justify-center px-6 text-center">
+            <Image src="/logo-light.png" alt="Zaitoon" width={583} height={220} priority className="h-12 w-auto" />
 
-            <h1 style={{
-                fontFamily: 'Playfair Display, serif',
-                fontSize: 36,
-                color: '#FCD34D',
-                textAlign: 'center',
-                margin: 0,
-            }}>
-                You were referred by {referrerName}! 🌿
-            </h1>
+            {state.status === 'checking' && (
+                <Loader2 className="mt-14 h-6 w-6 animate-spin text-paper/60" aria-label="Checking your invite" />
+            )}
 
-            <p style={{
-                color: 'rgba(253,248,240,0.7)',
-                fontSize: 18,
-                textAlign: 'center',
-                maxWidth: 420,
-                margin: 0,
-                lineHeight: 1.6,
-            }}>
-                Place your first order and both of you earn{' '}
-                <strong style={{ color: '#F59E0B' }}>50 loyalty points</strong> each!
-            </p>
+            {state.status === 'valid' && (
+                <div className="mt-12 max-w-lg">
+                    <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-ember-500 text-white">
+                        <Gift className="h-6 w-6" />
+                    </span>
+                    <h1 className="mt-6 text-paper">{state.name} invited you to Zaitoon.</h1>
+                    <p className="mx-auto mt-5 max-w-md text-lg text-paper/75">
+                        Place your first order and you&apos;ll both get <strong className="text-paper">50 loyalty points</strong>.
+                    </p>
+                    <Link href="/menu" className="btn-primary mt-9 h-14 px-8 text-base">See the menu</Link>
+                    <p className="mt-4 text-sm text-paper/50">Taking you there in a moment…</p>
+                </div>
+            )}
 
-            {/* Animated dots */}
-            <div style={{ display: 'flex', gap: 8 }}>
-                {[0, 0.2, 0.4].map((delay, i) => (
-                    <span
-                        key={i}
-                        style={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: '50%',
-                            backgroundColor: '#F59E0B',
-                            display: 'inline-block',
-                            animation: `bounce 1s ease-in-out ${delay}s infinite alternate`,
-                        }}
-                    />
-                ))}
-            </div>
-
-            <p style={{ color: 'rgba(253,248,240,0.8)', fontSize: 14, margin: 0 }}>
-                Redirecting to menu…
-            </p>
-
-            <style>{`
-                @keyframes bounce {
-                    from { transform: translateY(0); opacity: 0.4; }
-                    to   { transform: translateY(-8px); opacity: 1; }
-                }
-            `}</style>
+            {state.status === 'invalid' && (
+                <div className="mt-12 max-w-md">
+                    <h1 className="text-paper">This invite link isn&apos;t valid.</h1>
+                    <p className="mt-4 text-paper/70">It may have been mistyped. You can still order and start earning points.</p>
+                    <Link href="/menu" className="btn-primary mt-8">Go to the menu</Link>
+                </div>
+            )}
         </main>
     )
 }

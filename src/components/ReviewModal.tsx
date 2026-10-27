@@ -1,24 +1,19 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Star } from 'lucide-react'
+import { X, Star, Check, Loader2 } from 'lucide-react'
 import { submitReview } from '@/lib/api/reviews'
 
 interface ReviewModalProps {
     isOpen: boolean
     onClose: () => void
     orderId: string
-    customerId: string
     orderNumber: string
 }
 
-export default function ReviewModal({
-    isOpen,
-    onClose,
-    orderId,
-    customerId,
-    orderNumber,
-}: ReviewModalProps) {
+const LABELS = ['', 'Not great', 'Could be better', 'Good', 'Really good', 'Outstanding']
+
+export default function ReviewModal({ isOpen, onClose, orderId, orderNumber }: ReviewModalProps) {
     const [rating, setRating] = useState(0)
     const [hovered, setHovered] = useState(0)
     const [comment, setComment] = useState('')
@@ -26,169 +21,120 @@ export default function ReviewModal({
     const [success, setSuccess] = useState(false)
     const [error, setError] = useState('')
 
+    const close = () => {
+        onClose()
+        setRating(0); setHovered(0); setComment(''); setSuccess(false); setError('')
+    }
+
+    useEffect(() => {
+        if (!isOpen) return
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+        document.addEventListener('keydown', onKey)
+        return () => document.removeEventListener('keydown', onKey)
+    }, [isOpen, onClose])
+
     const handleSubmit = async () => {
-        if (rating === 0) { setError('Please select a star rating.'); return }
+        if (rating === 0) { setError('Choose a star rating first.'); return }
         setSubmitting(true)
         setError('')
         try {
-            await submitReview({ customerId, orderId, rating, comment })
+            await submitReview({ orderId, rating, comment })
             setSuccess(true)
-            setTimeout(() => { onClose(); resetState() }, 2200)
+            setTimeout(close, 2000)
         } catch (e) {
-            const error = e as Error
-            setError(error.message ?? 'Something went wrong. Please try again.')
+            setError((e as Error).message || 'Something went wrong. Please try again.')
         } finally {
             setSubmitting(false)
         }
     }
 
-    const resetState = () => {
-        setRating(0); setHovered(0); setComment('')
-        setSuccess(false); setError('')
-    }
-
-    if (!isOpen) return null
+    const shown = hovered || rating
 
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-                    {/* Backdrop */}
+                <div className="fixed inset-0 z-[120] flex items-end justify-center sm:items-center sm:p-6">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        onClick={() => { onClose(); resetState() }}
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        onClick={close}
+                        className="absolute inset-0 bg-olive-950/55 backdrop-blur-sm"
                     />
 
-                    {/* Card */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.88, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.88, y: 20 }}
-                        transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-                        className="relative w-full max-w-sm bg-[#FFFDF9] rounded-3xl p-7 shadow-2xl z-10 overflow-hidden"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="review-title"
+                        initial={{ opacity: 0, y: 40 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 40 }}
+                        transition={{ type: 'spring', damping: 30, stiffness: 320 }}
+                        className="relative w-full overflow-hidden rounded-t-[28px] bg-paper p-7 shadow-[var(--shadow-float)] sm:max-w-[420px] sm:rounded-[28px]"
                     >
-                        {/* Close */}
                         {!success && (
                             <button
-                                onClick={() => { onClose(); resetState() }}
-                                className="absolute top-4 right-4 p-2 rounded-full hover:bg-[var(--linen)] text-[var(--stone)] transition-colors"
+                                onClick={close}
                                 aria-label="Close"
+                                className="absolute end-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full border border-line bg-surface text-ink hover:border-line-strong"
                             >
-                                <X className="w-5 h-5" />
+                                <X className="h-4 w-4" />
                             </button>
                         )}
 
-                        <AnimatePresence mode="wait">
-                            {success ? (
-                                /* ── Success state ── */
-                                <motion.div
-                                    key="success"
-                                    initial={{ scale: 0.7, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    className="flex flex-col items-center text-center py-6 gap-4"
-                                >
-                                    <div className="text-6xl">🌟</div>
-                                    <h2 className="font-display text-[26px] font-bold text-[var(--charcoal)]">
-                                        Thanks for the review!
-                                    </h2>
-                                    <p className="text-[var(--stone)] text-[15px] leading-snug">
-                                        Your feedback has been received.
-                                    </p>
-                                    <div className="flex gap-1 mt-1">
-                                        {[1, 2, 3, 4, 5].map(s => (
-                                            <Star
-                                                key={s}
-                                                className="w-6 h-6"
-                                                fill={s <= rating ? '#C9920A' : 'none'}
-                                                stroke={s <= rating ? '#C9920A' : '#C9920A'}
-                                            />
-                                        ))}
-                                    </div>
-                                </motion.div>
-                            ) : (
-                                /* ── Form state ── */
-                                <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                                    {/* Header */}
-                                    <div className="text-center mb-5">
-                                        <p className="text-[12px] font-[600] text-[var(--stone)] uppercase tracking-[0.08em] mb-1">
-                                            Order #{orderNumber}
-                                        </p>
-                                        <h2 className="font-display text-[24px] font-bold text-[var(--charcoal)] leading-tight">
-                                            How was your meal?
-                                        </h2>
-                                        <p className="text-[var(--stone)] text-[13px] mt-1">
-                                            We value your feedback ⭐
-                                        </p>
-                                    </div>
+                        {success ? (
+                            <div className="flex flex-col items-center py-6 text-center">
+                                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-olive-700 text-white">
+                                    <Check className="h-8 w-8" strokeWidth={2.5} />
+                                </span>
+                                <h2 id="review-title" className="mt-5 text-2xl">Thanks for the review</h2>
+                                <p className="mt-1.5 text-ink-2">The kitchen reads every one.</p>
+                            </div>
+                        ) : (
+                            <>
+                                <p className="text-sm font-medium text-ink-2">Order #{orderNumber}</p>
+                                <h2 id="review-title" className="mt-1 text-[1.75rem]">How was your meal?</h2>
 
-                                    {/* Stars */}
-                                    <div
-                                        className="flex items-center justify-center gap-2 mb-5"
-                                        role="radiogroup"
-                                        aria-label="Rating"
-                                    >
-                                        {[1, 2, 3, 4, 5].map(s => (
-                                            <button
-                                                key={s}
-                                                type="button"
-                                                role="radio"
-                                                aria-checked={rating === s}
-                                                aria-label={`${s} star${s !== 1 ? 's' : ''}`}
-                                                onClick={() => { setRating(s); setError('') }}
-                                                onMouseEnter={() => setHovered(s)}
-                                                onMouseLeave={() => setHovered(0)}
-                                                className="transition-transform hover:scale-110 active:scale-95"
-                                            >
-                                                <Star
-                                                    className="w-9 h-9 transition-colors"
-                                                    fill={(hovered || rating) >= s ? '#C9920A' : 'none'}
-                                                    stroke="#C9920A"
-                                                    strokeWidth={1.5}
-                                                />
-                                            </button>
-                                        ))}
-                                    </div>
+                                <div role="radiogroup" aria-label="Rating" className="mt-6 flex items-center gap-1.5">
+                                    {[1, 2, 3, 4, 5].map(s => (
+                                        <button
+                                            key={s}
+                                            type="button"
+                                            role="radio"
+                                            aria-checked={rating === s}
+                                            aria-label={`${s} star${s === 1 ? '' : 's'}`}
+                                            onClick={() => { setRating(s); setError('') }}
+                                            onMouseEnter={() => setHovered(s)}
+                                            onMouseLeave={() => setHovered(0)}
+                                            className="rounded-lg p-1 transition-transform hover:scale-110 active:scale-95"
+                                        >
+                                            <Star className={`h-9 w-9 transition-colors ${shown >= s ? 'fill-saffron text-saffron' : 'text-line-strong'}`} strokeWidth={1.5} />
+                                        </button>
+                                    ))}
+                                    <span className="ms-2 text-sm font-medium text-ink-2">{LABELS[shown]}</span>
+                                </div>
 
-                                    {/* Comment */}
-                                    <div className="relative mb-4">
-                                        <textarea
-                                            rows={3}
-                                            maxLength={300}
-                                            placeholder="Tell us about your experience (optional)&hellip;"
-                                            value={comment}
-                                            onChange={e => setComment(e.target.value)}
-                                            className="w-full px-4 py-3 bg-white border-[2px] border-[var(--linen)] rounded-2xl text-[14px] text-[var(--charcoal)] placeholder:text-[var(--stone)] focus:outline-none focus:border-[var(--green-base)] transition-colors resize-none"
-                                        />
-                                        <span className="absolute bottom-3 right-3 text-[11px] text-[var(--stone)]">
-                                            {comment.length}/300
-                                        </span>
-                                    </div>
+                                <div className="relative mt-5">
+                                    <label htmlFor="review-comment" className="sr-only">Comment</label>
+                                    <textarea
+                                        id="review-comment"
+                                        rows={3}
+                                        maxLength={300}
+                                        placeholder="What did you order? What stood out? (optional)"
+                                        value={comment}
+                                        onChange={e => setComment(e.target.value)}
+                                        className="field resize-none pb-7"
+                                    />
+                                    <span className="tabular absolute bottom-2.5 end-3 text-xs text-ink-3">{comment.length}/300</span>
+                                </div>
 
-                                    {/* Error */}
-                                    {error && (
-                                        <p className="text-red-500 text-[13px] text-center mb-3 font-[500]">
-                                            {error}
-                                        </p>
-                                    )}
+                                {error && <p role="alert" className="mt-3 text-sm text-danger">{error}</p>}
 
-                                    {/* Submit */}
-                                    <button
-                                        onClick={handleSubmit}
-                                        disabled={submitting}
-                                        className="w-full py-4 rounded-2xl bg-[var(--orange-warm)] text-[var(--green-darkest)] font-bold text-[15px] hover:bg-[var(--orange-bright)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-                                    >
-                                        {submitting ? (
-                                            <span className="w-5 h-5 border-2 border-[var(--green-darkest)]/30 border-t-[var(--green-darkest)] rounded-full animate-spin" />
-                                        ) : (
-                                            <>⭐ Submit Review</>
-                                        )}
-                                    </button>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                                <button onClick={handleSubmit} disabled={submitting} className="btn-primary mt-5 w-full">
+                                    {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending…</> : 'Submit review'}
+                                </button>
+                            </>
+                        )}
                     </motion.div>
                 </div>
             )}

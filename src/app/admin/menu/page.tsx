@@ -123,11 +123,11 @@ export default function AdminMenuPage() {
                 const created = await createMenuItem({ ...payload, is_available: true, rating: 4.5 })
                 // Save variants — errors are surfaced, not swallowed
                 await upsertItemVariants(created.id, variants)
-                toast.success('Item added ✓')
+                toast.success('Item added')
             } else if (editing) {
                 await updateMenuItem(editing.id, payload)
                 await upsertItemVariants(editing.id, variants)
-                toast.success('Item saved ✓')
+                toast.success('Item saved')
             }
             setEditing(null)
             // Reload from DB so UI reflects latest saved data
@@ -141,16 +141,27 @@ export default function AdminMenuPage() {
 
     const confirmDelete = async () => {
         if (!delTarget) return
-        setItems(prev => prev.filter(i => i.id !== delTarget.id))
-        await deleteMenuItem(delTarget.id)
-        toast.success(`Deleted "${delTarget.name}"`)
+        const target = delTarget
         setDelTarget(null)
+        setItems(prev => prev.filter(i => i.id !== target.id))
+        try {
+            await deleteMenuItem(target.id)
+            toast.success(`Deleted "${target.name}"`)
+        } catch (err) {
+            toast.error(`Couldn't delete "${target.name}": ${(err as Error).message ?? 'unknown error'}`)
+            reload()
+        }
     }
 
     const toggleAvailability = async (id: string, current: boolean) => {
         const next = !current
         setItems(prev => prev.map(i => i.id === id ? { ...i, is_available: next } : i))
-        await updateMenuItemAvailability(id, next).catch(console.error)
+        try {
+            await updateMenuItemAvailability(id, next)
+        } catch {
+            setItems(prev => prev.map(i => i.id === id ? { ...i, is_available: current } : i))
+            toast.error("Couldn't update availability. Please try again.")
+        }
     }
 
     // ── Variant helpers ───────────────────────────────────────────────────────
@@ -167,22 +178,30 @@ export default function AdminMenuPage() {
     const openNewCat = () => { setEditingCat(null); resetCat({ label: '', icon: '' }); setShowCatDialog(true) }
     const openEditCat = (cat: Category) => { setEditingCat(cat); resetCat({ label: cat.label, icon: cat.icon ?? '' }); setShowCatDialog(true) }
     const onSaveCat = async (data: CatForm) => {
-        if (editingCat) {
-            await updateCategory(editingCat.id, { label: data.label, icon: data.icon })
-            toast.success('Category updated ✓')
-        } else {
-            await createCategory({ label: data.label, icon: data.icon, display_order: categories.length })
-            toast.success('Category created ✓')
+        try {
+            if (editingCat) {
+                await updateCategory(editingCat.id, { label: data.label, icon: data.icon })
+                toast.success('Category updated')
+            } else {
+                await createCategory({ label: data.label, icon: data.icon, display_order: categories.length })
+                toast.success('Category created')
+            }
+            setShowCatDialog(false)
+            reload()
+        } catch (err) {
+            toast.error(`Couldn't save category: ${(err as Error).message ?? 'unknown error'}`)
         }
-        setShowCatDialog(false)
-        reload()
     }
     const confirmDeleteCat = async () => {
         if (!delCatTarget) return
-        await deleteCategory(delCatTarget.id)
-        toast.success(`Category "${delCatTarget.label}" removed`)
-        setDelCatTarget(null)
-        reload()
+        try {
+            await deleteCategory(delCatTarget.id)
+            toast.success(`Category "${delCatTarget.label}" removed`)
+            setDelCatTarget(null)
+            reload()
+        } catch (err) {
+            toast.error(`Couldn't remove category: ${(err as Error).message ?? 'unknown error'}`)
+        }
     }
 
     const moveCategory = async (cat: Category, index: number, direction: number) => {

@@ -5,6 +5,7 @@ import { Check, CheckCircle2, XCircle, Star, Search } from 'lucide-react'
 import AdminLayout from '@/components/admin/AdminLayout'
 import { getAllReviews, approveReview, rejectReview } from '@/lib/api/reviews'
 import type { AdminReview } from '@/lib/api/reviews'
+import { toast } from 'sonner'
 
 
 
@@ -50,13 +51,22 @@ export default function AdminReviewsPage() {
     })
 
     const handleApprove = async (id: string) => {
-        await approveReview(id)
-        setReviews(prev => prev.map(r => r.id === id ? { ...r, is_approved: true } : r))
+        try {
+            await approveReview(id)
+            setReviews(prev => prev.map(r => r.id === id ? { ...r, is_approved: true } : r))
+        } catch (err) {
+            toast.error(`Couldn't approve review: ${(err as Error).message}`)
+        }
     }
 
     const handleReject = async (id: string) => {
-        await rejectReview(id)
-        setReviews(prev => prev.filter(r => r.id !== id))
+        if (!window.confirm('Delete this review permanently?')) return
+        try {
+            await rejectReview(id)
+            setReviews(prev => prev.filter(r => r.id !== id))
+        } catch (err) {
+            toast.error(`Couldn't delete review: ${(err as Error).message}`)
+        }
     }
 
     const pending = reviews.filter(r => !r.is_approved).length

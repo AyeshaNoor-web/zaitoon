@@ -1,106 +1,54 @@
-import { createClient } from '@/lib/supabase/client'
-import type { CartItem, Order } from '@/types'
+import { adminCall } from '@/lib/api/adminClient'
+import type { CartItem } from '@/store/useCartStore'
+import type { Order } from '@/types'
 
-const supabase = createClient()
+type OrderLine = Pick<CartItem, 'menuItemId' | 'variantId' | 'size' | 'quantity'>
 
-export interface CreateOrderPayload {
-    customerName: string
-    customerPhone: string
-    customerId?: string
-    branchId: string
+// ── Customer ─────────────────────────────────────────────────────────────────
+
+export interface PlaceOrderPayload {
+    name: string
+    phone: string
     orderType: 'delivery' | 'takeaway' | 'dine-in'
-    deliveryAddress?: string
-    deliveryLat?: number
-    deliveryLng?: number
-    distanceKm?: number
-    items: CartItem[]
-    subtotal: number
-    deliveryFee: number
-    loyaltyDiscount: number
-    tierDiscount?: number
-    total: number
+    branchId?: string
+    coords?: { lat: number; lng: number }
+    address?: string
+    items: OrderLine[]
     paymentMethod: 'jazzcash' | 'cod'
     notes?: string
+    redeemPoints?: number
+    referralCode?: string | null
 }
 
-export async function createOrder(payload: CreateOrderPayload): Promise<Order> {
-    // 1. Create the order record
-    const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-            customer_name: payload.customerName,
-            customer_phone: payload.customerPhone,
-            customer_id: payload.customerId ?? null,
-            branch_id: payload.branchId,
-            order_type: payload.orderType,
-            delivery_address: payload.deliveryAddress ?? null,
-            delivery_lat: payload.deliveryLat ?? null,
-            delivery_lng: payload.deliveryLng ?? null,
-            distance_km: payload.distanceKm ?? null,
-            subtotal: payload.subtotal,
-            delivery_fee: payload.deliveryFee,
-            loyalty_discount: payload.loyaltyDiscount,
-            tier_discount: payload.tierDiscount ?? 0,
-            total: payload.total,
-            payment_method: payload.paymentMethod,
-            notes: payload.notes ?? null,
-            status: 'pending',
-            payment_status: 'pending',
-        })
-        .select()
-        .single()
-
-    if (orderError) throw orderError
-
-    // 2. Insert order items
-    const orderItems = payload.items.map(item => ({
-        order_id: order.id,
-        menu_item_id: item.menuItemId,
-        name: item.name,
-        size: item.size ?? null,
-        quantity: item.quantity,
-        unit_price: item.unitPrice,
-        subtotal: item.subtotal,
-    }))
-
-    const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems)
-
-    if (itemsError) throw itemsError
-
-    return order as Order
+export interface PlacedOrder {
+    orderNumber: string
+    total: number
+    pointsEarned: number
+    whatsappURL: string
+    verified: boolean
 }
 
-export async function getOrderById(orderId: string): Promise<Order | null> {
-    const { data, error } = await supabase
-        .from('orders')
-        .select(`
-      *,
-      branches (name, address, phone, whatsapp),
-      order_items (*)
-    `)
-        .eq('id', orderId)
-        .single()
-
-    if (error) throw error
-    return data as Order | null
+/** Place an order. Prices, fees and discounts are worked out on the server. */
+export async function placeOrder(payload: PlaceOrderPayload): Promise<PlacedOrder> {
+    const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    })
+    const body = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(body.error ?? 'We could not place your order. Please try again.')
+    return body as PlacedOrder
 }
 
-export async function getOrderByNumber(orderNumber: string): Promise<Order | null> {
-    const { data, error } = await supabase
-        .from('orders')
-        .select(`
-      *,
-      branches (name, address, phone, whatsapp),
-      order_items (*)
-    `)
-        .eq('order_number', orderNumber)
-        .single()
-
-    if (error) throw error
-    return data as Order | null
+/** Tracking lookup. Personal details are only included for the device that placed the order. */
+export async function getOrderByNumber(orderNumber: string): Promise<{ order: Order; isOwner: boolean } | null> {
+    const res = await fetch(`/api/orders/${encodeURIComponent(orderNumber)}`, { cache: 'no-store' })
+    if (res.status === 404) return null
+    if (!res.ok) throw new Error('Could not load the order')
+    return res.json()
 }
+
+// ── Admin ────────────────────────────────────────────────────────────────────
 
 export async function updateOrderStatus(orderId: string, status: string) {
     const res = await fetch(`/api/admin/orders/${orderId}/status`, {
@@ -116,57 +64,15 @@ export async function updateOrderStatus(orderId: string, status: string) {
     }
 }
 
-// Admin — get all orders with pagination
-export async function getAllOrders(page = 1, limit = 30, branchId?: string | null): Promise<{ orders: Order[]; total: number }> {
-    const from = (page - 1) * limit
-    
-    let query = supabase
-        .from('orders')
-        .select(`
-      *,
-      branches (name),
-      order_items (name, quantity, unit_price)
-    `, { count: 'exact' })
+export const getAllOrders = (page = 1, limit = 30, branchId?: string | null) =>
+    adminCall<{ orders: Order[]; total: number }>('orders.list', page, limit, branchId ?? null)
 
-    if (branchId) {
-        query = query.eq('branch_id', branchId)
-    }
-
-    const { data, error, count } = await query
-        .order('created_at', { ascending: false })
-        .range(from, from + limit - 1)
-
-    if (error) throw error
-    return { orders: (data as Order[]) ?? [], total: count ?? 0 }
-}
-
-// Realtime subscription for order status
-export function subscribeToOrder(orderId: string, callback: (order: Order) => void) {
-    return supabase
-        .channel(`order-${orderId}`)
-        .on(
-            'postgres_changes',
-            { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${orderId}` },
-            payload => callback(payload.new as Order)
-        )
-        .subscribe()
-}
-
-// Realtime subscription for admin (new orders + status updates)
-export function subscribeToAllOrders(callback: (order: Order) => void, branchId?: string | null) {
-    const filter = branchId ? `branch_id=eq.${branchId}` : undefined;
-
-    return supabase
-        .channel('all-orders')
-        .on(
-            'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'orders', filter },
-            payload => callback(payload.new as Order)
-        )
-        .on(
-            'postgres_changes',
-            { event: 'UPDATE', schema: 'public', table: 'orders', filter },
-            payload => callback(payload.new as Order)
-        )
-        .subscribe()
-}
+/** Counter / phone orders entered by staff. Items are re-priced on the server. */
+export const createCounterOrder = (input: {
+    customerName?: string
+    customerPhone?: string
+    branchId: string
+    orderType: 'delivery' | 'takeaway' | 'dine-in'
+    items: OrderLine[]
+    notes?: string
+}) => adminCall<Order>('orders.create', input)

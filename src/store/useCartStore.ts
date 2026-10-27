@@ -103,6 +103,7 @@ export const useCartStore = create<CartStore>()(
         }),
         {
             name: 'zaitoon-cart',
+      skipHydration: true,
             // Only persist items and branchId — not computed functions
             partialize: (state: CartStore) => ({
                 items: state.items,
