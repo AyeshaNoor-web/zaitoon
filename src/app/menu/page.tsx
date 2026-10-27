@@ -289,6 +289,7 @@ export default function MenuPage() {
                 if (items.length === 0) return null;
                 const isBBQ = /bbq/i.test(cat.label);
                 const isDips = /dip|sauce/i.test(cat.label);
+                const compact = !items.some((i) => i.image_url);
                 const accompaniment = items.find((i) => i.accompaniments)?.accompaniments ?? content["bbq_accompaniments"] ?? BBQ_ACCOMPANIMENTS;
                 return (
                   <section
@@ -312,7 +313,7 @@ export default function MenuPage() {
                       )}
                     </header>
 
-                    <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <ul className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ${compact ? 'gap-4' : 'gap-5 xl:grid-cols-4'}`}>
                       {items.map((item, i) => (
                         <motion.li
                           key={item.id}
@@ -321,7 +322,7 @@ export default function MenuPage() {
                           viewport={{ once: true, margin: "-40px" }}
                           transition={{ duration: 0.45, delay: Math.min(i, 6) * 0.04, ease: [0.16, 1, 0.3, 1] }}
                         >
-                          <MenuItemCard item={item} />
+                          <MenuItemCard item={item} compact={compact} />
                         </motion.li>
                       ))}
                     </ul>

@@ -48,7 +48,7 @@ export default function ReviewsWall({ reviews }: { reviews: AdminReview[] }) {
                                         <Star key={s} className={`h-4 w-4 ${s <= review.rating ? 'fill-saffron text-saffron' : 'text-line-strong'}`} />
                                     ))}
                                 </div>
-                                <blockquote className="mt-4 font-display text-[1.1875rem] leading-snug text-ink">
+                                <blockquote className="mt-4 font-accent text-[1.375rem] leading-[1.3] text-ink">
                                     &ldquo;{review.comment}&rdquo;
                                 </blockquote>
                                 <div className="mt-5 flex items-center gap-3">

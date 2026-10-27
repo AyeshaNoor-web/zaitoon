@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Fraunces, Figtree, Noto_Sans_Arabic } from 'next/font/google'
+import { Bricolage_Grotesque, Instrument_Serif, Figtree, Noto_Sans_Arabic } from 'next/font/google'
 import { Toaster } from 'sonner'
 import { Analytics } from '@vercel/analytics/next'
 import RestaurantSchema from '@/components/seo/RestaurantSchema'
@@ -7,10 +7,18 @@ import { ClientLocalizationWrapper } from '@/components/layout/ClientLocalizatio
 import { StoreHydrator } from '@/store/hydration'
 import './globals.css'
 
-const fraunces = Fraunces({
+const bricolage = Bricolage_Grotesque({
   subsets: ['latin'],
-  axes: ['opsz', 'SOFT'],
-  variable: '--font-fraunces',
+  axes: ['opsz', 'wdth'],
+  variable: '--font-bricolage',
+  display: 'swap',
+})
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ['latin'],
+  weight: '400',
+  style: ['normal', 'italic'],
+  variable: '--font-instrument-serif',
   display: 'swap',
 })
 
@@ -68,7 +76,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${figtree.variable} ${notoUrdu.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${bricolage.variable} ${instrumentSerif.variable} ${figtree.variable} ${notoUrdu.variable}`} suppressHydrationWarning>
       <head>
         <RestaurantSchema />
       </head>

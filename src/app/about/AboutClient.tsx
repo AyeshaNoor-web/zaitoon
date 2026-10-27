@@ -94,7 +94,7 @@ export default function AboutClient({ cms }: { cms: Record<string, string> }) {
             <h2>A love letter to Lebanese cooking.</h2>
           </motion.div>
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={reveal} className="lg:col-span-7">
-            <blockquote className="border-s-2 border-ember-500 ps-6 font-display text-[clamp(1.375rem,2.4vw,1.875rem)] italic leading-snug text-ink">
+            <blockquote className="border-s-2 border-ember-500 ps-6 font-accent text-[clamp(1.625rem,2.8vw,2.25rem)] italic leading-[1.2] text-ink">
               &ldquo;We never cut corners on marinade times or charcoal. When you taste our grill, you&apos;re tasting patience.&rdquo;
             </blockquote>
             <p className="mt-8 text-[1.0625rem] leading-relaxed text-ink-2">{story}</p>
@@ -116,7 +116,7 @@ export default function AboutClient({ cms }: { cms: Record<string, string> }) {
                   transition={{ duration: 0.6, delay: i * 0.08 }}
                   className="grid gap-3 py-8 md:grid-cols-12 md:gap-8"
                 >
-                  <span className="font-display text-4xl font-light text-ember-100 md:col-span-2">0{i + 1}</span>
+                  <span className="font-accent text-5xl italic text-ember-100 md:col-span-2">0{i + 1}</span>
                   <h3 className="text-2xl text-paper md:col-span-4">{v.title}</h3>
                   <p className="leading-relaxed text-paper/70 md:col-span-6">{v.desc}</p>
                 </motion.li>

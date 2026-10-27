@@ -25,6 +25,9 @@ import { translations } from '@/lib/translations'
 import { SITE, waLink } from '@/lib/site'
 import type { Branch, MenuItem } from '@/types'
 
+// Ask for a delivery location once per visit, not on every return to the home page
+const PROMPT_KEY = 'zt-location-prompted'
+
 const EASE = [0.16, 1, 0.3, 1] as const
 
 const reveal: Variants = {
@@ -56,9 +59,15 @@ export default function HomePage() {
   const [showLocationModal, setShowLocationModal] = useState(false)
   const railRef = useRef<HTMLUListElement>(null)
 
+  const closeLocationModal = () => {
+    setShowLocationModal(false)
+    try { sessionStorage.setItem(PROMPT_KEY, '1') } catch {}
+  }
+
   // First visit: prompt for a delivery location shortly after the page settles
   useEffect(() => {
     if (!hydrated || locationSet) return
+    try { if (sessionStorage.getItem(PROMPT_KEY)) return } catch {}
     const timer = setTimeout(() => setShowLocationModal(true), 1400)
     return () => clearTimeout(timer)
   }, [hydrated, locationSet])
@@ -99,7 +108,7 @@ export default function HomePage() {
   return (
     <>
       {showLocationModal && (
-        <LocationModal onClose={() => setShowLocationModal(false)} allowBackdropClose={locationSet} />
+        <LocationModal onClose={closeLocationModal} allowBackdropClose={locationSet} />
       )}
       <Navbar />
 
@@ -206,7 +215,7 @@ export default function HomePage() {
                   transition={{ duration: 0.6, delay: i * 0.08, ease: EASE }}
                   className="bg-surface p-7 lg:p-9"
                 >
-                  <span className="font-display text-5xl font-light leading-none text-ember-500">{item.num}</span>
+                  <span className="font-accent text-6xl italic leading-none text-ember-500">{item.num}</span>
                   <h3 className="mt-6 text-xl">{item.label}</h3>
                   <p className="mt-2 leading-relaxed text-ink-2">{item.desc}</p>
                 </motion.li>
